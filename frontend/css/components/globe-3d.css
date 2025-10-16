@@ -1,0 +1,527 @@
+/* Globo 3D con Edificios Épico - Match Property */
+
+.globe-container {
+  position: relative;
+  width: 100%;
+  min-height: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  perspective: 1500px;
+  overflow: hidden;
+  padding: 20px 20px 40px 20px;
+  /* Fondo transparente */
+  background: transparent;
+}
+
+/* Sin destellos */
+
+/* Título arriba del globo - BIEN PEGADO AL INICIO */
+.globe-title {
+  font-size: 2.5rem;
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 0;
+  padding-top: 0;
+  z-index: 10;
+  line-height: 1.3;
+}
+
+.title-porque {
+  font-weight: 400;
+  color: var(--azul-claro);
+  font-size: 2.5rem;
+  text-transform: uppercase;
+  text-shadow: 
+    -1px -1px 0 white,
+    1px -1px 0 white,
+    -1px 1px 0 white,
+    1px 1px 0 white,
+    0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.title-match {
+  font-weight: 700;
+  color: var(--azul-corporativo);
+  font-size: 3rem;
+  text-transform: uppercase;
+  text-shadow: 
+    -1px -1px 0 white,
+    1px -1px 0 white,
+    -1px 1px 0 white,
+    1px 1px 0 white,
+    0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.title-property {
+  font-weight: 400;
+  color: var(--dorado);
+  font-size: 3rem;
+}
+
+/* Contenedor del globo */
+.globe-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Canvas Three.js - Globo 3D REAL */
+.globe-canvas {
+  display: block;
+  width: 450px !important;
+  height: 450px !important;
+  filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.2));
+}
+
+/* Contenedor de edificios FIJOS (sin rotación) */
+.buildings-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 750px;
+  height: 750px;
+  transform: translate(-50%, -50%);
+  transform-style: preserve-3d;
+  /* SIN animación de rotación */
+}
+
+/* Tarjeta individual - FIJA con efecto flotante */
+.building-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 220px;
+  height: 160px;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 10;
+  animation: floatCard 3s ease-in-out infinite;
+}
+
+/* Animación de flotación sutil */
+@keyframes floatCard {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.building-item:hover {
+  animation: none;
+  transform: translateY(-15px) scale(1.05);
+  z-index: 100;
+}
+
+/* Click: Se mueve al CENTRO del planeta con efecto elegante */
+.building-item.active {
+  animation: none;
+  transform: translate(-50%, -50%) scale(1.3) !important;
+  z-index: 200 !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* Posiciones FIJAS: 2 tarjetas FUERA a la IZQUIERDA, 2 FUERA a la DERECHA */
+.building-item:nth-child(1) {
+  /* Izquierda arriba - FUERA del planeta */
+  top: 25%;
+  left: 5%;
+  transform: translate(0, -50%);
+}
+
+.building-item:nth-child(2) {
+  /* Izquierda abajo - FUERA del planeta */
+  top: 65%;
+  left: 5%;
+  transform: translate(0, -50%);
+}
+
+.building-item:nth-child(3) {
+  /* Derecha arriba - FUERA del planeta */
+  top: 25%;
+  right: 5%;
+  left: auto;
+  transform: translate(0, -50%);
+}
+
+.building-item:nth-child(4) {
+  /* Derecha abajo - FUERA del planeta */
+  top: 65%;
+  right: 5%;
+  left: auto;
+  transform: translate(0, -50%);
+}
+
+/* Delay de animación para cada tarjeta */
+.building-item:nth-child(1) { animation-delay: 0s; }
+.building-item:nth-child(2) { animation-delay: 0.75s; }
+.building-item:nth-child(3) { animation-delay: 1.5s; }
+.building-item:nth-child(4) { animation-delay: 2.25s; }
+
+/* Contenido de la tarjeta - BLANCA FLOTANTE con icono de ubicación */
+.building-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 20px;
+  border: 3px solid rgba(74, 123, 167, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 20px;
+  text-align: center;
+  box-shadow: 
+    0 10px 30px rgba(0, 51, 102, 0.15),
+    0 5px 15px rgba(74, 123, 167, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  transition: all 0.4s;
+  backdrop-filter: blur(10px);
+  overflow: visible;
+}
+
+/* Icono de ubicación 📍 en cada tarjeta */
+.building-content::after {
+  content: '📍';
+  position: absolute;
+  top: -15px;
+  right: -10px;
+  font-size: 2rem;
+  opacity: 0.9;
+  animation: pulsePin 2s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes pulsePin {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.15) translateY(-3px);
+    opacity: 1;
+  }
+}
+
+/* Efecto de brillo superior */
+.building-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent);
+  border-radius: 20px 20px 0 0;
+  pointer-events: none;
+}
+
+.building-item:hover .building-content {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(74, 123, 167, 0.6);
+  box-shadow: 
+    0 15px 40px rgba(0, 51, 102, 0.2),
+    0 5px 20px rgba(74, 123, 167, 0.15),
+    0 0 25px rgba(74, 123, 167, 0.1);
+}
+
+/* Active: Borde azul brillante elegante */
+.building-item.active .building-content {
+  background: rgba(255, 255, 255, 1);
+  border: 3px solid #4a7ba7;
+  box-shadow: 
+    0 20px 50px rgba(0, 51, 102, 0.25),
+    0 10px 30px rgba(74, 123, 167, 0.2),
+    0 0 40px rgba(74, 123, 167, 0.15),
+    inset 0 0 20px rgba(74, 123, 167, 0.05);
+  animation: borderGlowBlue 2s ease-in-out infinite;
+}
+
+/* Ícono del edificio - AZUL CORPORATIVO */
+.building-icon {
+  font-size: 1.8rem;
+  color: #003366;
+  margin-bottom: 8px;
+  transition: all 0.4s;
+  position: relative;
+  z-index: 2;
+}
+
+.building-item:hover .building-icon {
+  color: #1a4d7a;
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 8px rgba(74, 123, 167, 0.4));
+}
+
+.building-item.active .building-icon {
+  color: #4a7ba7;
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 12px rgba(74, 123, 167, 0.6));
+}
+
+/* Texto del edificio - AZUL CORPORATIVO */
+.building-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #003366;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+  transition: all 0.4s;
+  position: relative;
+  z-index: 2;
+  text-shadow: none;
+}
+
+.building-item:hover .building-text {
+  color: #1a4d7a;
+  font-size: 0.8rem;
+  text-shadow: none;
+}
+
+.building-item.active .building-text {
+  color: #4a7ba7;
+  font-size: 0.85rem;
+  text-shadow: none;
+}
+
+/* Partículas deshabilitadas */
+.particles {
+  display: none;
+}
+
+/* Animaciones - SIN rotación orbital */
+
+@keyframes borderGlowBlue {
+  0%, 100% {
+    box-shadow: 
+      0 20px 50px rgba(0, 51, 102, 0.25),
+      0 10px 30px rgba(74, 123, 167, 0.2),
+      0 0 35px rgba(74, 123, 167, 0.15),
+      inset 0 0 15px rgba(74, 123, 167, 0.05);
+  }
+  50% {
+    box-shadow: 
+      0 25px 60px rgba(0, 51, 102, 0.3),
+      0 15px 40px rgba(74, 123, 167, 0.25),
+      0 0 50px rgba(74, 123, 167, 0.2),
+      inset 0 0 25px rgba(74, 123, 167, 0.08);
+  }
+}
+
+
+/* Responsive - Móvil */
+@media (max-width: 768px) {
+  .globe-container {
+    min-height: 650px;
+    padding: 10px 10px 20px 10px;
+    justify-content: flex-start;
+  }
+
+  .globe-title {
+    font-size: 1.3rem;
+    margin-bottom: 30px;
+    margin-top: 0;
+    padding-top: 0;
+    line-height: 1.2;
+  }
+
+  /* Bajar el globo en móvil */
+  .globe-wrapper {
+    margin-top: 20px;
+  }
+
+  .title-porque {
+    font-size: 1.3rem;
+  }
+
+  .title-match {
+    font-size: 1.5rem;
+  }
+
+  .title-property {
+    font-size: 1.5rem;
+  }
+
+  /* Deshabilitar COMPLETAMENTE el click en móvil */
+  .building-item {
+    pointer-events: none;
+  }
+
+  .building-item.active {
+    transform: none !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+  }
+
+  /* Planeta más grande en móvil */
+  .globe-canvas {
+    width: 350px !important;
+    height: 350px !important;
+  }
+
+  /* Tarjetas móvil - bajadas para no cruzarse con título */
+  .building-item:nth-child(1) {
+    top: 28%;
+  }
+
+  .building-item:nth-child(2) {
+    top: 68%;
+  }
+
+  .building-item:nth-child(3) {
+    top: 28%;
+  }
+
+  .building-item:nth-child(4) {
+    top: 68%;
+  }
+
+  .globe-title strong {
+    font-size: 2.2rem;
+  }
+
+  .globe-canvas {
+    width: 320px !important;
+    height: 320px !important;
+  }
+
+  .buildings-orbit {
+    width: 550px;
+    height: 550px;
+  }
+
+  .building-item {
+    width: 170px;
+    height: 135px;
+  }
+
+  .building-item:nth-child(1),
+  .building-item:nth-child(2),
+  .building-item:nth-child(3),
+  .building-item:nth-child(4) {
+    transform: translate(-50%, -50%) rotateY(var(--angle)) translateZ(275px);
+  }
+
+  .building-icon {
+    font-size: 1.5rem;
+  }
+
+  .building-text {
+    font-size: 0.7rem;
+  }
+
+  .building-item:hover .building-text {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .globe-container {
+    min-height: 600px;
+    padding: 10px 5px 15px 5px;
+    justify-content: flex-start;
+  }
+
+  .globe-title {
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+    margin-top: 0;
+    padding-top: 0;
+    line-height: 1.1;
+  }
+
+  /* Bajar el globo en móvil pequeño */
+  .globe-wrapper {
+    margin-top: 15px;
+  }
+
+  .title-porque {
+    font-size: 1.1rem;
+  }
+
+  .title-match {
+    font-size: 1.3rem;
+  }
+
+  .title-property {
+    font-size: 1.3rem;
+  }
+
+  /* Planeta más grande en móvil pequeño */
+  .globe-canvas {
+    width: 280px !important;
+    height: 280px !important;
+  }
+
+  /* Tarjetas móvil pequeño - bajadas */
+  .building-item:nth-child(1) {
+    top: 26%;
+  }
+
+  .building-item:nth-child(2) {
+    top: 66%;
+  }
+
+  .building-item:nth-child(3) {
+    top: 26%;
+  }
+
+  .building-item:nth-child(4) {
+    top: 66%;
+  }
+
+  .title-match {
+    font-size: 1.8rem;
+  }
+
+  .title-property {
+    font-size: 1.8rem;
+  }
+
+  .globe-canvas {
+    width: 260px !important;
+    height: 260px !important;
+  }
+
+  .buildings-orbit {
+    width: 450px;
+    height: 450px;
+  }
+
+  .building-item {
+    width: 145px;
+    height: 115px;
+  }
+
+  .building-item:nth-child(1),
+  .building-item:nth-child(2),
+  .building-item:nth-child(3),
+  .building-item:nth-child(4) {
+    transform: translate(-50%, -50%) rotateY(var(--angle)) translateZ(225px);
+  }
+
+  .building-icon {
+    font-size: 1.3rem;
+  }
+
+  .building-text {
+    font-size: 0.65rem;
+  }
+
+  .building-item:hover .building-text {
+    font-size: 0.7rem;
+  }
+}

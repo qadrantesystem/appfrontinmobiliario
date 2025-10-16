@@ -1,0 +1,463 @@
+{
+  "caracteristicas": [
+    {
+      "id": 1,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Parqueos Simples",
+      "tipo_input": "number",
+      "unidad": "unid",
+      "requerido": false
+    },
+    {
+      "id": 2,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Parqueos Dobles",
+      "tipo_input": "number",
+      "unidad": "unid",
+      "requerido": false
+    },
+    {
+      "id": 3,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Depósito metraje",
+      "tipo_input": "number",
+      "unidad": "m²",
+      "requerido": false
+    },
+    {
+      "id": 4,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Parqueos para Bicicletas",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 5,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Parqueos Vehículos Eléctricos",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 6,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Parqueos de visita",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 7,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Locales Comerciales",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 8,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Cafetería",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 9,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "GYM",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 10,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Oficina Trámite Documentos",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 11,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Salas de Reuniones",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 12,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "SUM",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 13,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Comedor",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 14,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Depósitos",
+      "tipo_input": "number",
+      "unidad": "m²",
+      "requerido": false
+    },
+    {
+      "id": 15,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Rooftop",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 16,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Espacios After Office",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 17,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Duchas y Vestuarios",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 18,
+      "tipo_inmueble_id": 1,
+      "categoria": "AREAS_COMUNES_EDIFICIO",
+      "nombre": "Helipuerto",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 19,
+      "tipo_inmueble_id": 1,
+      "categoria": "ASCENSORES",
+      "nombre": "Montacarga",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 20,
+      "tipo_inmueble_id": 1,
+      "categoria": "ASCENSORES",
+      "nombre": "De Sótano directo a Oficina",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 21,
+      "tipo_inmueble_id": 1,
+      "categoria": "ASCENSORES",
+      "nombre": "De Sótano a Piso 1 (con trasbordo)",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 22,
+      "tipo_inmueble_id": 1,
+      "categoria": "IMPLEMENTACION_DETALLE",
+      "nombre": "Pisos",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 23,
+      "tipo_inmueble_id": 1,
+      "categoria": "IMPLEMENTACION_DETALLE",
+      "nombre": "Falso Techo",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 24,
+      "tipo_inmueble_id": 1,
+      "categoria": "IMPLEMENTACION_DETALLE",
+      "nombre": "Luminarias",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 25,
+      "tipo_inmueble_id": 1,
+      "categoria": "IMPLEMENTACION_DETALLE",
+      "nombre": "Aire Acondicionado",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 26,
+      "tipo_inmueble_id": 1,
+      "categoria": "IMPLEMENTACION_DETALLE",
+      "nombre": "Red Contra Incendios Sprinklers",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 27,
+      "tipo_inmueble_id": 1,
+      "categoria": "IMPLEMENTACION_DETALLE",
+      "nombre": "Fibra Óptica / Telefonía",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 28,
+      "tipo_inmueble_id": 1,
+      "categoria": "IMPLEMENTACION_DETALLE",
+      "nombre": "Tabiques y Mamparas",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 29,
+      "tipo_inmueble_id": 1,
+      "categoria": "IMPLEMENTACION_DETALLE",
+      "nombre": "Mobiliario / Escritorios",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 30,
+      "tipo_inmueble_id": 1,
+      "categoria": "IMPLEMENTACION_DETALLE",
+      "nombre": "Sillas",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 31,
+      "tipo_inmueble_id": 1,
+      "categoria": "IMPLEMENTACION_DETALLE",
+      "nombre": "Rollers",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 32,
+      "tipo_inmueble_id": 1,
+      "categoria": "SOPORTE_EDIFICIO",
+      "nombre": "Generador / Grupo Electrógeno",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 33,
+      "tipo_inmueble_id": 1,
+      "categoria": "SOPORTE_EDIFICIO",
+      "nombre": "Encendido manual",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 34,
+      "tipo_inmueble_id": 1,
+      "categoria": "SOPORTE_EDIFICIO",
+      "nombre": "Encendido automático",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 35,
+      "tipo_inmueble_id": 1,
+      "categoria": "SOPORTE_EDIFICIO",
+      "nombre": "Chiller para AACC",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 36,
+      "tipo_inmueble_id": 1,
+      "categoria": "SOPORTE_EDIFICIO",
+      "nombre": "Cuartos Técnicos / Condensadores",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 37,
+      "tipo_inmueble_id": 1,
+      "categoria": "SOPORTE_EDIFICIO",
+      "nombre": "Fibra Óptica",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 38,
+      "tipo_inmueble_id": 1,
+      "categoria": "SOPORTE_EDIFICIO",
+      "nombre": "Recepción / Seguridad 24h7",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 39,
+      "tipo_inmueble_id": 1,
+      "categoria": "CERCANIA_ESTRATEGICA",
+      "nombre": "Avenidas importantes",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 40,
+      "tipo_inmueble_id": 1,
+      "categoria": "CERCANIA_ESTRATEGICA",
+      "nombre": "Estaciones Tren Eléctrico",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 41,
+      "tipo_inmueble_id": 1,
+      "categoria": "CERCANIA_ESTRATEGICA",
+      "nombre": "Bancos o Financieras",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 42,
+      "tipo_inmueble_id": 1,
+      "categoria": "CERCANIA_ESTRATEGICA",
+      "nombre": "Parqueo Público",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 43,
+      "tipo_inmueble_id": 1,
+      "categoria": "CERCANIA_ESTRATEGICA",
+      "nombre": "Hoteles",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 44,
+      "tipo_inmueble_id": 1,
+      "categoria": "CERCANIA_ESTRATEGICA",
+      "nombre": "Restaurantes, Copias, Servicios",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 45,
+      "tipo_inmueble_id": 1,
+      "categoria": "VISTA_OFICINA",
+      "nombre": "Frente con doble altura",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 46,
+      "tipo_inmueble_id": 1,
+      "categoria": "VISTA_OFICINA",
+      "nombre": "Doble frente (esquina)",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 47,
+      "tipo_inmueble_id": 1,
+      "categoria": "VISTA_OFICINA",
+      "nombre": "Vista frente al parque",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 48,
+      "tipo_inmueble_id": 1,
+      "categoria": "VISTA_OFICINA",
+      "nombre": "Vista interior",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 49,
+      "tipo_inmueble_id": 1,
+      "categoria": "VISTA_OFICINA",
+      "nombre": "Vista frontal",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 50,
+      "tipo_inmueble_id": 1,
+      "categoria": "VISTA_OFICINA",
+      "nombre": "Vista posterior",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    },
+    {
+      "id": 51,
+      "tipo_inmueble_id": 1,
+      "categoria": "VISTA_OFICINA",
+      "nombre": "Rooftop / Duchas y Vestuarios",
+      "tipo_input": "checkbox",
+      "unidad": null,
+      "requerido": false
+    }
+  ]
+}

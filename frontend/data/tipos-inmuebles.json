@@ -1,0 +1,16 @@
+{
+  "tipos": [
+    { "id": 1, "codigo": "OFI_EDIF", "nombre": "Oficina en Edificio", "icono": "🏢" },
+    { "id": 2, "codigo": "CASA_OFI", "nombre": "Casa Oficina", "icono": "🏠" },
+    { "id": 3, "codigo": "CASA_RES", "nombre": "Casa Residencial", "icono": "🏡" },
+    { "id": 4, "codigo": "DEPTO", "nombre": "Departamento", "icono": "🏘️" },
+    { "id": 5, "codigo": "TERRENO_RES", "nombre": "Terreno Residencial", "icono": "🌳" },
+    { "id": 6, "codigo": "CASA_TEMP", "nombre": "Casa de Temporada", "icono": "🏖️" },
+    { "id": 7, "codigo": "LOCAL_COM", "nombre": "Local Comercial", "icono": "🏪" },
+    { "id": 8, "codigo": "TERRENO_COM", "nombre": "Terreno Comercial", "icono": "🏗️" },
+    { "id": 9, "codigo": "TERRENO_IND", "nombre": "Terreno Industrial", "icono": "🏭" },
+    { "id": 10, "codigo": "LOCAL_IND", "nombre": "Local Industrial", "icono": "🏭" },
+    { "id": 11, "codigo": "CASA_PLAYA", "nombre": "Casa de Playa", "icono": "🌊" },
+    { "id": 12, "codigo": "CASA_CAMPO", "nombre": "Casa de Campo", "icono": "🌾" }
+  ]
+}

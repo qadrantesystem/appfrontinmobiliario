@@ -1,0 +1,189 @@
+/* ===========================
+   MODAL DE BÚSQUEDA ELEGANTE
+   =========================== */
+
+/* Overlay con blur */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 3vw, 2rem);
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+  overflow-y: auto;
+}
+
+/* Modal container */
+.modal-busqueda {
+  background: var(--blanco);
+  border-radius: clamp(16px, 3vw, 24px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  opacity: 0;
+  transform: scale(0.9) translateY(20px);
+  animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s forwards;
+}
+
+/* Animación de entrada del modal */
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Botón cerrar */
+.modal-close {
+  position: absolute;
+  top: clamp(0.75rem, 2vw, 1.25rem);
+  right: clamp(0.75rem, 2vw, 1.25rem);
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  width: clamp(36px, 8vw, 44px);
+  height: clamp(36px, 8vw, 44px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  color: var(--azul-corporativo);
+  font-size: clamp(1.1rem, 3vw, 1.4rem);
+}
+
+.modal-close:hover {
+  background: rgba(245, 166, 35, 0.15);
+  color: var(--dorado);
+  transform: rotate(90deg);
+}
+
+.modal-close:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+/* Ajustes para el formulario dentro del modal */
+.modal-busqueda .filtro-simplificado-card {
+  box-shadow: none;
+  border-radius: 0;
+  max-width: 100%;
+  background: transparent;
+}
+
+.modal-busqueda .filtro-simplificado-card::before {
+  display: none;
+}
+
+/* Scroll personalizado para el modal */
+.modal-busqueda::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-busqueda::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.modal-busqueda::-webkit-scrollbar-thumb {
+  background: var(--dorado);
+  border-radius: 10px;
+}
+
+.modal-busqueda::-webkit-scrollbar-thumb:hover {
+  background: #d4941f;
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-busqueda {
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: clamp(20px, 4vw, 24px) clamp(20px, 4vw, 24px) 0 0;
+    animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s forwards;
+  }
+
+  @keyframes modalSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Animación de salida */
+.modal-overlay.closing {
+  animation: fadeOut 0.3s ease-out forwards;
+}
+
+.modal-overlay.closing .modal-busqueda {
+  animation: modalSlideOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modalSlideOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+}
+
+/* Mobile - Slide down */
+@media (max-width: 768px) {
+  .modal-overlay.closing .modal-busqueda {
+    animation: modalSlideDown 0.3s ease-out forwards;
+  }
+
+  @keyframes modalSlideDown {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+  }
+}
+
+/* Prevenir scroll del body cuando el modal está abierto */
+body.modal-open {
+  overflow: hidden;
+}

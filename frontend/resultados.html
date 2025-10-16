@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados - Match Property</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/pages/resultados.css">
+    <!-- Font Awesome (iconos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <!-- Header -->
+    <header class="header-resultados">
+        <div class="container-fluid">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="/">
+                        <img src="assets/images/logos/logo.jpg" alt="Match Property" class="logo-img">
+                    </a>
+                </div>
+                <div class="header-info">
+                    <h1 id="resultadosCount">Cargando...</h1>
+                    <div id="filtrosAplicados" class="filtros-aplicados">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                </div>
+                <!-- Botón de filtros móvil (siempre visible) -->
+                <button id="btnToggleMobileFilters" class="btn-filter-mobile" aria-label="Abrir filtros">
+                    <i class="fa-solid fa-sliders"></i>
+                </button>
+                
+                <button class="hamburger" id="hamburger" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="header-actions" id="headerActions">
+                    <a href="/?openModal=true" class="btn btn-outline">← Volver a Filtros</a>
+                    <span id="usuarioInfo" class="usuario-info">Usuario: Invitado</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Imagen Referencial Inicial -->
+    <div id="imagenReferencial" class="imagen-referencial">
+        <div class="imagen-referencial-content">
+            <div class="imagen-referencial-bg"></div>
+            <div class="imagen-referencial-overlay">
+                <div class="resultados-info">
+                    <h2 id="mensajeResultados">Se encontraron <span id="numResultados">0</span> propiedades</h2>
+                    <p id="detalleDistrito">en <span id="numDistritos"></span></p>
+                </div>
+
+                <!-- Filtros en línea horizontal -->
+                <div class="filtros-linea-horizontal">
+                    <div class="filtro-toggle">
+                        <button id="toggleFiltroBasico" class="btn-toggle-filtro active">
+                            📋 Filtro Básico
+                        </button>
+                        <button id="toggleFiltroAvanzado" class="btn-toggle-filtro">
+                            ⚙️ Filtro Avanzado
+                        </button>
+                    </div>
+
+                    <!-- Contenedor de filtros -->
+                    <div id="filtrosInline" class="filtros-inline-container">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+
+                    <div class="filtros-acciones">
+                        <button id="btnAplicarFiltrosInline" class="btn btn-primary btn-sm">Aplicar</button>
+                        <button id="btnLimpiarFiltrosInline" class="btn btn-outline btn-sm">Limpiar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content: Filtros + Cards + Mapa -->
+    <div id="mainContainer" class="main-container">
+        <!-- Columna Izquierda: Filtros (Acordeón) -->
+        <aside class="filters-section" id="filtersSection">
+            <div class="filters-inner">
+                <!-- Filtros Genéricos (Resumen) -->
+                <div class="accordion-item">
+                    <button class="accordion-header" type="button" data-accordion="genericos" aria-expanded="true">
+                        <i class="fa-solid fa-filter"></i>
+                        <span>Filtros Genéricos</span>
+                        <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                    </button>
+                    <div class="accordion-content open" data-accordion="genericos">
+                        <div id="resumenGenericos" class="resumen-genericos">
+                            <!-- Se carga dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtro Básico -->
+                <div class="accordion-item">
+                    <button class="accordion-header" type="button" data-accordion="basico" aria-expanded="false">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span>Filtro Básico</span>
+                        <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                    </button>
+                    <div class="accordion-content" data-accordion="basico">
+                        <div id="contenedorBasico" class="contenedor-basico">
+                            <!-- Se carga dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros Avanzados -->
+                <div class="accordion-item">
+                    <button class="accordion-header" type="button" data-accordion="avanzado" aria-expanded="false">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Filtros Avanzados</span>
+                        <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                    </button>
+                    <div class="accordion-content" data-accordion="avanzado">
+                        <div id="contenedorAvanzado" class="contenedor-avanzado">
+                            <!-- Se carga dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="filters-actions">
+                <button id="btnAplicarFiltrosCol" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-check"></i> Aplicar
+                </button>
+                <button id="btnLimpiarFiltrosCol" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-eraser"></i> Limpiar
+                </button>
+            </div>
+        </aside>
+
+        <!-- Columna Centro: Lista de Propiedades -->
+        <section class="listings-section" id="listingsSection">
+            <div id="placeholderResultados" class="placeholder-resultados">
+                <div class="placeholder-image-container">
+                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&h=1080&fit=crop" alt="Oficina moderna" class="placeholder-image">
+                    <div class="placeholder-overlay">
+                        <i class="fa-solid fa-building-circle-check"></i>
+                        <h3>Resultados de Búsqueda</h3>
+                        <p>Despliega el <strong>Filtro Básico</strong> o <strong>Filtros Avanzados</strong> para ver los resultados</p>
+                    </div>
+                </div>
+            </div>
+            <div id="propertiesList" class="properties-list" style="display: none;">
+                <!-- Se carga dinámicamente -->
+            </div>
+        </section>
+
+        <!-- Columna Derecha: Mapa (Sticky) -->
+        <section class="map-section">
+            <div id="mapPlaceholder" class="map-placeholder">
+                <div class="placeholder-image-container">
+                    <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1920&h=1080&fit=crop" alt="Edificio corporativo" class="placeholder-image">
+                    <div class="placeholder-overlay">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <h3>Mapa de Resultados</h3>
+                        <p>Despliega el <strong>Filtro Básico</strong> o <strong>Filtros Avanzados</strong> para ver el mapa</p>
+                    </div>
+                </div>
+            </div>
+            <div id="map" class="map-canvas" style="display: none;"></div>
+        </section>
+    </div>
+
+    <!-- Backdrop para drawer móvil -->
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+
+    <!-- Drawer Filtros (móvil) -->
+    <div id="mobileFiltersDrawer" class="mobile-filters-drawer" aria-hidden="true">
+        <div class="drawer-header">
+            <h3>Filtros</h3>
+            <button id="btnCloseMobileFilters" class="drawer-close" aria-label="Cerrar filtros">×</button>
+        </div>
+        <div class="drawer-body">
+            <!-- Filtros Genéricos -->
+            <div class="accordion-item">
+                <button class="accordion-header" type="button" data-accordion="genericos-mobile" aria-expanded="true">
+                    <i class="fa-solid fa-filter"></i>
+                    <span>Filtros Genéricos</span>
+                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                </button>
+                <div class="accordion-content open" data-accordion="genericos-mobile">
+                    <div id="resumenGenericosMobile" class="resumen-genericos"></div>
+                </div>
+            </div>
+
+            <!-- Filtro Básico -->
+            <div class="accordion-item">
+                <button class="accordion-header" type="button" data-accordion="basico-mobile" aria-expanded="false">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Filtro Básico</span>
+                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                </button>
+                <div class="accordion-content" data-accordion="basico-mobile">
+                    <div id="contenedorBasicoMobile" class="contenedor-basico"><!-- dinámico --></div>
+                </div>
+            </div>
+
+            <!-- Filtros Avanzados -->
+            <div class="accordion-item">
+                <button class="accordion-header" type="button" data-accordion="avanzado-mobile" aria-expanded="false">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Filtros Avanzados</span>
+                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                </button>
+                <div class="accordion-content" data-accordion="avanzado-mobile">
+                    <div id="contenedorAvanzadoMobile" class="contenedor-avanzado"><!-- dinámico --></div>
+                </div>
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button id="btnAplicarFiltrosMobile" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i> Aplicar
+            </button>
+            <button id="btnLimpiarFiltrosMobile" class="btn btn-outline">
+                <i class="fa-solid fa-eraser"></i> Limpiar
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Login (para usuarios no autenticados) -->
+    <div id="loginModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>🔒 Inicia Sesión</h2>
+            <p>Para ver la información de contacto completa, debes iniciar sesión</p>
+            <div class="modal-buttons">
+                <a href="/login" class="btn btn-primary">Iniciar Sesión</a>
+                <a href="/registro" class="btn btn-secondary">Registrarse</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/pages/resultados.js"></script>
+</body>
+</html>

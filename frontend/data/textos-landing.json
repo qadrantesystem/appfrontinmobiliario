@@ -1,0 +1,52 @@
+{
+  "hero": {
+    "titulo": "Filtros de búsqueda a la medida de tu interés",
+    "subtitulo": "Objetivo, rápido y confiable",
+    "descripcion": "Motor de Búsqueda Especializado por tipos de Inmuebles"
+  },
+  "features": [
+    {
+      "titulo": "Búsqueda Precisa y Eficiente",
+      "descripcion": "Ten claro lo que necesitas y aplica los filtros de búsqueda",
+      "icono": "🔍"
+    },
+    {
+      "titulo": "Acceso a la Mejor Oferta del Mercado",
+      "descripcion": "Evalúa las alternativas que hicieron match con tu requerimiento",
+      "icono": "🏆"
+    },
+    {
+      "titulo": "Promociona tu Propiedad con Confianza",
+      "descripcion": "Registra correctamente los datos de tu(s) inmueble(s)",
+      "icono": "📢"
+    },
+    {
+      "titulo": "Experiencia y Confianza que Respaldan",
+      "descripcion": "Visita el inmueble y toma la decisión más conveniente de manera segura",
+      "icono": "✨"
+    }
+  ],
+  "servicios": [
+    {
+      "titulo": "Novedades sobre el Mercado Inmobiliario",
+      "icono": "📰"
+    },
+    {
+      "titulo": "Oportunidades de Inversión",
+      "icono": "💰"
+    },
+    {
+      "titulo": "Sobre la Banca, Préstamos, Tasas y Otros",
+      "icono": "🏦"
+    }
+  ],
+  "contacto": {
+    "direccion": "Mz D, Lt 8, Urb. Bellatrix, Valle Hermoso, Monterrico - Surco",
+    "telefono": "+51 999457538",
+    "email": "info@match.pe"
+  },
+  "sobre": {
+    "mision": "Acercar a personas y empresas a espacios que transformen sus vidas y negocios facilitando su búsqueda con tecnología y confianza.",
+    "vision": "Ser la plataforma inmobiliaria líder en Latinoamérica, reconocida por su innovación, transparencia y servicio excepcional."
+  }
+}

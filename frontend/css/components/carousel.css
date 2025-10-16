@@ -1,0 +1,214 @@
+/* Carrusel Hero Home */
+.carousel-hero {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  overflow: hidden;
+}
+
+.carousel-slides {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.carousel-slide.active {
+  opacity: 1;
+  z-index: 1;
+}
+
+.carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Overlay oscuro sobre imagen */
+.carousel-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.8) 0%, rgba(26, 77, 122, 0.6) 100%);
+  z-index: 2;
+}
+
+/* Contenido sobre el carrusel */
+.carousel-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--blanco);
+  z-index: 3;
+  width: 90%;
+  max-width: 900px;
+}
+
+.carousel-content h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-md);
+  color: var(--blanco);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.carousel-content p {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-lg);
+  color: var(--dorado);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.carousel-content .subtitle {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: var(--spacing-xl);
+}
+
+.carousel-buttons {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.carousel-buttons .btn {
+  min-width: 200px;
+}
+
+/* Controles del Carrusel */
+.carousel-controls {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: var(--spacing-sm);
+  z-index: 4;
+}
+
+.carousel-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid var(--blanco);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.carousel-dot.active {
+  background: var(--dorado);
+  transform: scale(1.3);
+}
+
+.carousel-dot:hover {
+  background: var(--dorado-hover);
+}
+
+/* Flechas navegación */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--blanco);
+  color: var(--blanco);
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 4;
+  transition: all var(--transition-fast);
+  font-size: 24px;
+}
+
+.carousel-arrow:hover {
+  background: var(--dorado);
+  border-color: var(--dorado);
+}
+
+.carousel-arrow.prev {
+  left: 30px;
+}
+
+.carousel-arrow.next {
+  right: 30px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .carousel-hero {
+    height: 500px; /* Más alto para que el contenido no se sobreponga */
+  }
+
+  .carousel-content {
+    width: 85%;
+    padding: 0 10px;
+  }
+
+  .carousel-content h1 {
+    font-size: 1.6rem;
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.2;
+  }
+
+  .carousel-content p {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .carousel-content .subtitle {
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .carousel-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .carousel-buttons .btn {
+    min-width: 180px;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+
+  /* Flechas a la altura de "Objetivo, rápido y confiable" */
+  .carousel-arrow {
+    width: 45px;
+    height: 45px;
+    font-size: 22px;
+    top: 45%; /* A la altura del texto dorado "Objetivo, rápido y confiable" */
+  }
+
+  .carousel-arrow.prev {
+    left: 15px;
+  }
+
+  .carousel-arrow.next {
+    right: 15px;
+  }
+
+  /* Controles (dots) más arriba */
+  .carousel-controls {
+    bottom: 15px;
+  }
+}

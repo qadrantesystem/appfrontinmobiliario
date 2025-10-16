@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Match Property</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/pages/auth.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <a href="/">
+                        <img src="assets/images/logos/logo.jpg" alt="Match Property" class="logo-img">
+                    </a>
+                </div>
+                <button class="hamburger" id="hamburger" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="/">Inicio</a></li>
+                    <li><a href="/busqueda">Buscar</a></li>
+                    <li><a href="/registro">Registrarse</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Login Form -->
+    <section class="auth-section">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1>🔐 Iniciar Sesión</h1>
+                    <p>Accede a tu cuenta Match Property</p>
+                </div>
+
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="email">📧 Correo Electrónico</label>
+                        <input type="email" id="email" name="email" class="form-control" required placeholder="tu@email.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">🔒 Contraseña</label>
+                        <input type="password" id="password" name="password" class="form-control" required placeholder="••••••••">
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="remember">
+                            <span>Recordarme</span>
+                        </label>
+                        <a href="/recuperar" class="link-secondary">¿Olvidaste tu contraseña?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full">Iniciar Sesión</button>
+
+                    <div class="auth-divider">
+                        <span>o</span>
+                    </div>
+
+                    <div class="auth-footer">
+                        <p>¿No tienes cuenta? <a href="/registro" class="link-primary">Regístrate aquí</a></p>
+                    </div>
+                </form>
+
+                <!-- Demo credentials -->
+                <div class="demo-credentials">
+                    <p><strong>👨‍💼 Demo Admin:</strong></p>
+                    <p>Usuario: admin | Contraseña: 1234</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/pages/login.js"></script>
+</body>
+</html>

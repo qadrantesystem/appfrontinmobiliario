@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña - Match Property</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/pages/auth.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <a href="/">
+                        <img src="assets/images/logos/logo.jpg" alt="Match Property" class="logo-img">
+                    </a>
+                </div>
+                <button class="hamburger" id="hamburger" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="/">Inicio</a></li>
+                    <li><a href="/busqueda">Buscar</a></li>
+                    <li><a href="/login">Iniciar Sesión</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Recuperar Form -->
+    <section class="auth-section">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1>🔑 Recuperar Contraseña</h1>
+                    <p>Te enviaremos un enlace para restablecer tu contraseña</p>
+                </div>
+
+                <form id="recuperarForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="emailRecuperar">📧 Correo Electrónico</label>
+                        <input type="email" id="emailRecuperar" name="email" class="form-control" required placeholder="tu@email.com">
+                        <small class="form-help">Ingresa el correo asociado a tu cuenta</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full">Enviar Enlace de Recuperación</button>
+
+                    <div class="auth-divider">
+                        <span>o</span>
+                    </div>
+
+                    <div class="auth-footer">
+                        <p><a href="/login" class="link-primary">← Volver al inicio de sesión</a></p>
+                    </div>
+                </form>
+
+                <!-- Success message -->
+                <div id="successMessage" class="success-message" style="display: none;">
+                    <h3>✅ ¡Correo Enviado!</h3>
+                    <p>Hemos enviado un enlace de recuperación a tu correo electrónico.</p>
+                    <p>Por favor revisa tu bandeja de entrada y sigue las instrucciones.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/pages/recuperar.js"></script>
+</body>
+</html>

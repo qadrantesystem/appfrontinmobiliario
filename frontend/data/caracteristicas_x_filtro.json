@@ -1,0 +1,258 @@
+{
+  "filtros_basicos": [
+    {
+      "id": "transaccion",
+      "nombre": "Transacción",
+      "tipo_input": "pills",
+      "opciones": [
+        { "value": "compra", "label": "Compra", "icon": "fa-hand-holding-dollar" },
+        { "value": "alquiler", "label": "Alquiler", "icon": "fa-key" }
+      ],
+      "orden": 1,
+      "requerido": true
+    },
+    {
+      "id": "precio_compra",
+      "nombre": "Precio Compra",
+      "tipo_input": "number",
+      "unidad": "USD",
+      "placeholder": "Ej: 500000",
+      "orden": 2,
+      "visible_cuando": "transaccion=compra"
+    },
+    {
+      "id": "precio_alquiler",
+      "nombre": "Precio Alquiler",
+      "tipo_input": "number",
+      "unidad": "USD/mes",
+      "placeholder": "Ej: 2500",
+      "orden": 3,
+      "visible_cuando": "transaccion=alquiler"
+    },
+    {
+      "id": "area",
+      "nombre": "Área Requerida",
+      "tipo_input": "number",
+      "unidad": "m²",
+      "placeholder": "Ej: 460",
+      "orden": 4
+    },
+    {
+      "id": "parqueos",
+      "nombre": "Parqueos Requeridos",
+      "tipo_input": "number",
+      "unidad": "unid",
+      "placeholder": "Ej: 8",
+      "orden": 5
+    },
+    {
+      "id": "antiguedad",
+      "nombre": "Antigüedad (No mayor a años)",
+      "tipo_input": "number",
+      "unidad": "años",
+      "placeholder": "Ej: 15",
+      "orden": 6
+    },
+    {
+      "id": "implementacion",
+      "nombre": "Nivel de Implementación",
+      "tipo_input": "select",
+      "opciones": [
+        { "value": "", "label": "Todas" },
+        { "value": "Amoblado FULL", "label": "Amoblado FULL" },
+        { "value": "Implementada", "label": "Implementada" },
+        { "value": "Semi Implementada", "label": "Semi Implementada" },
+        { "value": "Por Implementar", "label": "Por Implementar" }
+      ],
+      "orden": 7
+    }
+  ],
+  "filtros_avanzados_por_tipo": [
+    {
+      "tipo_inmueble_id": 1,
+      "tipo_inmueble_codigo": "OFI_EDIF",
+      "tipo_inmueble_nombre": "Oficina en Edificio",
+      "categorias": [
+        {
+          "codigo": "AREAS_COMUNES_EDIFICIO",
+          "nombre": "Áreas Comunes del Edificio",
+          "orden": 1,
+          "caracteristicas_ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+        },
+        {
+          "codigo": "ASCENSORES",
+          "nombre": "Ascensores",
+          "orden": 2,
+          "caracteristicas_ids": [19, 20, 21]
+        },
+        {
+          "codigo": "IMPLEMENTACION_DETALLE",
+          "nombre": "Implementación Detalle",
+          "orden": 3,
+          "caracteristicas_ids": [22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+        },
+        {
+          "codigo": "SOPORTE_EDIFICIO",
+          "nombre": "Soporte del Edificio",
+          "orden": 4,
+          "caracteristicas_ids": [32, 33, 34, 35, 36, 37, 38]
+        },
+        {
+          "codigo": "CERCANIA_ESTRATEGICA",
+          "nombre": "Cercanía Estratégica",
+          "orden": 5,
+          "caracteristicas_ids": [39, 40, 41, 42, 43, 44]
+        },
+        {
+          "codigo": "VISTA_OFICINA",
+          "nombre": "Vista de la Oficina",
+          "orden": 6,
+          "caracteristicas_ids": [45, 46, 47, 48, 49, 50, 51]
+        }
+      ]
+    },
+    {
+      "tipo_inmueble_id": 2,
+      "tipo_inmueble_codigo": "CASA_OFI",
+      "tipo_inmueble_nombre": "Casa Oficina",
+      "categorias": [
+        {
+          "codigo": "CARACTERISTICAS_CASA",
+          "nombre": "Características de la Casa",
+          "orden": 1,
+          "caracteristicas_ids": []
+        }
+      ]
+    },
+    {
+      "tipo_inmueble_id": 3,
+      "tipo_inmueble_codigo": "CASA_RES",
+      "tipo_inmueble_nombre": "Casa Residencial",
+      "categorias": [
+        {
+          "codigo": "CARACTERISTICAS_CASA",
+          "nombre": "Características de la Casa",
+          "orden": 1,
+          "caracteristicas_ids": []
+        }
+      ]
+    },
+    {
+      "tipo_inmueble_id": 4,
+      "tipo_inmueble_codigo": "DEPTO",
+      "tipo_inmueble_nombre": "Departamento",
+      "categorias": [
+        {
+          "codigo": "CARACTERISTICAS_DEPTO",
+          "nombre": "Características del Departamento",
+          "orden": 1,
+          "caracteristicas_ids": []
+        }
+      ]
+    },
+    {
+      "tipo_inmueble_id": 5,
+      "tipo_inmueble_codigo": "TERRENO_RES",
+      "tipo_inmueble_nombre": "Terreno Residencial",
+      "categorias": [
+        {
+          "codigo": "CARACTERISTICAS_TERRENO",
+          "nombre": "Características del Terreno",
+          "orden": 1,
+          "caracteristicas_ids": []
+        }
+      ]
+    },
+    {
+      "tipo_inmueble_id": 6,
+      "tipo_inmueble_codigo": "CASA_TEMP",
+      "tipo_inmueble_nombre": "Casa de Temporada",
+      "categorias": [
+        {
+          "codigo": "CARACTERISTICAS_CASA",
+          "nombre": "Características de la Casa",
+          "orden": 1,
+          "caracteristicas_ids": []
+        }
+      ]
+    },
+    {
+      "tipo_inmueble_id": 7,
+      "tipo_inmueble_codigo": "LOCAL_COM",
+      "tipo_inmueble_nombre": "Local Comercial",
+      "categorias": [
+        {
+          "codigo": "CARACTERISTICAS_LOCAL",
+          "nombre": "Características del Local",
+          "orden": 1,
+          "caracteristicas_ids": []
+        }
+      ]
+    },
+    {
+      "tipo_inmueble_id": 8,
+      "tipo_inmueble_codigo": "TERRENO_COM",
+      "tipo_inmueble_nombre": "Terreno Comercial",
+      "categorias": [
+        {
+          "codigo": "CARACTERISTICAS_TERRENO",
+          "nombre": "Características del Terreno",
+          "orden": 1,
+          "caracteristicas_ids": []
+        }
+      ]
+    },
+    {
+      "tipo_inmueble_id": 9,
+      "tipo_inmueble_codigo": "TERRENO_IND",
+      "tipo_inmueble_nombre": "Terreno Industrial",
+      "categorias": [
+        {
+          "codigo": "CARACTERISTICAS_TERRENO",
+          "nombre": "Características del Terreno",
+          "orden": 1,
+          "caracteristicas_ids": []
+        }
+      ]
+    },
+    {
+      "tipo_inmueble_id": 10,
+      "tipo_inmueble_codigo": "LOCAL_IND",
+      "tipo_inmueble_nombre": "Local Industrial",
+      "categorias": [
+        {
+          "codigo": "CARACTERISTICAS_LOCAL",
+          "nombre": "Características del Local",
+          "orden": 1,
+          "caracteristicas_ids": []
+        }
+      ]
+    },
+    {
+      "tipo_inmueble_id": 11,
+      "tipo_inmueble_codigo": "CASA_PLAYA",
+      "tipo_inmueble_nombre": "Casa de Playa",
+      "categorias": [
+        {
+          "codigo": "CARACTERISTICAS_CASA",
+          "nombre": "Características de la Casa",
+          "orden": 1,
+          "caracteristicas_ids": []
+        }
+      ]
+    },
+    {
+      "tipo_inmueble_id": 12,
+      "tipo_inmueble_codigo": "CASA_CAMPO",
+      "tipo_inmueble_nombre": "Casa de Campo",
+      "categorias": [
+        {
+          "codigo": "CARACTERISTICAS_CASA",
+          "nombre": "Características de la Casa",
+          "orden": 1,
+          "caracteristicas_ids": []
+        }
+      ]
+    }
+  ]
+}

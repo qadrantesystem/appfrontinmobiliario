@@ -1,0 +1,207 @@
+{
+  "propiedades": [
+    {
+      "id": 1,
+      "titulo": "Moderna Oficina en San Isidro",
+      "tipo_inmueble_id": 1,
+      "distrito_id": 1,
+      "direccion": "Av. Javier Prado 295",
+      "area": 460,
+      "precio_venta": 750000,
+      "precio_alquiler": 8500,
+      "moneda": "USD",
+      "transaccion": "ambos",
+      "parqueos": 8,
+      "antiguedad": 12,
+      "descripcion": "Moderno Edificio de formato medio, céntricamente ubicado a un paso de las Avenidas Javier Prado y Rivera Navarrete. Finos acabados, excelente seguridad.",
+      "implementacion": "Amoblado FULL",
+      "lat": -12.0897,
+      "lng": -77.0282,
+      "imagenes": [
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800",
+        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800",
+        "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800",
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800",
+        "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800"
+      ],
+      "caracteristicas_valores": [
+        { "caracteristica_id": 1, "valor": 2 },
+        { "caracteristica_id": 2, "valor": 4 },
+        { "caracteristica_id": 3, "valor": 6 },
+        { "caracteristica_id": 4, "valor": true },
+        { "caracteristica_id": 8, "valor": true },
+        { "caracteristica_id": 19, "valor": true },
+        { "caracteristica_id": 25, "valor": true },
+        { "caracteristica_id": 32, "valor": true },
+        { "caracteristica_id": 39, "valor": true }
+      ]
+    },
+    {
+      "id": 2,
+      "titulo": "Oficina Ejecutiva Miraflores",
+      "tipo_inmueble_id": 1,
+      "distrito_id": 2,
+      "direccion": "Av. Larco 1234",
+      "area": 385,
+      "precio_venta": 620000,
+      "precio_alquiler": 7200,
+      "moneda": "USD",
+      "transaccion": "ambos",
+      "parqueos": 6,
+      "antiguedad": 8,
+      "descripcion": "Oficina con vista al mar, en pleno centro de Miraflores. Implementada FULL.",
+      "implementacion": "Implementada",
+      "lat": -12.1196,
+      "lng": -77.0303,
+      "imagenes": [
+        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800",
+        "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800",
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800",
+        "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800"
+      ],
+      "caracteristicas_valores": [
+        { "caracteristica_id": 1, "valor": 3 },
+        { "caracteristica_id": 2, "valor": 2 },
+        { "caracteristica_id": 25, "valor": true },
+        { "caracteristica_id": 27, "valor": true },
+        { "caracteristica_id": 32, "valor": true },
+        { "caracteristica_id": 47, "valor": true }
+      ]
+    },
+    {
+      "id": 3,
+      "titulo": "Amplia Oficina Surco",
+      "tipo_inmueble_id": 1,
+      "distrito_id": 3,
+      "direccion": "Av. Primavera 850",
+      "area": 520,
+      "precio_venta": 850000,
+      "precio_alquiler": 9800,
+      "moneda": "USD",
+      "transaccion": "ambos",
+      "parqueos": 10,
+      "antiguedad": 15,
+      "descripcion": "Oficina espaciosa en edificio corporativo de Surco.",
+      "implementacion": "Semi Implementada",
+      "lat": -12.1405,
+      "lng": -76.9961,
+      "imagenes": [
+        "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800",
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800",
+        "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800",
+        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800"
+      ],
+      "caracteristicas_valores": [
+        { "caracteristica_id": 1, "valor": 5 },
+        { "caracteristica_id": 2, "valor": 5 },
+        { "caracteristica_id": 8, "valor": true },
+        { "caracteristica_id": 9, "valor": true },
+        { "caracteristica_id": 19, "valor": true },
+        { "caracteristica_id": 25, "valor": true },
+        { "caracteristica_id": 38, "valor": true }
+      ]
+    },
+    {
+      "id": 4,
+      "titulo": "Oficina Premium La Molina",
+      "tipo_inmueble_id": 1,
+      "distrito_id": 4,
+      "direccion": "Av. La Molina 2450",
+      "area": 420,
+      "precio_venta": 680000,
+      "precio_alquiler": 7800,
+      "moneda": "USD",
+      "transaccion": "ambos",
+      "parqueos": 7,
+      "antiguedad": 10,
+      "descripcion": "Oficina moderna en La Molina con todas las comodidades.",
+      "implementacion": "Amoblado FULL",
+      "lat": -12.0724,
+      "lng": -76.9408,
+      "imagenes": [
+        "https://images.unsplash.com/photo-1497366412874-3415097a27e7?w=800",
+        "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800",
+        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800",
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800"
+      ],
+      "caracteristicas_valores": [
+        { "caracteristica_id": 1, "valor": 4 },
+        { "caracteristica_id": 2, "valor": 3 },
+        { "caracteristica_id": 8, "valor": true },
+        { "caracteristica_id": 25, "valor": true },
+        { "caracteristica_id": 27, "valor": true },
+        { "caracteristica_id": 32, "valor": true }
+      ]
+    },
+    {
+      "id": 5,
+      "titulo": "Oficina Corporativa San Borja",
+      "tipo_inmueble_id": 1,
+      "distrito_id": 5,
+      "direccion": "Av. San Borja Norte 1234",
+      "area": 490,
+      "precio_venta": 720000,
+      "precio_alquiler": 8200,
+      "moneda": "USD",
+      "transaccion": "ambos",
+      "parqueos": 9,
+      "antiguedad": 11,
+      "descripcion": "Oficina en edificio inteligente de San Borja.",
+      "implementacion": "Implementada",
+      "lat": -12.0892,
+      "lng": -77.0019,
+      "imagenes": [
+        "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800",
+        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800",
+        "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800",
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800"
+      ],
+      "caracteristicas_valores": [
+        { "caracteristica_id": 1, "valor": 5 },
+        { "caracteristica_id": 2, "valor": 4 },
+        { "caracteristica_id": 8, "valor": true },
+        { "caracteristica_id": 11, "valor": true },
+        { "caracteristica_id": 19, "valor": true },
+        { "caracteristica_id": 25, "valor": true },
+        { "caracteristica_id": 27, "valor": true },
+        { "caracteristica_id": 32, "valor": true },
+        { "caracteristica_id": 38, "valor": true }
+      ]
+    },
+    {
+      "id": 6,
+      "titulo": "Oficina Magdalena Vista Mar",
+      "tipo_inmueble_id": 1,
+      "distrito_id": 6,
+      "direccion": "Malecón Pardo 345",
+      "area": 350,
+      "precio_venta": 580000,
+      "precio_alquiler": 6800,
+      "moneda": "USD",
+      "transaccion": "ambos",
+      "parqueos": 5,
+      "antiguedad": 14,
+      "descripcion": "Oficina con vista panorámica al mar en Magdalena.",
+      "implementacion": "Por Implementar",
+      "lat": -12.0877,
+      "lng": -77.0652,
+      "imagenes": [
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800",
+        "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800",
+        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800",
+        "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800"
+      ],
+      "caracteristicas_valores": [
+        { "caracteristica_id": 1, "valor": 3 },
+        { "caracteristica_id": 2, "valor": 2 },
+        { "caracteristica_id": 27, "valor": true },
+        { "caracteristica_id": 47, "valor": true }
+      ]
+    }
+  ]
+}

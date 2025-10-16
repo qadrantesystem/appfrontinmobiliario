@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Inmueble - Match Property</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/pages/busqueda.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <a href="/">
+                        <img src="assets/images/logos/logo.jpg" alt="Match Property" class="logo-img">
+                    </a>
+                </div>
+                <button class="hamburger" id="hamburger" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="/">Inicio</a></li>
+                    <li><a href="/busqueda" class="active">Buscar</a></li>
+                    <li><a href="/sobre-nosotros">Nosotros</a></li>
+                    <li><a href="/login" class="btn btn-outline">Iniciar Sesión</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Búsqueda Simplificada Section -->
+    <section class="busqueda-section">
+        <div class="container">
+            <!-- Filtro Simplificado -->
+            <div class="filtro-simplificado-card">
+                <h2>Búsqueda Generica</h2>
+
+                <!-- Fila 1: Tipo de Inmueble -->
+                <div class="form-group">
+                    <label>Tipo de Inmueble</label>
+                    <select id="tipoInmueble" class="form-control">
+                        <option value="">Selecciona un tipo...</option>
+                        <!-- Se carga dinámicamente -->
+                    </select>
+                </div>
+
+                <!-- Fila 2: País + Departamento + Provincia -->
+                <div class="ubicacion-row">
+                    <div class="form-group">
+                        <label>País</label>
+                        <select id="pais" class="form-control">
+                            <option value="PERU">Perú</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Departamento</label>
+                        <select id="departamento" class="form-control">
+                            <option value="">Selecciona departamento...</option>
+                            <option value="LIMA" selected>Lima</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Provincia</label>
+                        <select id="provincia" class="form-control">
+                            <option value="">Selecciona provincia...</option>
+                            <option value="LIMA" selected>Lima</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Fila 2: Distritos -->
+                <div class="form-group">
+                    <label>Distritos</label>
+                    <div id="distritoMulti" class="multi-select">
+                        <button type="button" class="multi-select__button" id="distritoToggle" aria-expanded="false" aria-haspopup="listbox">
+                            <span class="multi-select__placeholder" id="distritoPlaceholder">Selecciona distritos...</span>
+                            <span class="multi-select__tags" id="distritoTags"></span>
+                            <span class="multi-select__arrow">▾</span>
+                        </button>
+                        <div class="multi-select__panel" id="distritoPanel" role="listbox" aria-multiselectable="true" hidden>
+                            <div class="multi-select__search">
+                                <input type="text" id="distritoSearch" placeholder="Buscar distrito..." class="multi-select__search-input">
+                            </div>
+                            <div class="multi-select__options" id="distritoOptions">
+                                <!-- Opciones renderizadas por JS -->
+                            </div>
+                            <div class="multi-select__actions">
+                                <button type="button" id="distritoSelectAll" class="multi-select__action">Seleccionar todos</button>
+                                <button type="button" id="distritoClear" class="multi-select__action alt">Limpiar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <small>Busca y selecciona múltiples distritos.</small>
+                </div>
+
+                <!-- Fila 4: Tipo de Transacción + Metraje + Presupuesto -->
+                <div class="ubicacion-row">
+                    <div class="form-group">
+                        <label for="transaccion">Tipo de Transacción</label>
+                        <select id="transaccion" name="transaccion" class="form-control">
+                            <option value="compra" selected>Compra</option>
+                            <option value="alquiler">Alquiler</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="metraje">Metraje (m²)</label>
+                        <input type="number" id="metraje" class="form-control" placeholder="Ej: 460">
+                        <small>El sistema busca ±15%</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="presupuesto" id="labelPresupuesto">Presupuesto Compra (USD)</label>
+                        <input type="number" id="presupuesto" class="form-control" placeholder="750,000">
+                        <small id="helperPresupuesto">Tolerancia ±15%</small>
+                    </div>
+                </div>
+
+                <!-- Botón Hacer MATCH -->
+                <div class="boton-match-container">
+                    <button id="btnHacerMatch" class="btn btn-match">
+                        Hacer MATCH
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/pages/busqueda.js"></script>
+</body>
+</html>

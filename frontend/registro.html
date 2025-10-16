@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Match Property</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/pages/auth.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <a href="/">
+                        <img src="assets/images/logos/logo.jpg" alt="Match Property" class="logo-img">
+                    </a>
+                </div>
+                <button class="hamburger" id="hamburger" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="/">Inicio</a></li>
+                    <li><a href="/busqueda">Buscar</a></li>
+                    <li><a href="/login">Iniciar Sesión</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Registro Form -->
+    <section class="auth-section">
+        <div class="auth-container">
+            <div class="auth-card auth-card-wide">
+                <div class="auth-header">
+                    <h1>📝 Crear Cuenta</h1>
+                    <p>Únete a Match Property y encuentra tu inmueble ideal</p>
+                </div>
+
+                <form id="registroForm" class="auth-form">
+                    <!-- Tipo de Persona -->
+                    <div class="form-group">
+                        <label for="tipoPersona">👤 Tipo de Persona</label>
+                        <select id="tipoPersona" name="tipoPersona" class="form-control" required>
+                            <option value="">Selecciona el tipo de persona</option>
+                            <option value="natural" selected>Persona Natural</option>
+                            <option value="juridica">Persona Jurídica (Empresa)</option>
+                        </select>
+                        <small class="form-help">Selecciona si eres persona natural o representas una empresa</small>
+                    </div>
+
+                    <!-- Datos Empresa (solo si es jurídica) -->
+                    <div id="datosEmpresa" class="conditional-section" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="razonSocial">🏢 Razón Social</label>
+                                <input type="text" id="razonSocial" class="form-control" placeholder="Nombre de la empresa">
+                            </div>
+                            <div class="form-group">
+                                <label for="ruc">📄 RUC</label>
+                                <input type="text" id="ruc" class="form-control" placeholder="20123456789" maxlength="11">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="representanteLegal">👨‍💼 Representante Legal</label>
+                            <input type="text" id="representanteLegal" class="form-control" placeholder="Nombre completo del representante">
+                        </div>
+                    </div>
+
+                    <!-- Datos Personales -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre">✍️ Nombres</label>
+                            <input type="text" id="nombre" class="form-control" required placeholder="Tus nombres">
+                        </div>
+                        <div class="form-group">
+                            <label for="apellido">✍️ Apellidos</label>
+                            <input type="text" id="apellido" class="form-control" required placeholder="Tus apellidos">
+                        </div>
+                    </div>
+
+                    <!-- Tipo Documento y Número -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="tipoDoc">🆔 Tipo de Documento</label>
+                            <select id="tipoDoc" class="form-control" required>
+                                <option value="DNI">DNI</option>
+                                <option value="RUC">RUC</option>
+                                <option value="CE">Carnet de Extranjería</option>
+                                <option value="PAS">Pasaporte</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="numDoc">🔢 Número de Documento</label>
+                            <input type="text" id="numDoc" class="form-control" required placeholder="12345678">
+                        </div>
+                    </div>
+
+                    <!-- Contacto -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="telefono">📱 Teléfono</label>
+                            <input type="tel" id="telefono" class="form-control" required placeholder="+51 999 999 999">
+                        </div>
+                        <div class="form-group">
+                            <label for="emailReg">📧 Correo Electrónico</label>
+                            <input type="email" id="emailReg" class="form-control" required placeholder="tu@email.com">
+                        </div>
+                    </div>
+
+                    <!-- Contraseña -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="passwordReg">🔒 Contraseña</label>
+                            <input type="password" id="passwordReg" class="form-control" required placeholder="Mínimo 8 caracteres">
+                        </div>
+                        <div class="form-group">
+                            <label for="passwordConfirm">🔒 Confirmar Contraseña</label>
+                            <input type="password" id="passwordConfirm" class="form-control" required placeholder="Repite tu contraseña">
+                        </div>
+                    </div>
+
+                    <!-- Términos y Condiciones -->
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="terminos" required>
+                            <span>Acepto los <a href="#" class="link-primary">Términos y Condiciones</a> y la <a href="#" class="link-primary">Política de Privacidad</a></span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full">Crear Cuenta</button>
+
+                    <div class="auth-divider">
+                        <span>o</span>
+                    </div>
+
+                    <div class="auth-footer">
+                        <p>¿Ya tienes cuenta? <a href="/login" class="link-primary">Inicia sesión aquí</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/pages/registro.js"></script>
+</body>
+</html>

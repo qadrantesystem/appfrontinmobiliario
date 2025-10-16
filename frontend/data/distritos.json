@@ -1,0 +1,14 @@
+{
+  "distritos": [
+    { "id": 1, "nombre": "San Isidro", "provincia": "Lima", "departamento": "Lima" },
+    { "id": 2, "nombre": "Miraflores", "provincia": "Lima", "departamento": "Lima" },
+    { "id": 3, "nombre": "Surco", "provincia": "Lima", "departamento": "Lima" },
+    { "id": 4, "nombre": "La Molina", "provincia": "Lima", "departamento": "Lima" },
+    { "id": 5, "nombre": "San Borja", "provincia": "Lima", "departamento": "Lima" },
+    { "id": 6, "nombre": "Magdalena", "provincia": "Lima", "departamento": "Lima" },
+    { "id": 7, "nombre": "Jesús María", "provincia": "Lima", "departamento": "Lima" },
+    { "id": 8, "nombre": "Lince", "provincia": "Lima", "departamento": "Lima" },
+    { "id": 9, "nombre": "Pueblo Libre", "provincia": "Lima", "departamento": "Lima" },
+    { "id": 10, "nombre": "Barranco", "provincia": "Lima", "departamento": "Lima" }
+  ]
+}

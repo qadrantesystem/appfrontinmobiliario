@@ -1,0 +1,654 @@
+/* ===========================
+   HEADER (Compartido)
+   =========================== */
+.header {
+  background: var(--blanco);
+  padding: clamp(0.75rem, 2vw, 1.5rem) 0;
+  box-shadow: var(--shadow-md);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 2px solid var(--borde);
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2rem);
+}
+
+.logo-img {
+  height: clamp(60px, 10vw, 80px);
+  width: auto;
+}
+
+.nav-menu {
+  display: flex;
+  gap: clamp(1rem, 3vw, 2rem);
+  list-style: none;
+  align-items: center;
+}
+
+.nav-menu a {
+  color: var(--azul-corporativo);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.nav-menu a:hover,
+.nav-menu a.active {
+  color: var(--dorado);
+}
+
+/* ===========================
+   HAMBURGER MENU
+   =========================== */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  z-index: 101;
+}
+
+.hamburger span {
+  width: 28px;
+  height: 3px;
+  background: var(--azul-corporativo);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+/* ===========================
+   BÚSQUEDA SECTION
+   =========================== */
+.busqueda-section {
+  padding: clamp(1rem, 3vw, 2rem) 0;
+  background: var(--gris-claro);
+  min-height: calc(100vh - 80px);
+}
+
+.page-title {
+  text-align: center;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  margin-bottom: clamp(2rem, 5vw, 3rem);
+  color: var(--azul-corporativo);
+  font-weight: 700;
+}
+
+/* ===========================
+   FILTRO SIMPLIFICADO CARD
+   =========================== */
+.filtro-simplificado-card {
+  background: var(--blanco);
+  border-radius: clamp(12px, 2vw, 20px);
+  padding: clamp(0.65rem, 1.8vw, 1.1rem);
+  box-shadow: var(--shadow-md);
+  max-width: 750px;
+  margin: 0 auto;
+  transition: background 0.6s ease;
+  position: relative;
+  container-type: inline-size;
+  overflow: hidden;
+}
+
+.filtro-simplificado-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Efecto marca de agua para las imágenes de fondo */
+.filtro-simplificado-card[data-tipo="casa"]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: clamp(12px, 2vw, 20px);
+  opacity: 0.08;
+  filter: grayscale(50%) blur(0.5px);
+  z-index: 0;
+  transition: opacity 0.6s ease;
+}
+
+.filtro-simplificado-card[data-tipo="departamento"]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: clamp(12px, 2vw, 20px);
+  opacity: 0.08;
+  filter: grayscale(50%) blur(0.5px);
+  z-index: 0;
+  transition: opacity 0.6s ease;
+}
+
+.filtro-simplificado-card[data-tipo="terreno"]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: clamp(12px, 2vw, 20px);
+  opacity: 0.08;
+  filter: grayscale(50%) blur(0.5px);
+  z-index: 0;
+  transition: opacity 0.6s ease;
+}
+
+.filtro-simplificado-card[data-tipo="oficina"]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: clamp(12px, 2vw, 20px);
+  opacity: 0.08;
+  filter: grayscale(50%) blur(0.5px);
+  z-index: 0;
+  transition: opacity 0.6s ease;
+}
+
+.filtro-simplificado-card[data-tipo="local"]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: clamp(12px, 2vw, 20px);
+  opacity: 0.08;
+  filter: grayscale(50%) blur(0.5px);
+  z-index: 0;
+  transition: opacity 0.6s ease;
+}
+
+.filtro-simplificado-card[data-tipo="cochera"]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=800&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: clamp(12px, 2vw, 20px);
+  opacity: 0.08;
+  filter: grayscale(50%) blur(0.5px);
+  z-index: 0;
+  transition: opacity 0.6s ease;
+}
+
+.filtro-simplificado-card h2 {
+  color: var(--azul-corporativo);
+  margin-bottom: clamp(0.4rem, 1.2vw, 0.65rem);
+  font-size: clamp(1.1rem, 1.8vw, 1.3rem);
+  border-bottom: 2px solid var(--dorado);
+  padding-bottom: clamp(0.15rem, 0.3vw, 0.35rem);
+}
+
+/* ===========================
+   FORM ELEMENTS (Modernos)
+   =========================== */
+.form-group {
+  margin-bottom: clamp(0.45rem, 1.3vw, 0.65rem);
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  color: var(--azul-corporativo);
+  margin-bottom: clamp(0.25rem, 0.5vw, 0.4rem);
+  font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+}
+
+.form-group small {
+  display: block;
+  color: var(--gris-medio);
+  font-size: clamp(0.7rem, 1.2vw, 0.8rem);
+  margin-top: clamp(0.15rem, 0.3vw, 0.3rem);
+}
+
+.form-control {
+  width: 100%;
+  padding: clamp(7px, 1.3vw, 9px);
+  border: 2px solid var(--borde);
+  border-radius: clamp(6px, 1vw, 8px);
+  font-size: clamp(0.82rem, 1.4vw, 0.92rem);
+  transition: all var(--transition-fast);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--azul-medio);
+  box-shadow: 0 0 0 3px rgba(26, 77, 122, 0.1);
+}
+
+/* ===========================
+   MULTI-SELECT (Dropdown con checkboxes)
+   =========================== */
+.multi-select {
+  position: relative;
+}
+
+.multi-select__button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: clamp(10px, 2vw, 14px);
+  border: 2px solid var(--borde);
+  border-radius: clamp(6px, 1vw, 10px);
+  background: #fff;
+  cursor: pointer;
+}
+
+.multi-select__button:focus {
+  outline: none;
+  border-color: var(--azul-medio);
+  box-shadow: 0 0 0 3px rgba(26, 77, 122, 0.1);
+}
+
+.multi-select__placeholder {
+  color: var(--gris-medio);
+  flex: 1;
+  text-align: left;
+}
+
+.multi-select__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.multi-select__tag {
+  background: rgba(245,166,35,0.15);
+  color: var(--azul-corporativo);
+  border: 1px solid var(--dorado);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.85rem;
+}
+
+.multi-select__arrow {
+  color: var(--gris-medio);
+}
+
+.multi-select__panel {
+  position: static; /* en flujo normal */
+  margin-top: 6px;
+  background: var(--blanco, #fff);
+  border: 2px solid var(--borde);
+  border-radius: clamp(6px, 1vw, 10px);
+  box-shadow: var(--shadow-md);
+  padding: 8px;
+  max-height: 360px; /* evitar desbordar la tarjeta */
+  overflow: hidden; /* el scroll va en options */
+  background-clip: padding-box;
+}
+
+.multi-select__options, .multi-select__actions {
+  position: relative;
+}
+
+/* Estado flotante ya no se usa (overlay deshabilitado) */
+/* .multi-select__panel--floating removido intencionalmente */
+
+/* Backdrop no usado en modo en-flujo */
+.multi-select__backdrop { display: none; }
+
+/* Sin bloqueo de scroll en modo en-flujo */
+
+.multi-select__search {
+  padding: 6px;
+}
+
+.multi-select__search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--borde);
+  border-radius: 8px;
+  background: var(--blanco, #fff);
+}
+.multi-select__search-input:focus {
+  outline: none;
+  border-color: var(--azul-medio);
+  box-shadow: 0 0 0 3px rgba(26,77,122,0.1);
+}
+
+.multi-select__options {
+  max-height: 260px;
+  overflow: auto;
+  padding: 4px 6px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  background: var(--blanco, #fff);
+}
+
+.multi-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--blanco, #fff);
+}
+
+.multi-option:hover {
+  background: rgba(245,166,35,0.08);
+}
+
+.multi-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--dorado);
+  cursor: pointer;
+}
+
+.multi-select__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 6px;
+}
+
+.multi-select__action {
+  flex: 1;
+  background: var(--azul-corporativo);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.multi-select__action.alt {
+  background: #e0e0e0;
+  color: #333;
+}
+
+/* Estado abierto: elevar contenedor completo */
+.multi-select.open {
+  z-index: 1001;
+}
+
+/* ===========================
+   UBICACIÓN ROW (País/Depto/Provincia)
+   =========================== */
+.ubicacion-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.35rem, 0.9vw, 0.55rem);
+  align-items: start;
+  margin-bottom: clamp(0.45rem, 1.3vw, 0.65rem);
+}
+
+.ubicacion-row .form-group {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ubicacion-row .form-group label {
+  min-height: 1.3em;
+  margin-bottom: clamp(0.25rem, 0.5vw, 0.4rem);
+}
+
+.ubicacion-row .form-group .form-control,
+.ubicacion-row .form-group select {
+  flex: 1;
+}
+
+/* ===========================
+   CHECKBOXES GRID (Auto-fit)
+   =========================== */
+.checkboxes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+  gap: clamp(0.75rem, 2vw, 1rem);
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1vw, 0.75rem);
+  padding: clamp(0.5rem, 1vw, 0.75rem);
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: clamp(6px, 1vw, 8px);
+  transition: all 0.2s ease;
+}
+
+.checkbox-item:hover {
+  background: rgba(245, 166, 35, 0.1);
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--dorado);
+}
+
+.checkbox-item label {
+  margin: 0;
+  cursor: pointer;
+  font-weight: normal;
+  font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+}
+
+/* ===========================
+   RADIO GROUPS (Modernos)
+   =========================== */
+.radio-group {
+  display: flex;
+  gap: clamp(1rem, 3vw, 2rem);
+  flex-wrap: wrap;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1vw, 0.75rem);
+  cursor: pointer;
+  font-weight: normal;
+  padding: clamp(0.75rem, 2vw, 1rem);
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid var(--borde);
+  border-radius: clamp(8px, 1.5vw, 12px);
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: min(120px, 100%);
+  justify-content: center;
+}
+
+.radio-label:hover {
+  border-color: var(--dorado);
+  background: rgba(245, 166, 35, 0.1);
+}
+
+.radio-label input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--dorado);
+}
+
+.radio-label input[type="radio"]:checked + span {
+  font-weight: 600;
+  color: var(--dorado);
+}
+
+.radio-label:has(input:checked) {
+  border-color: var(--dorado);
+  background: rgba(245, 166, 35, 0.15);
+}
+
+/* ===========================
+   BOTÓN HACER MATCH (Destacado)
+   =========================== */
+.boton-match-container {
+  margin-top: clamp(0.6rem, 1.5vw, 0.85rem);
+  text-align: right;
+}
+
+.btn-match {
+  background: linear-gradient(135deg, var(--dorado) 0%, #d4941f 100%);
+  color: var(--blanco);
+  padding: clamp(0.5rem, 1.2vw, 0.7rem) clamp(1.25rem, 2.5vw, 2rem);
+  border: none;
+  border-radius: clamp(6px, 1vw, 8px);
+  font-size: clamp(0.88rem, 1.6vw, 1rem);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(245, 166, 35, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: min(160px, 100%);
+}
+
+.btn-match:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(245, 166, 35, 0.5);
+  background: linear-gradient(135deg, #d4941f 0%, var(--dorado) 100%);
+}
+
+.btn-match:active {
+  transform: translateY(-1px);
+}
+
+/* ===========================
+   RESPONSIVE CON CONTAINER QUERIES
+   =========================== */
+
+/* Cuando el contenedor es pequeño */
+@container (max-width: 600px) {
+  .checkboxes-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
+  }
+  
+  .radio-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .radio-label {
+    min-width: 100%;
+  }
+  
+  /* En contenedores pequeños, apilar filtros de ubicación */
+  .ubicacion-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+}
+
+/* ===========================
+   MEDIA QUERIES (Solo para Layout)
+   =========================== */
+
+/* Tablet y menores */
+@media (max-width: 768px) {
+  .hamburger {
+    display: flex;
+  }
+
+  .nav-menu {
+    position: fixed;
+    top: 70px;
+    right: -100%;
+    width: 250px;
+    height: calc(100vh - 70px);
+    background: var(--azul-corporativo);
+    flex-direction: column;
+    gap: 0;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
+    transition: right 0.3s ease;
+    align-items: flex-start;
+  }
+
+  .nav-menu.active {
+    right: 0;
+  }
+
+  .nav-menu li {
+    width: 100%;
+    padding: clamp(0.75rem, 2vw, 1rem) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-menu a {
+    display: block;
+    width: 100%;
+    color: var(--blanco);
+  }
+
+  /* Fallback por viewport: en tablet puede ir 2 columnas si hay espacio */
+  .filtro-simplificado-card .ubicacion-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile pequeño */
+@media (max-width: 480px) {
+  .filtro-simplificado-card {
+    padding: clamp(1rem, 4vw, 1.5rem);
+  }
+  
+  .checkboxes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* En móviles pequeños, forzar columna única */
+  .filtro-simplificado-card .ubicacion-row {
+    grid-template-columns: 1fr;
+  }
+}

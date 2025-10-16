@@ -1,0 +1,14 @@
+{
+  "usuarios": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "1234",
+      "email": "admin@match.pe",
+      "nombre": "Administrador Match",
+      "rol": "admin",
+      "fechaRegistro": "2025-10-07",
+      "activo": true
+    }
+  ]
+}
