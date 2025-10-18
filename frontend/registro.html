@@ -3,10 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - Match Property</title>
+    <title>Registro - Quadrante</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/pages/auth.css">
+    <link rel="stylesheet" href="css/components/notifications.css">
+
+    <!-- Scripts de configuración -->
+    <script src="js/config/api.js"></script>
+    <script src="js/services/auth.service.js"></script>
+    <script src="js/utils/helpers.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -37,14 +43,14 @@
         <div class="auth-container">
             <div class="auth-card auth-card-wide">
                 <div class="auth-header">
-                    <h1>📝 Crear Cuenta</h1>
+                    <h1>Crear Cuenta</h1>
                     <p>Únete a Match Property y encuentra tu inmueble ideal</p>
                 </div>
 
                 <form id="registroForm" class="auth-form">
                     <!-- Tipo de Persona -->
                     <div class="form-group">
-                        <label for="tipoPersona">👤 Tipo de Persona</label>
+                        <label for="tipoPersona">Tipo de Persona</label>
                         <select id="tipoPersona" name="tipoPersona" class="form-control" required>
                             <option value="">Selecciona el tipo de persona</option>
                             <option value="natural" selected>Persona Natural</option>
@@ -57,16 +63,16 @@
                     <div id="datosEmpresa" class="conditional-section" style="display: none;">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="razonSocial">🏢 Razón Social</label>
+                                <label for="razonSocial">Razón Social</label>
                                 <input type="text" id="razonSocial" class="form-control" placeholder="Nombre de la empresa">
                             </div>
                             <div class="form-group">
-                                <label for="ruc">📄 RUC</label>
+                                <label for="ruc">RUC</label>
                                 <input type="text" id="ruc" class="form-control" placeholder="20123456789" maxlength="11">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="representanteLegal">👨‍💼 Representante Legal</label>
+                            <label for="representanteLegal">Representante Legal</label>
                             <input type="text" id="representanteLegal" class="form-control" placeholder="Nombre completo del representante">
                         </div>
                     </div>
@@ -74,11 +80,11 @@
                     <!-- Datos Personales -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="nombre">✍️ Nombres</label>
+                            <label for="nombre">Nombres</label>
                             <input type="text" id="nombre" class="form-control" required placeholder="Tus nombres">
                         </div>
                         <div class="form-group">
-                            <label for="apellido">✍️ Apellidos</label>
+                            <label for="apellido">Apellidos</label>
                             <input type="text" id="apellido" class="form-control" required placeholder="Tus apellidos">
                         </div>
                     </div>
@@ -86,7 +92,7 @@
                     <!-- Tipo Documento y Número -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="tipoDoc">🆔 Tipo de Documento</label>
+                            <label for="tipoDoc">Tipo de Documento</label>
                             <select id="tipoDoc" class="form-control" required>
                                 <option value="DNI">DNI</option>
                                 <option value="RUC">RUC</option>
@@ -95,7 +101,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="numDoc">🔢 Número de Documento</label>
+                            <label for="numDoc">Número de Documento</label>
                             <input type="text" id="numDoc" class="form-control" required placeholder="12345678">
                         </div>
                     </div>
@@ -103,24 +109,25 @@
                     <!-- Contacto -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="telefono">📱 Teléfono</label>
-                            <input type="tel" id="telefono" class="form-control" required placeholder="+51 999 999 999">
+                            <label for="telefono">Teléfono</label>
+                            <input type="tel" id="telefono" class="form-control" placeholder="+51 999 999 999">
                         </div>
                         <div class="form-group">
-                            <label for="emailReg">📧 Correo Electrónico</label>
-                            <input type="email" id="emailReg" class="form-control" required placeholder="tu@email.com">
+                            <label for="emailReg">Correo Electrónico</label>
+                            <input type="email" id="emailReg" class="form-control" required placeholder="tu@email.com" autocomplete="email">
                         </div>
                     </div>
 
                     <!-- Contraseña -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="passwordReg">🔒 Contraseña</label>
-                            <input type="password" id="passwordReg" class="form-control" required placeholder="Mínimo 8 caracteres">
+                            <label for="passwordReg">Contraseña</label>
+                            <input type="password" id="passwordReg" class="form-control" required placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+                            <small class="form-help">Mínimo 8 caracteres</small>
                         </div>
                         <div class="form-group">
-                            <label for="passwordConfirm">🔒 Confirmar Contraseña</label>
-                            <input type="password" id="passwordConfirm" class="form-control" required placeholder="Repite tu contraseña">
+                            <label for="passwordConfirm">Confirmar Contraseña</label>
+                            <input type="password" id="passwordConfirm" class="form-control" required placeholder="Repite tu contraseña" autocomplete="new-password">
                         </div>
                     </div>
 
@@ -132,7 +139,7 @@
                         </label>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-full">Crear Cuenta</button>
+                    <button type="submit" class="btn btn-primary btn-full" id="registroBtn">Crear Cuenta</button>
 
                     <div class="auth-divider">
                         <span>o</span>
@@ -145,6 +152,47 @@
             </div>
         </div>
     </section>
+
+    <!-- Modal de Verificación -->
+    <div id="verificacionModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Verifica tu Email</h2>
+                <p id="modalEmailText">Hemos enviado un código de 6 dígitos a tu correo electrónico</p>
+            </div>
+
+            <form id="verificacionForm" class="modal-form">
+                <div class="form-group">
+                    <label for="codigoVerificacion">Código de Verificación</label>
+                    <input
+                        type="text"
+                        id="codigoVerificacion"
+                        class="form-control codigo-input"
+                        maxlength="6"
+                        pattern="[0-9]{6}"
+                        placeholder="000000"
+                        autocomplete="one-time-code"
+                        required
+                    >
+                    <small class="form-help">Ingresa el código de 6 dígitos que recibiste por email</small>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary btn-full" id="verificarModalBtn">
+                        Verificar Cuenta
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-full" id="reenviarModalBtn">
+                        Reenviar Código
+                    </button>
+                </div>
+
+                <div class="modal-footer">
+                    <p class="text-muted">El código expira en 15 minutos</p>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="js/pages/registro.js"></script>
 </body>

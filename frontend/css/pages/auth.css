@@ -16,8 +16,13 @@
 }
 
 .logo-img {
-  height: clamp(60px, 10vw, 80px);
+  height: 65px;
   width: auto;
+  transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+  transform: scale(1.05);
 }
 
 .nav-menu {
@@ -370,6 +375,120 @@ select.form-control:focus {
   line-height: 1.6;
 }
 
+/* Modal Verificación */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal.show {
+  display: block;
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: relative;
+  max-width: 500px;
+  margin: 50px auto;
+  background: var(--blanco);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: var(--spacing-xxl);
+  animation: slideUp 0.3s ease;
+  border: 2px solid var(--borde);
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.modal-header h2 {
+  color: var(--azul-corporativo);
+  font-size: 1.8rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.modal-header p {
+  color: var(--gris-medio);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.modal-form {
+  width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.modal-footer {
+  text-align: center;
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--borde);
+}
+
+.modal-footer .text-muted {
+  color: var(--gris-medio);
+  font-size: 0.85rem;
+}
+
+/* Código Input - Estilo especial */
+.codigo-input {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 0.5rem;
+  font-family: 'Courier New', monospace;
+  padding: 16px;
+}
+
+.codigo-input::placeholder {
+  letter-spacing: 0.3rem;
+  opacity: 0.3;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .hamburger {
@@ -430,6 +549,20 @@ select.form-control:focus {
   .form-options {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .modal-content {
+    margin: 20px;
+    padding: var(--spacing-xl);
+  }
+
+  .modal-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .codigo-input {
+    font-size: 1.5rem;
+    letter-spacing: 0.3rem;
   }
 }
 

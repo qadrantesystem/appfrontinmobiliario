@@ -3,36 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Match Property</title>
-    <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/pages/dashboard.css">
-    <link rel="stylesheet" href="css/components/notifications.css">
+    <title>Dashboard - Quadrante</title>
+    <link rel="stylesheet" href="css/variables.css?v=14">
+    <link rel="stylesheet" href="css/global.css?v=14">
+    <link rel="stylesheet" href="css/components/header.css?v=14">
+    <link rel="stylesheet" href="css/pages/dashboard.css?v=27">
+    <link rel="stylesheet" href="css/components/notifications.css?v=14">
+    <link rel="stylesheet" href="css/components/charts.css?v=17">
+    
+    <!-- Leaflet para mapas -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Scripts de configuración -->
-    <script src="js/config/api.js?v=5"></script>
-    <script src="js/services/auth.service.js?v=5"></script>
+    <!-- Scripts de configuración (DEBEN CARGARSE EN ORDEN) -->
+    <script src="js/config/api.js?v=6"></script>
+    <script src="js/services/auth.service.js?v=6"></script>
     <!-- ⚠️ PATCH: Debe cargarse INMEDIATAMENTE después de auth.service.js -->
-    <script src="js/pages/dashboard-patch.js?v=5"></script>
-    <script src="js/services/search.service.js?v=5"></script>
-    <script src="js/services/favorites.service.js?v=8"></script>
-    <script src="js/services/properties.service.js?v=5"></script>
-    <script src="js/utils/helpers.js?v=5"></script>
+    <script src="js/pages/dashboard-patch.js?v=8"></script>
+    <script src="js/services/search.service.js?v=6"></script>
+    <script src="js/services/favorites.service.js?v=6"></script>
+    <script src="js/services/properties.service.js?v=6"></script>
+    <script src="js/utils/helpers.js?v=6"></script>
+    <script src="js/utils/charts.js?v=6"></script>
 </head>
 <body class="dashboard-body">
     <!-- Header Principal -->
     <header class="dashboard-header">
         <div class="header-container">
-            <!-- Logo y Navegación Principal -->
+            <!-- Logo -->
             <div class="header-left">
                 <div class="logo">
-                    <img src="assets/images/logos/logo.jpg" alt="Match Property" class="logo-img">
+                    <a href="index.html">
+                        <img src="assets/images/logos/logo.jpg" alt="Quadrante" class="logo-img">
+                    </a>
                 </div>
-                <nav class="main-nav">
-                    <a href="dashboard.html" class="nav-link active">Dashboard</a>
-                    <a href="busqueda.html" class="nav-link">Buscar</a>
-                    <a href="#" class="nav-link" id="registrarLink" style="display: none;">Registrar Propiedad</a>
-                </nav>
             </div>
 
             <!-- Usuario y Menú -->
@@ -63,14 +67,14 @@
 
                     <!-- Dropdown Menu -->
                     <div class="dropdown-menu" id="userDropdown">
-                        <a href="#" class="dropdown-item" id="perfilLink">
+                        <a href="perfil.html" class="dropdown-item" id="perfilLink">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                 <circle cx="12" cy="7" r="4"></circle>
                             </svg>
                             Mi Perfil
                         </a>
-                        <a href="#" class="dropdown-item" id="planLink">
+                        <a href="plan.html" class="dropdown-item" id="planLink">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -115,6 +119,11 @@
         </div>
     </main>
 
-    <script src="js/pages/dashboard.js?v=8"></script>
+    <!-- Dashboard Modules (load first) -->
+    <script src="js/pages/dashboard/filters.js?v=8"></script>
+    <script src="js/pages/dashboard/pagination.js?v=8"></script>
+    <script src="js/pages/dashboard/carousel.js?v=8"></script>
+    <!-- Dashboard Core (load last) -->
+    <script src="js/pages/dashboard.js?v=38"></script>
 </body>
 </html>

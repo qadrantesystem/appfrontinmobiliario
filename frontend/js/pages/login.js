@@ -18,7 +18,7 @@ class LoginPage {
     // Verificar si ya está autenticado
     if (authService.isAuthenticated()) {
       console.log('✅ Usuario ya autenticado, redirigiendo...');
-      redirectTo('index.html', 500);
+      window.location.href = 'dashboard.html';
       return;
     }
 
@@ -100,17 +100,17 @@ class LoginPage {
         'success'
       );
 
-      // Redirigir según el perfil
+      // Redirigir al dashboard
       setTimeout(() => {
-        this.redirectByProfile(usuario.perfil_id);
+        window.location.href = 'dashboard.html';
       }, 1500);
 
     } catch (error) {
       hideLoading(this.loginBtn);
-      
+
       // Manejar errores específicos
       let errorMessage = 'Error al iniciar sesión';
-      
+
       if (error.message.includes('Credenciales')) {
         errorMessage = 'Email o contraseña incorrectos';
       } else if (error.message.includes('verificar')) {
@@ -118,10 +118,15 @@ class LoginPage {
         // Mostrar opción para reenviar código
         this.showVerificationPrompt(email);
         return;
-      } else if (error.message.includes('inactivo')) {
-        errorMessage = 'Tu cuenta está inactiva. Contacta al administrador';
+      } else if (error.message.includes('inactivo') || error.message.includes('suspendido')) {
+        // Usuario no ha verificado su email
+        errorMessage = 'Debes verificar tu email antes de iniciar sesión';
+        showNotification(errorMessage, 'warning');
+        // Mostrar opción para reenviar código
+        this.showVerificationPrompt(email);
+        return;
       }
-      
+
       showNotification(errorMessage, 'error');
       console.error('❌ Error en login:', error);
     }
@@ -148,8 +153,8 @@ class LoginPage {
       return false;
     }
 
-    if (password.length < 6) {
-      showNotification('La contraseña debe tener al menos 6 caracteres', 'warning');
+    if (password.length < 8) {
+      showNotification('La contraseña debe tener al menos 8 caracteres', 'warning');
       this.passwordInput.focus();
       return false;
     }
@@ -185,23 +190,6 @@ class LoginPage {
     }
   }
 
-  redirectByProfile(perfilId) {
-    // 1: Demandante, 2: Ofertante, 3: Corredor, 4: Admin
-    switch (perfilId) {
-      case 1: // Demandante
-        window.location.href = 'busqueda.html';
-        break;
-      case 2: // Ofertante
-      case 3: // Corredor
-        window.location.href = 'dashboard.html';
-        break;
-      case 4: // Admin
-        window.location.href = 'admin.html';
-        break;
-      default:
-        window.location.href = 'index.html';
-    }
-  }
 }
 
 // Inicializar cuando el DOM esté listo

@@ -32,8 +32,13 @@
 }
 
 .logo-img {
-  height: clamp(60px, 10vw, 80px);
+  height: 65px;
   width: auto;
+  transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+  transform: scale(1.05);
 }
 
 .header-actions {

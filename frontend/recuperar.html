@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/pages/auth.css">
+    <link rel="stylesheet" href="css/components/notifications.css">
+
+    <!-- Scripts de configuración -->
+    <script src="js/config/api.js"></script>
+    <script src="js/services/auth.service.js"></script>
+    <script src="js/utils/helpers.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -37,18 +43,28 @@
         <div class="auth-container">
             <div class="auth-card">
                 <div class="auth-header">
-                    <h1>🔑 Recuperar Contraseña</h1>
-                    <p>Te enviaremos un enlace para restablecer tu contraseña</p>
+                    <h1>Recuperar Contraseña</h1>
+                    <p id="headerText">Te enviaremos un código para restablecer tu contraseña</p>
                 </div>
 
-                <form id="recuperarForm" class="auth-form">
+                <!-- Paso 1: Solicitar código -->
+                <form id="solicitarForm" class="auth-form">
                     <div class="form-group">
-                        <label for="emailRecuperar">📧 Correo Electrónico</label>
-                        <input type="email" id="emailRecuperar" name="email" class="form-control" required placeholder="tu@email.com">
+                        <label for="emailRecuperar">Correo Electrónico</label>
+                        <input
+                            type="email"
+                            id="emailRecuperar"
+                            class="form-control"
+                            required
+                            placeholder="tu@email.com"
+                            autocomplete="email"
+                        >
                         <small class="form-help">Ingresa el correo asociado a tu cuenta</small>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-full">Enviar Enlace de Recuperación</button>
+                    <button type="submit" class="btn btn-primary btn-full" id="solicitarBtn">
+                        Enviar Código de Recuperación
+                    </button>
 
                     <div class="auth-divider">
                         <span>o</span>
@@ -59,12 +75,65 @@
                     </div>
                 </form>
 
-                <!-- Success message -->
-                <div id="successMessage" class="success-message" style="display: none;">
-                    <h3>✅ ¡Correo Enviado!</h3>
-                    <p>Hemos enviado un enlace de recuperación a tu correo electrónico.</p>
-                    <p>Por favor revisa tu bandeja de entrada y sigue las instrucciones.</p>
-                </div>
+                <!-- Paso 2: Restablecer con código -->
+                <form id="restablecerForm" class="auth-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="codigoRecuperar">Código de Recuperación</label>
+                        <input
+                            type="text"
+                            id="codigoRecuperar"
+                            class="form-control codigo-input"
+                            maxlength="6"
+                            pattern="[0-9]{6}"
+                            placeholder="000000"
+                            autocomplete="one-time-code"
+                            required
+                        >
+                        <small class="form-help">Ingresa el código de 6 dígitos que recibiste por email</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nuevaPassword">Nueva Contraseña</label>
+                        <input
+                            type="password"
+                            id="nuevaPassword"
+                            class="form-control"
+                            required
+                            placeholder="Mínimo 8 caracteres"
+                            autocomplete="new-password"
+                        >
+                        <small class="form-help">Mínimo 8 caracteres</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmarPassword">Confirmar Nueva Contraseña</label>
+                        <input
+                            type="password"
+                            id="confirmarPassword"
+                            class="form-control"
+                            required
+                            placeholder="Repite tu nueva contraseña"
+                            autocomplete="new-password"
+                        >
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="restablecerBtn">
+                        Restablecer Contraseña
+                    </button>
+
+                    <div class="auth-divider">
+                        <span>o</span>
+                    </div>
+
+                    <div class="auth-footer">
+                        <p>
+                            <button type="button" id="reenviarCodigoBtn" class="link-primary" style="background: none; border: none; cursor: pointer; text-decoration: underline;">
+                                Reenviar código
+                            </button>
+                        </p>
+                        <p><a href="/login" class="link-primary">← Volver al inicio de sesión</a></p>
+                    </div>
+                </form>
             </div>
         </div>
     </section>

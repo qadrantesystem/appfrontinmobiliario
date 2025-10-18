@@ -31,11 +31,15 @@ body.video-finished .footer {
 /* Header */
 .header {
   background: var(--blanco);
-  padding: var(--spacing-md);
+  padding: 12px 0; /* 🔥 Ajustado para logo 65px */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.header .container {
+  padding: 0 20px; /* 🔥 Espaciado estándar */
 }
 
 .navbar {
@@ -46,8 +50,19 @@ body.video-finished .footer {
 }
 
 .logo-img {
-  height: clamp(60px, 10vw, 80px);
+  height: 65px; /* 🔥 Tamaño perfecto */
   width: auto;
+  transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .logo-img {
+    height: 50px;
+  }
 }
 
 .nav-menu {

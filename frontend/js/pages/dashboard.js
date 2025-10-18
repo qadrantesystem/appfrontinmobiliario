@@ -1,5 +1,5 @@
 /**
- * 🎯 Dashboard Universal - Match Property
+ * 🎯 Dashboard Universal - Quadrante
  * Sistema de tabs dinámico con data real según perfil de usuario
  */
 
@@ -15,7 +15,6 @@ class Dashboard {
     this.userMenuBtn = document.getElementById('userMenuBtn');
     this.userMenu = document.querySelector('.user-menu');
     this.logoutBtn = document.getElementById('logoutBtn');
-    this.registrarLink = document.getElementById('registrarLink');
 
     // Usuario actual
     this.currentUser = null;
@@ -23,11 +22,14 @@ class Dashboard {
 
     // Data cacheada del nuevo endpoint unificado
     this.dashboardStats = null;
-
-    // Data cacheada legacy (deprecar)
-    this.searchStats = null;
-    this.favoriteStats = null;
     this.propertyStats = null;
+    this.allProperties = [];
+    this.currentPage = 1;
+
+    // Inicializar módulos
+    this.filters = new DashboardFilters(this);
+    this.pagination = new DashboardPagination(this);
+    this.carousel = new DashboardCarousel(this);
 
     // Configuración de tabs por perfil
     this.tabsConfig = {
@@ -49,11 +51,12 @@ class Dashboard {
         { id: 'metricas', name: 'Métricas', icon: this.getIcon('chart') },
         { id: 'calendario', name: 'Calendario', icon: this.getIcon('calendar') }
       ],
-      4: [ // Admin - Placeholder
-        { id: 'super-dashboard', name: 'Super Dashboard', icon: this.getIcon('dashboard') },
+      4: [ // Admin
+        { id: 'dashboard', name: 'Dashboard', icon: this.getIcon('dashboard') },
+        { id: 'propiedades', name: 'Propiedades', icon: this.getIcon('building') },
+        { id: 'favoritos', name: 'Favoritos', icon: this.getIcon('heart') },
+        { id: 'historial', name: 'Búsquedas', icon: this.getIcon('search') },
         { id: 'usuarios', name: 'Usuarios', icon: this.getIcon('users') },
-        { id: 'cola', name: 'Cola de Atención', icon: this.getIcon('inbox') },
-        { id: 'configuracion', name: 'Configuración', icon: this.getIcon('settings') },
         { id: 'reportes', name: 'Reportes', icon: this.getIcon('file') }
       ]
     };
@@ -79,8 +82,6 @@ class Dashboard {
 
   async loadCurrentUser() {
     try {
-      console.log('📥 Obteniendo datos del usuario...');
-
       // Obtener usuario del storage primero (para mostrar rápido)
       const storedUser = authService.getCurrentUser();
       if (storedUser) {
@@ -92,16 +93,9 @@ class Dashboard {
       const freshUser = await authService.getMyProfile();
       this.currentUser = freshUser;
 
-      console.log('✅ Usuario cargado:', freshUser);
-
       // Actualizar UI con datos frescos
       this.displayUserInfo(freshUser);
       this.loadTabs(freshUser.perfil_id);
-
-      // Mostrar/ocultar "Registrar Propiedad" según perfil
-      if (freshUser.perfil_id === 2 || freshUser.perfil_id === 4) {
-        this.registrarLink.style.display = 'block';
-      }
 
     } catch (error) {
       console.error('❌ Error cargando usuario:', error);
@@ -126,14 +120,15 @@ class Dashboard {
     const fullName = `${user.nombre} ${user.apellido}`;
     this.userName.textContent = fullName;
 
-    // Rol/Perfil
+    // Rol/Perfil - Asegurar que perfil_id sea número
+    const perfilId = parseInt(user.perfil_id);
     const perfilNames = {
       1: 'Demandante',
       2: 'Ofertante',
       3: 'Corredor',
       4: 'Administrador'
     };
-    this.userRole.textContent = perfilNames[user.perfil_id] || 'Usuario';
+    this.userRole.textContent = perfilNames[perfilId] || 'Usuario';
 
     // Avatar
     this.generateAvatar(user);
@@ -154,11 +149,37 @@ class Dashboard {
     }
   }
 
+  setupUserMenu() {
+    // Toggle del menú de usuario
+    this.userMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.userMenu.classList.toggle('active');
+    });
+
+    // Cerrar menú al hacer click fuera
+    document.addEventListener('click', (e) => {
+      if (!this.userMenu.contains(e.target)) {
+        this.userMenu.classList.remove('active');
+      }
+    });
+  }
+
+  setupLogout() {
+    this.logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+        authService.logout();
+      }
+    });
+  }
+
   loadTabs(perfilId) {
-    const tabs = this.tabsConfig[perfilId];
+    // Asegurar que sea número
+    const perfilIdNum = parseInt(perfilId);
+    const tabs = this.tabsConfig[perfilIdNum];
 
     if (!tabs) {
-      console.error('❌ No hay configuración de tabs para perfil:', perfilId);
+      console.error('❌ No hay configuración de tabs para perfil:', perfilIdNum);
       return;
     }
 
@@ -170,36 +191,38 @@ class Dashboard {
       const tabBtn = document.createElement('button');
       tabBtn.className = 'tab-btn';
       tabBtn.dataset.tab = tab.id;
-      tabBtn.innerHTML = `${tab.icon} <span>${tab.name}</span>`;
+      tabBtn.dataset.tooltip = tab.name; // 🔥 Tooltip para móvil
+      tabBtn.innerHTML = `${tab.icon} <span class="tab-btn-text">${tab.name}</span>`;
 
       // Primer tab activo por defecto
       if (index === 0) {
         tabBtn.classList.add('active');
         this.currentTab = tab.id;
-        this.loadTabContent(tab.id, perfilId);
+        this.loadTabContent(tab.id, perfilIdNum);
       }
 
       // Event listener
       tabBtn.addEventListener('click', () => {
-        this.switchTab(tab.id, perfilId);
+        this.switchTab(tab.id, perfilIdNum);
       });
 
       this.tabsList.appendChild(tabBtn);
     });
-
-    console.log(`✅ ${tabs.length} tabs cargados para perfil ${perfilId}`);
   }
 
   switchTab(tabId, perfilId) {
+    // Asegurar que sea número
+    const perfilIdNum = parseInt(perfilId);
+    
     // Actualizar botón activo
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.classList.remove('active');
     });
-    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    document.querySelector(`[data-tab="${tabId}"]`)?.classList.add('active');
 
     // Cargar contenido
     this.currentTab = tabId;
-    this.loadTabContent(tabId, perfilId);
+    this.loadTabContent(tabId, perfilIdNum);
   }
 
   async loadTabContent(tabId, perfilId) {
@@ -221,6 +244,8 @@ class Dashboard {
         content = await this.getDashboardContent(perfilId);
       } else if (tabId === 'favoritos') {
         content = await this.getFavoritosContent();
+      } else if (tabId === 'busquedas') {
+        content = await this.getBusquedasContent();
       } else if (tabId === 'historial') {
         content = await this.getHistorialContent();
       } else if (tabId === 'propiedades') {
@@ -254,15 +279,17 @@ class Dashboard {
   }
 
   async getDashboardContent(perfilId) {
-    if (perfilId === 1) {
-      // Dashboard Demandante
+    // Asegurar que sea número
+    const perfilIdNum = parseInt(perfilId);
+    
+    if (perfilIdNum === 1) {
       return await this.getDemandanteDashboard();
-    } else if (perfilId === 2) {
-      // Dashboard Ofertante
+    } else if (perfilIdNum === 2) {
       return await this.getOfertanteDashboard();
+    } else if (perfilIdNum === 4) {
+      return await this.getAdminDashboard();
     } else {
-      // Corredor o Admin - placeholder
-      return this.getPlaceholderDashboard(perfilId);
+      return this.getPlaceholderDashboard(perfilIdNum);
     }
   }
 
@@ -381,144 +408,40 @@ class Dashboard {
           </div>
         </div>
 
-        <!-- Gráfico: Búsquedas por Tipo de Inmueble -->
-        ${stats.resumen.total_busquedas > 0 && Object.keys(stats.busquedas.por_tipo_inmueble || {}).length > 0 ? `
-          <div style="margin-top: var(--spacing-xxl);">
-            <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-lg);">
-              🔍 Búsquedas por Tipo de Inmueble
-            </h3>
-            <div style="background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--radius-lg); padding: var(--spacing-xl);">
-              ${Object.entries(stats.busquedas.por_tipo_inmueble)
-                .sort(([,a], [,b]) => b - a)
-                .map(([tipo, cantidad]) => {
-                  const maxCount = Math.max(...Object.values(stats.busquedas.por_tipo_inmueble));
-                  const percentage = (cantidad / maxCount) * 100;
-                  const colors = ['#0066CC', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
-                  const colorIndex = Object.keys(stats.busquedas.por_tipo_inmueble).indexOf(tipo);
-                  const barColor = colors[colorIndex % colors.length];
+        <!-- Gráfico: Búsquedas por Tipo de Inmueble (PIE CHART) -->
+        ${stats.resumen.total_busquedas > 0 && Object.keys(stats.busquedas.por_tipo_inmueble || {}).length > 0 ? 
+          Charts.generatePieChart(stats.busquedas.por_tipo_inmueble, {
+            title: '🔍 Búsquedas por Tipo de Inmueble',
+            size: 320
+          })
+        : ''}
 
-                  return `
-                    <div style="margin-bottom: var(--spacing-lg);">
-                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xs);">
-                        <span style="font-weight: 600; color: var(--texto-oscuro);">${tipo}</span>
-                        <span style="font-weight: 700; color: ${barColor}; font-size: 1.1rem;">${cantidad}</span>
-                      </div>
-                      <div style="background: var(--gris-claro); height: 24px; border-radius: 12px; overflow: hidden; position: relative;">
-                        <div style="background: linear-gradient(90deg, ${barColor} 0%, ${barColor}dd 100%); width: ${percentage}%; height: 100%; border-radius: 12px; transition: width 0.6s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-            </div>
-          </div>
-        ` : ''}
+        <!-- Gráfico: Favoritos por Tipo de Inmueble (PIE CHART) -->
+        ${stats.resumen.total_favoritos > 0 && Object.keys(stats.favoritos.por_tipo_inmueble || {}).length > 0 ?
+          Charts.generatePieChart(stats.favoritos.por_tipo_inmueble, {
+            title: '❤️ Favoritos por Tipo de Inmueble',
+            size: 320,
+            colors: ['#ef4444', '#f59e0b', '#10b981', '#0066CC', '#8b5cf6', '#ec4899']
+          })
+        : ''}
 
-        <!-- Gráfico: Favoritos por Tipo de Inmueble -->
-        ${stats.resumen.total_favoritos > 0 && Object.keys(stats.favoritos.por_tipo_inmueble || {}).length > 0 ? `
-          <div style="margin-top: var(--spacing-xxl);">
-            <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-lg);">
-              ❤️ Favoritos por Tipo de Inmueble
-            </h3>
-            <div style="background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--radius-lg); padding: var(--spacing-xl);">
-              ${Object.entries(stats.favoritos.por_tipo_inmueble)
-                .sort(([,a], [,b]) => b - a)
-                .map(([tipo, cantidad]) => {
-                  const maxCount = Math.max(...Object.values(stats.favoritos.por_tipo_inmueble));
-                  const percentage = (cantidad / maxCount) * 100;
-                  const colors = ['#0066CC', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
-                  const colorIndex = Object.keys(stats.favoritos.por_tipo_inmueble).indexOf(tipo);
-                  const barColor = colors[colorIndex % colors.length];
+        <!-- Gráfico: Búsquedas por Distrito (BARRAS VERTICALES) -->
+        ${stats.resumen.total_busquedas > 0 && Object.keys(stats.busquedas.por_distrito || {}).length > 0 ?
+          Charts.generateVerticalBarChart(stats.busquedas.por_distrito, {
+            title: '📍 Búsquedas por Distrito',
+            height: 350,
+            colors: ['#0066CC', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6']
+          })
+        : ''}
 
-                  return `
-                    <div style="margin-bottom: var(--spacing-lg);">
-                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xs);">
-                        <span style="font-weight: 600; color: var(--texto-oscuro);">${tipo}</span>
-                        <span style="font-weight: 700; color: ${barColor}; font-size: 1.1rem;">${cantidad}</span>
-                      </div>
-                      <div style="background: var(--gris-claro); height: 24px; border-radius: 12px; overflow: hidden; position: relative;">
-                        <div style="background: linear-gradient(90deg, ${barColor} 0%, ${barColor}dd 100%); width: ${percentage}%; height: 100%; border-radius: 12px; transition: width 0.6s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-
-              <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--borde); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-md); text-align: center;">
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: 700; color: var(--azul-corporativo);">${stats.resumen.total_favoritos}</div>
-                  <div style="font-size: 0.85rem; color: var(--gris-medio);">Total Favoritos</div>
-                </div>
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: 700; color: #8b5cf6;">${Object.keys(stats.favoritos.por_tipo_inmueble).length}</div>
-                  <div style="font-size: 0.85rem; color: var(--gris-medio);">Tipos Diferentes</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ` : ''}
-
-        <!-- Gráfico: Búsquedas por Distrito -->
-        ${stats.resumen.total_busquedas > 0 && Object.keys(stats.busquedas.por_distrito || {}).length > 0 ? `
-          <div style="margin-top: var(--spacing-xxl);">
-            <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-lg);">
-              📍 Búsquedas por Distrito
-            </h3>
-            <div style="background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--radius-lg); padding: var(--spacing-xl);">
-              ${Object.entries(stats.busquedas.por_distrito)
-                .sort(([,a], [,b]) => b - a)
-                .map(([distrito, cantidad]) => {
-                  const maxCount = Math.max(...Object.values(stats.busquedas.por_distrito));
-                  const percentage = (cantidad / maxCount) * 100;
-                  const colors = ['#0066CC', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6'];
-                  const colorIndex = Object.keys(stats.busquedas.por_distrito).indexOf(distrito);
-                  const barColor = colors[colorIndex % colors.length];
-
-                  return `
-                    <div style="margin-bottom: var(--spacing-lg);">
-                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xs);">
-                        <span style="font-weight: 600; color: var(--texto-oscuro);">${distrito}</span>
-                        <span style="font-weight: 700; color: ${barColor}; font-size: 1.1rem;">${cantidad}</span>
-                      </div>
-                      <div style="background: var(--gris-claro); height: 24px; border-radius: 12px; overflow: hidden; position: relative;">
-                        <div style="background: linear-gradient(90deg, ${barColor} 0%, ${barColor}dd 100%); width: ${percentage}%; height: 100%; border-radius: 12px; transition: width 0.6s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-            </div>
-          </div>
-        ` : ''}
-
-        <!-- Gráfico: Favoritos por Distrito -->
-        ${stats.resumen.total_favoritos > 0 && Object.keys(stats.favoritos.por_distrito || {}).length > 0 ? `
-          <div style="margin-top: var(--spacing-xxl);">
-            <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-lg);">
-              📍 Favoritos por Distrito
-            </h3>
-            <div style="background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--radius-lg); padding: var(--spacing-xl);">
-              ${Object.entries(stats.favoritos.por_distrito)
-                .sort(([,a], [,b]) => b - a)
-                .map(([distrito, cantidad]) => {
-                  const maxCount = Math.max(...Object.values(stats.favoritos.por_distrito));
-                  const percentage = (cantidad / maxCount) * 100;
-                  const colors = ['#0066CC', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6'];
-                  const colorIndex = Object.keys(stats.favoritos.por_distrito).indexOf(distrito);
-                  const barColor = colors[colorIndex % colors.length];
-
-                  return `
-                    <div style="margin-bottom: var(--spacing-lg);">
-                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xs);">
-                        <span style="font-weight: 600; color: var(--texto-oscuro);">${distrito}</span>
-                        <span style="font-weight: 700; color: ${barColor}; font-size: 1.1rem;">${cantidad}</span>
-                      </div>
-                      <div style="background: var(--gris-claro); height: 24px; border-radius: 12px; overflow: hidden; position: relative;">
-                        <div style="background: linear-gradient(90deg, ${barColor} 0%, ${barColor}dd 100%); width: ${percentage}%; height: 100%; border-radius: 12px; transition: width 0.6s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-            </div>
-          </div>
-        ` : ''}
+        <!-- Gráfico: Favoritos por Distrito (BARRAS VERTICALES) -->
+        ${stats.resumen.total_favoritos > 0 && Object.keys(stats.favoritos.por_distrito || {}).length > 0 ?
+          Charts.generateVerticalBarChart(stats.favoritos.por_distrito, {
+            title: '📍 Favoritos por Distrito',
+            height: 350,
+            colors: ['#ef4444', '#10b981', '#f59e0b', '#0066CC', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6']
+          })
+        : ''}
 
         <!-- CTA Section -->
         ${stats.resumen.total_busquedas === 0 && stats.resumen.total_favoritos === 0 ? `
@@ -536,6 +459,179 @@ class Dashboard {
       `;
     } catch (error) {
       console.error('❌ Error cargando dashboard demandante:', error);
+      throw error;
+    }
+  }
+
+  async getAdminDashboard() {
+    try {
+      const currentYear = new Date().getFullYear();
+      const stats = await this.getDashboardStats(currentYear);
+
+      return `
+        <div class="admin-dashboard">
+          <div class="dashboard-hero" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
+            <div>
+              <h1 style="color: var(--azul-corporativo); font-size: 2rem; margin: 0;">
+                Panel de Administración
+              </h1>
+              <p style="color: var(--gris-medio); margin-top: 0.5rem;">
+                Vista general del sistema inmobiliario
+              </p>
+            </div>
+            <div style="display: flex; gap: var(--spacing-md); align-items: center;">
+              <select id="filterYear" class="dashboard-filter" style="padding: 10px; border: 2px solid var(--azul-corporativo); border-radius: 8px; font-size: 1rem;">
+                <option value="2025" ${currentYear === 2025 ? 'selected' : ''}>2025</option>
+                <option value="2024" ${currentYear === 2024 ? 'selected' : ''}>2024</option>
+                <option value="2023">2023</option>
+              </select>
+              <select id="filterMonth" class="dashboard-filter" style="padding: 10px; border: 2px solid var(--azul-corporativo); border-radius: 8px; font-size: 1rem;">
+                <option value="">Todo el año</option>
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- KPIs principales - PALETA CORPORATIVA -->
+          <div class="kpis-grid" style="grid-template-columns: repeat(4, 1fr); gap: var(--spacing-lg);">
+            <div class="kpi-card" style="border-left: 4px solid var(--azul-corporativo);">
+              <div class="kpi-header">
+                <div class="kpi-icon" style="color: var(--azul-corporativo);">🏢</div>
+                <span class="kpi-title">Propiedades</span>
+              </div>
+              <div class="kpi-value" style="color: var(--azul-corporativo);">${stats.propiedades?.total || 0}</div>
+              <div class="kpi-subtitle">${stats.propiedades?.publicadas || 0} publicadas</div>
+            </div>
+
+            <div class="kpi-card" style="border-left: 4px solid var(--dorado);">
+              <div class="kpi-header">
+                <div class="kpi-icon" style="color: var(--dorado);">💰</div>
+                <span class="kpi-title">Valor Cartera</span>
+              </div>
+              <div class="kpi-value" style="color: var(--dorado);">S/ ${((stats.propiedades?.valor_total || 0) / 1000000).toFixed(1)}M</div>
+              <div class="kpi-subtitle">Promedio: S/ ${(stats.propiedades?.precio_promedio || 0).toLocaleString('es-PE')}</div>
+            </div>
+
+            <div class="kpi-card" style="border-left: 4px solid #10b981;">
+              <div class="kpi-header">
+                <div class="kpi-icon" style="color: #10b981;">✅</div>
+                <span class="kpi-title">Cerrados</span>
+              </div>
+              <div class="kpi-value" style="color: #10b981;">${stats.propiedades?.por_estado_crm?.cerrado_ganado || 0}</div>
+              <div class="kpi-subtitle">${stats.propiedades?.por_estado_crm?.pre_cierre || 0} por cerrar</div>
+            </div>
+
+            <div class="kpi-card" style="border-left: 4px solid #f59e0b;">
+              <div class="kpi-header">
+                <div class="kpi-icon" style="color: #f59e0b;">📊</div>
+                <span class="kpi-title">En Pipeline</span>
+              </div>
+              <div class="kpi-value" style="color: #f59e0b);">${(stats.propiedades?.por_estado_crm?.contacto || 0) + (stats.propiedades?.por_estado_crm?.propuesta || 0) + (stats.propiedades?.por_estado_crm?.negociacion || 0)}</div>
+              <div class="kpi-subtitle">Contacto, Propuesta, Negociación</div>
+            </div>
+          </div>
+
+          <!-- Estadísticas detalladas -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); margin-top: var(--spacing-xl);">
+            <div class="kpi-card">
+              <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-md);">
+                📈 Propiedades por Estado
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                ${Object.entries(stats.propiedades?.por_estado_crm || {}).map(([estado, cantidad]) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-xs); background: var(--gris-claro); border-radius: 6px;">
+                    <span style="text-transform: capitalize; color: var(--gris-oscuro);">${estado}</span>
+                    <strong style="color: var(--azul-corporativo);">${cantidad}</strong>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-md);">
+                🎯 Top Distritos
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                ${Object.entries(stats.propiedades?.por_distrito || {}).slice(0, 5).map(([distrito, cantidad]) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-xs); background: var(--gris-claro); border-radius: 6px;">
+                    <span style="color: var(--gris-oscuro);">${distrito}</span>
+                    <strong style="color: var(--azul-corporativo);">${cantidad}</strong>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- Pipeline CRM Visual -->
+          <div style="margin-top: var(--spacing-xl);">
+            <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-lg);">
+              📊 Pipeline de Ventas
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--spacing-sm);">
+              <div style="background: white; border: 2px solid var(--azul-corporativo); padding: var(--spacing-md); border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--azul-corporativo);">${stats.propiedades?.por_estado_crm?.lead || 0}</div>
+                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">Lead</div>
+              </div>
+              <div style="background: white; border: 2px solid #10b981; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">${stats.propiedades?.por_estado_crm?.contacto || 0}</div>
+                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">Contacto</div>
+              </div>
+              <div style="background: white; border: 2px solid #f59e0b; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;">${stats.propiedades?.por_estado_crm?.propuesta || 0}</div>
+                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">Propuesta</div>
+              </div>
+              <div style="background: white; border: 2px solid #8b5cf6; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #8b5cf6;">${stats.propiedades?.por_estado_crm?.negociacion || 0}</div>
+                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">Negociación</div>
+              </div>
+              <div style="background: white; border: 2px solid #6366f1; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #6366f1;">${stats.propiedades?.por_estado_crm?.pre_cierre || 0}</div>
+                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">Pre-Cierre</div>
+              </div>
+              <div style="background: white; border: 2px solid #22c55e; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #22c55e;">${stats.propiedades?.por_estado_crm?.cerrado_ganado || 0}</div>
+                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">✅ Ganado</div>
+              </div>
+              <div style="background: white; border: 2px solid #ef4444; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;">${stats.propiedades?.por_estado_crm?.cerrado_perdido || 0}</div>
+                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">❌ Perdido</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gráficos de análisis -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-xl); margin-top: var(--spacing-xl);">
+            ${Object.keys(stats.propiedades?.por_tipo_inmueble || {}).length > 0 ?
+              Charts.generatePieChart(stats.propiedades.por_tipo_inmueble, {
+                title: '🏢 Propiedades por Tipo',
+                size: 300,
+                colors: ['var(--azul-corporativo)', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4']
+              })
+            : ''}
+            
+            ${Object.keys(stats.propiedades?.por_distrito || {}).length > 0 ?
+              Charts.generatePieChart(stats.propiedades.por_distrito, {
+                title: '📍 Propiedades por Distrito',
+                size: 300,
+                colors: ['var(--azul-corporativo)', 'var(--dorado)', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444']
+              })
+            : ''}
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error('❌ Error cargando dashboard admin:', error);
       throw error;
     }
   }
@@ -662,69 +758,23 @@ class Dashboard {
             </div>
           </div>
 
-          <!-- Gráfico: Propiedades por Tipo -->
-          ${Object.keys(stats.propiedades.por_tipo_inmueble || {}).length > 0 ? `
-            <div style="margin-top: var(--spacing-xxl);">
-              <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-lg);">
-                🏢 Propiedades por Tipo de Inmueble
-              </h3>
-              <div style="background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--radius-lg); padding: var(--spacing-xl);">
-                ${Object.entries(stats.propiedades.por_tipo_inmueble)
-                  .sort(([,a], [,b]) => b - a)
-                  .map(([tipo, cantidad]) => {
-                    const maxCount = Math.max(...Object.values(stats.propiedades.por_tipo_inmueble));
-                    const percentage = (cantidad / maxCount) * 100;
-                    const colors = ['#0066CC', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
-                    const colorIndex = Object.keys(stats.propiedades.por_tipo_inmueble).indexOf(tipo);
-                    const barColor = colors[colorIndex % colors.length];
+          <!-- Gráfico: Propiedades por Tipo (PIE CHART) -->
+          ${Object.keys(stats.propiedades.por_tipo_inmueble || {}).length > 0 ?
+            Charts.generatePieChart(stats.propiedades.por_tipo_inmueble, {
+              title: '🏢 Propiedades por Tipo de Inmueble',
+              size: 320,
+              colors: ['#0066CC', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4']
+            })
+          : ''}
 
-                    return `
-                      <div style="margin-bottom: var(--spacing-lg);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xs);">
-                          <span style="font-weight: 600; color: var(--texto-oscuro);">${tipo}</span>
-                          <span style="font-weight: 700; color: ${barColor}; font-size: 1.1rem;">${cantidad}</span>
-                        </div>
-                        <div style="background: var(--gris-claro); height: 24px; border-radius: 12px; overflow: hidden; position: relative;">
-                          <div style="background: linear-gradient(90deg, ${barColor} 0%, ${barColor}dd 100%); width: ${percentage}%; height: 100%; border-radius: 12px; transition: width 0.6s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-                        </div>
-                      </div>
-                    `;
-                  }).join('')}
-              </div>
-            </div>
-          ` : ''}
-
-          <!-- Gráfico: Propiedades por Distrito -->
-          ${Object.keys(stats.propiedades.por_distrito || {}).length > 0 ? `
-            <div style="margin-top: var(--spacing-xxl);">
-              <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-lg);">
-                📍 Propiedades por Distrito
-              </h3>
-              <div style="background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--radius-lg); padding: var(--spacing-xl);">
-                ${Object.entries(stats.propiedades.por_distrito)
-                  .sort(([,a], [,b]) => b - a)
-                  .map(([distrito, cantidad]) => {
-                    const maxCount = Math.max(...Object.values(stats.propiedades.por_distrito));
-                    const percentage = (cantidad / maxCount) * 100;
-                    const colors = ['#0066CC', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6'];
-                    const colorIndex = Object.keys(stats.propiedades.por_distrito).indexOf(distrito);
-                    const barColor = colors[colorIndex % colors.length];
-
-                    return `
-                      <div style="margin-bottom: var(--spacing-lg);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xs);">
-                          <span style="font-weight: 600; color: var(--texto-oscuro);">${distrito}</span>
-                          <span style="font-weight: 700; color: ${barColor}; font-size: 1.1rem;">${cantidad}</span>
-                        </div>
-                        <div style="background: var(--gris-claro); height: 24px; border-radius: 12px; overflow: hidden; position: relative;">
-                          <div style="background: linear-gradient(90deg, ${barColor} 0%, ${barColor}dd 100%); width: ${percentage}%; height: 100%; border-radius: 12px; transition: width 0.6s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-                        </div>
-                      </div>
-                    `;
-                  }).join('')}
-              </div>
-            </div>
-          ` : ''}
+          <!-- Gráfico: Propiedades por Distrito (BARRAS VERTICALES) -->
+          ${Object.keys(stats.propiedades.por_distrito || {}).length > 0 ?
+            Charts.generateVerticalBarChart(stats.propiedades.por_distrito, {
+              title: '📍 Propiedades por Distrito',
+              height: 350,
+              colors: ['#0066CC', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6']
+            })
+          : ''}
         ` : `
           <div class="empty-state" style="margin-top: var(--spacing-xxl);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 60px; height: 60px; opacity: 0.2;">
@@ -770,70 +820,92 @@ class Dashboard {
         `;
       }
 
-      // Construir tabla de favoritos
-      const favoritesRows = favoritesList.map(fav => {
-        const propiedad = fav.propiedad || {};
-        const precio = propiedad.precio ? `S/ ${propiedad.precio.toLocaleString('es-PE')}` : 'Precio no disponible';
-        const tipo = propiedad.tipo_inmueble?.nombre || 'N/A';
-        const distrito = propiedad.distrito?.nombre || 'N/A';
-        const fecha = new Date(fav.fecha_agregado).toLocaleDateString('es-PE');
+      // 🔥 Cards hermosas como en resultados.html
+      const favoritesCards = favoritesList.map((fav, index) => {
+        const prop = fav.propiedad || {};
+        
+        // Construir URLs completas para imagenes (igual que en Propiedades)
+        const baseUrl = 'https://ik.imagekit.io/quadrante/';
+        let imagenes = [];
+        
+        if (prop.imagenes && prop.imagenes.length > 0) {
+          imagenes = prop.imagenes.map(img => {
+            if (img.startsWith('http://') || img.startsWith('https://')) {
+              return img;
+            }
+            return baseUrl + img;
+          });
+        } else if (prop.imagenes_galeria && prop.imagenes_galeria.length > 0) {
+          imagenes = prop.imagenes_galeria;
+        } else if (prop.imagen_principal) {
+          imagenes = [prop.imagen_principal];
+        } else {
+          imagenes = ['https://via.placeholder.com/400x300?text=Sin+Imagen'];
+        }
+        
+        const precio = prop.precio_alquiler ? 
+          `S/ ${parseFloat(prop.precio_alquiler).toLocaleString('es-PE')}/mes` : 
+          prop.precio_venta ? 
+          `S/ ${parseFloat(prop.precio_venta).toLocaleString('es-PE')}` : 
+          'Precio no disponible';
 
         return `
-          <tr>
-            <td>
-              <div style="display: flex; align-items: center; gap: var(--spacing-md);">
-                ${propiedad.imagen_principal ? `
-                  <img src="${propiedad.imagen_principal}" alt="${propiedad.titulo}"
-                       style="width: 80px; height: 60px; object-fit: cover; border-radius: var(--radius-md);">
-                ` : `
-                  <div style="width: 80px; height: 60px; background: var(--gris-claro); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">
-                    ${this.getIcon('building')}
-                  </div>
-                `}
-                <div>
-                  <strong>${propiedad.titulo || 'Sin título'}</strong>
-                  <div style="font-size: 0.85rem; color: var(--gris-medio);">${tipo} - ${distrito}</div>
-                </div>
+          <div class="property-card" data-property-id="${prop.id || prop.registro_cab_id}">
+            <div class="property-number">${index + 1}</div>
+            <button class="favorite-btn active" data-favorite-id="${fav.id}" title="Quitar de favoritos">❤</button>
+            <div class="property-image-carousel">
+              <div class="carousel-images" data-current="0">
+                ${imagenes.map((img, i) => `
+                  <img src="${img}" alt="${prop.titulo} - imagen ${i+1}" 
+                       class="carousel-image ${i === 0 ? 'active' : ''}" data-index="${i}"
+                       onerror="this.src='https://via.placeholder.com/400x300?text=Sin+Imagen'">
+                `).join('')}
               </div>
-            </td>
-            <td style="font-weight: 600; color: var(--azul-corporativo);">${precio}</td>
-            <td style="color: var(--gris-medio); font-size: 0.9rem;">${fecha}</td>
-            <td style="text-align: right;">
-              <button class="btn btn-secondary" style="padding: var(--spacing-xs) var(--spacing-sm); font-size: 0.85rem;"
-                      data-property-id="${propiedad.id}">
-                Ver Detalle
-              </button>
-              <button class="btn btn-danger" style="padding: var(--spacing-xs) var(--spacing-sm); font-size: 0.85rem; background: #ef4444; border: none; margin-left: var(--spacing-xs);"
-                      data-remove-favorite="${fav.id}">
-                ${this.getIcon('heart')}
-              </button>
-            </td>
-          </tr>
+              ${imagenes.length > 1 ? `
+                <button class="carousel-prev" data-property-id="${prop.id || prop.registro_cab_id}">‹</button>
+                <button class="carousel-next" data-property-id="${prop.id || prop.registro_cab_id}">›</button>
+                <div class="carousel-indicators">
+                  ${imagenes.map((_, i) => `
+                    <span class="indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+            <div class="property-info">
+              <h3 class="property-title">${prop.titulo || 'Sin título'}</h3>
+              <div class="property-location">📍 ${prop.direccion || 'Ubicación no disponible'}</div>
+              <div class="property-price">${precio}</div>
+              <div class="property-features">
+                <span class="feature">📐 ${prop.area || 0} m²</span>
+                ${prop.banos ? `<span class="feature">🛁 ${prop.banos} baños</span>` : ''}
+                ${prop.parqueos ? `<span class="feature">🚗 ${prop.parqueos} parqueos</span>` : ''}
+                ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
+              </div>
+              <p class="property-description">${(prop.descripcion || '').substring(0, 150)}...</p>
+              <div class="property-actions">
+                <button class="btn btn-primary" data-view-property="${prop.id || prop.registro_cab_id}">
+                  Ver Detalle
+                </button>
+                <button class="btn btn-secondary" data-contact-property="${prop.id || prop.registro_cab_id}">
+                  Contactar
+                </button>
+              </div>
+            </div>
+          </div>
         `;
       }).join('');
 
       return `
-        <h2 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-md);">
-          Mis Favoritos (${favoritesList.length})
-        </h2>
-        <p style="color: var(--gris-medio); margin-bottom: var(--spacing-xl);">
-          Precio promedio: S/ ${favoriteStats.avgPrice.toLocaleString('es-PE')}
-        </p>
-
-        <div style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; background: var(--blanco); border-radius: var(--radius-lg); overflow: hidden;">
-            <thead style="background: var(--gris-claro);">
-              <tr>
-                <th style="padding: var(--spacing-md); text-align: left; font-weight: 600;">Propiedad</th>
-                <th style="padding: var(--spacing-md); text-align: left; font-weight: 600;">Precio</th>
-                <th style="padding: var(--spacing-md); text-align: left; font-weight: 600;">Agregado</th>
-                <th style="padding: var(--spacing-md); text-align: right; font-weight: 600;">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${favoritesRows}
-            </tbody>
-          </table>
+        <div class="favoritos-header" style="margin-bottom: var(--spacing-xl);">
+          <h2 style="color: var(--azul-corporativo); margin: 0;">
+            Mis Favoritos (${favoritesList.length})
+          </h2>
+          <p style="color: var(--gris-medio); margin-top: var(--spacing-sm);">
+            Precio promedio: S/ ${favoriteStats.avgPrice.toLocaleString('es-PE')}
+          </p>
+        </div>
+        <div class="properties-grid">
+          ${favoritesCards}
         </div>
       `;
     } catch (error) {
@@ -935,91 +1007,54 @@ class Dashboard {
 
   async getPropiedadesContent() {
     try {
-      const propertyStats = await propertiesService.getPropertyStats(5);
-      const propertiesList = propertyStats.propertiesList;
+      // Obtener MIS propiedades (usa el token para identificar el usuario)
+      const token = authService.getToken();
+      const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/mis-propiedades?limit=50`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
 
-      // Header con botón de registro
-      let content = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl);">
-          <h2 style="color: var(--azul-corporativo); margin: 0;">
-            Mis Propiedades (${propertyStats.totalPublished}/${propertyStats.planLimit})
-          </h2>
-          <a href="registro-propiedad.html" class="btn btn-primary">
-            + Registrar Nueva Propiedad
-          </a>
+      // ✅ El API ahora retorna imagenes[] directamente
+      this.allProperties = data.data || [];
+
+      this.pagination.updateItemsPerPage();
+
+      console.log('✅ Propiedades cargadas:', this.allProperties.length);
+      console.log('📦 Primera propiedad con imagenes[]:', this.allProperties[0]);
+      console.log('📦 Imagenes de la primera:', this.allProperties[0]?.imagenes);
+
+      // Header con filtros usando el módulo
+      const content = `
+        <div class="propiedades-header" style="margin-bottom: var(--spacing-xl);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
+            <h2 style="color: var(--azul-corporativo); margin: 0;">
+              Mis Propiedades (<span id="propCount">${this.allProperties.length}</span>)
+            </h2>
+            <a href="registro-propiedad.html" class="btn btn-primary">
+              + Nueva Propiedad
+            </a>
+          </div>
+
+          ${this.filters.render()}
         </div>
-      `;
 
-      if (propertiesList.length === 0) {
-        content += `
+        ${this.allProperties.length === 0 ? `
           <div class="empty-state">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
-            <h3>No tienes propiedades registradas</h3>
+            <h3>No hay propiedades registradas</h3>
             <p>Comienza registrando tu primera propiedad.</p>
           </div>
-        `;
-        return content;
-      }
-
-      // Grid de propiedades
-      const propertiesCards = propertiesList.map(prop => {
-        const precio = prop.precio ? `S/ ${prop.precio.toLocaleString('es-PE')}` : 'Consultar';
-        const tipo = prop.tipo_inmueble?.nombre || 'N/A';
-        const distrito = prop.distrito?.nombre || 'N/A';
-        const estadoColor = {
-          'publicado': '#10b981',
-          'borrador': '#f59e0b',
-          'pausado': '#6366f1',
-          'vendido': '#8b5cf6'
-        }[prop.estado] || '#6b7280';
-
-        return `
-          <div class="kpi-card" style="padding: 0; overflow: hidden;">
-            ${prop.imagen_principal ? `
-              <img src="${prop.imagen_principal}" alt="${prop.titulo}"
-                   style="width: 100%; height: 200px; object-fit: cover;">
-            ` : `
-              <div style="width: 100%; height: 200px; background: var(--gris-claro); display: flex; align-items: center; justify-content: center;">
-                ${this.getIcon('building')}
-              </div>
-            `}
-            <div style="padding: var(--spacing-md);">
-              <div style="display: inline-block; background: ${estadoColor}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-bottom: var(--spacing-sm);">
-                ${prop.estado?.toUpperCase() || 'BORRADOR'}
-              </div>
-              <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-xs); font-size: 1.1rem;">
-                ${prop.titulo || 'Sin título'}
-              </h3>
-              <p style="color: var(--gris-medio); font-size: 0.9rem; margin-bottom: var(--spacing-sm);">
-                ${tipo} - ${distrito}
-              </p>
-              <div style="font-size: 1.3rem; font-weight: 700; color: var(--azul-corporativo); margin-bottom: var(--spacing-md);">
-                ${precio}
-              </div>
-              <div style="display: flex; gap: var(--spacing-xs); font-size: 0.85rem; color: var(--gris-medio); margin-bottom: var(--spacing-md);">
-                <span>${this.getIcon('chart')} ${prop.vistas || 0} vistas</span>
-                <span style="margin-left: var(--spacing-sm);">${this.getIcon('users')} ${prop.contactos || 0} contactos</span>
-              </div>
-              <div style="display: flex; gap: var(--spacing-xs);">
-                <button class="btn btn-secondary" style="flex: 1; padding: var(--spacing-xs); font-size: 0.85rem;" data-edit-property="${prop.id}">
-                  Editar
-                </button>
-                <button class="btn btn-primary" style="flex: 1; padding: var(--spacing-xs); font-size: 0.85rem;" data-view-property="${prop.id}">
-                  Ver
-                </button>
-              </div>
-            </div>
+        ` : `
+          <div id="propertiesGrid" class="properties-grid">
+            <!-- Se renderiza con paginación -->
           </div>
-        `;
-      }).join('');
-
-      content += `
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--spacing-lg);">
-          ${propertiesCards}
-        </div>
+          
+          <!-- Paginador -->
+          <div id="paginadorContainer"></div>
+        `}
       `;
 
       return content;
@@ -1027,6 +1062,132 @@ class Dashboard {
       console.error('❌ Error cargando propiedades:', error);
       throw error;
     }
+  }
+
+  renderPropertiesPage() {
+    console.log('🎨 Renderizando propiedades page...');
+    console.log('📊 Total propiedades:', this.allProperties?.length);
+    
+    const filtered = this.filters.getFiltered(this.allProperties);
+    const pageData = this.pagination.getPageData(filtered);
+
+    console.log('🔍 Propiedades filtradas:', filtered.length);
+    console.log('📄 Propiedades en página:', pageData.items.length);
+
+    // Actualizar contador
+    const countEl = document.getElementById('propCount');
+    if (countEl) countEl.textContent = filtered.length;
+
+    // Renderizar propiedades
+    const grid = document.getElementById('propertiesGrid');
+    if (!grid) {
+      console.error('❌ No se encontró #propertiesGrid');
+      return;
+    }
+
+    if (pageData.items.length === 0) {
+      grid.innerHTML = '<div class="empty-state"><p>No se encontraron propiedades con los filtros aplicados.</p></div>';
+      const paginadorContainer = document.getElementById('paginadorContainer');
+      if (paginadorContainer) paginadorContainer.innerHTML = '';
+      return;
+    }
+
+    grid.innerHTML = pageData.items.map((prop, index) => {
+      const baseUrl = 'https://ik.imagekit.io/quadrante/';
+      let imagenes = [];
+      
+      if (prop.imagenes && prop.imagenes.length > 0) {
+        imagenes = prop.imagenes.map(img => {
+          if (img.startsWith('http://') || img.startsWith('https://')) return img;
+          return baseUrl + img;
+        });
+      } else if (prop.imagen_principal) {
+        imagenes = [prop.imagen_principal];
+      } else {
+        imagenes = ['https://via.placeholder.com/400x300?text=Sin+Imagen'];
+      }
+      
+      const precio = prop.precio_alquiler ? 
+        `S/ ${parseFloat(prop.precio_alquiler).toLocaleString('es-PE')}/mes` : 
+        prop.precio_venta ? 
+        `S/ ${parseFloat(prop.precio_venta).toLocaleString('es-PE')}` : 
+        'Precio no disponible';
+      
+      const estadoBadge = {
+        'publicado': { color: '#10b981', text: 'PUBLICADO' },
+        'borrador': { color: '#f59e0b', text: 'BORRADOR' },
+        'pausado': { color: '#6366f1', text: 'PAUSADO' },
+        'vendido': { color: '#8b5cf6', text: 'VENDIDO' }
+      }[prop.estado] || { color: '#6b7280', text: 'BORRADOR' };
+
+      return `
+        <div class="property-card" data-property-id="${prop.registro_cab_id}">
+          <div class="property-number">${pageData.startIndex + index + 1}</div>
+          <div class="property-badge" style="position: absolute; top: 50px; left: 10px; background: ${estadoBadge.color}; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; z-index: 20;">
+            ${estadoBadge.text}
+          </div>
+          <div class="property-image-carousel">
+            <div class="carousel-images" data-current="0">
+              ${imagenes.map((img, i) => `
+                <img src="${img}" alt="${prop.titulo} - imagen ${i+1}" 
+                     class="carousel-image ${i === 0 ? 'active' : ''}" data-index="${i}"
+                     onerror="this.src='https://via.placeholder.com/400x300?text=Sin+Imagen'">
+              `).join('')}
+            </div>
+            ${imagenes.length > 1 ? `
+              <button class="carousel-prev" data-property-id="${prop.registro_cab_id}">‹</button>
+              <button class="carousel-next" data-property-id="${prop.registro_cab_id}">›</button>
+              <div class="carousel-indicators">
+                ${imagenes.map((_, i) => `
+                  <span class="indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+          <div class="property-info">
+            <h3 class="property-title">${prop.titulo || 'Sin título'}</h3>
+            <div class="property-location">📍 ${prop.direccion || 'Ubicación no disponible'}</div>
+            <div class="property-price">${precio}</div>
+            <div class="property-features">
+              <span class="feature">📐 ${prop.area || 0} m²</span>
+              ${prop.banos ? `<span class="feature">🛁 ${prop.banos} baños</span>` : ''}
+              ${prop.parqueos ? `<span class="feature">🚗 ${prop.parqueos} parqueos</span>` : ''}
+              ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
+            </div>
+            <div class="property-stats" style="display: flex; gap: 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--gris-medio);">
+              <span>👁️ ${prop.vistas || 0} vistas</span>
+              <span>📞 ${prop.contactos || 0} contactos</span>
+            </div>
+            <p class="property-description">${(prop.descripcion || '').substring(0, 120)}...</p>
+            <div class="admin-actions-simple">
+              <button class="btn-admin" data-view-property="${prop.registro_cab_id}">📄 Detalle</button>
+              <button class="btn-admin" data-map-property="${prop.registro_cab_id}" data-lat="${prop.latitud}" data-lng="${prop.longitud}">🗺️ Mapa</button>
+              <button class="btn-admin" data-edit-property="${prop.registro_cab_id}">✏️ Editar</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Renderizar paginador
+    const paginadorContainer = document.getElementById('paginadorContainer');
+    if (paginadorContainer) {
+      const paginadorHTML = this.pagination.render(filtered.length);
+      paginadorContainer.innerHTML = paginadorHTML;
+      console.log('✅ Paginador renderizado');
+
+      // 🔥 CONFIGURAR EVENT LISTENERS DEL PAGINADOR
+      this.pagination.setupListeners();
+      console.log('✅ Listeners del paginador configurados');
+    } else {
+      console.error('❌ No se encontró #paginadorContainer');
+    }
+
+    // Setup carrusel y listeners
+    console.log('🎠 Configurando carrusel...');
+    this.carousel.setup();
+    this.setupPropertyListeners();
+    console.log('✅ Renderizado completo');
   }
 
   getPerfilContent() {
@@ -1107,12 +1268,33 @@ class Dashboard {
       });
     });
 
+    // 🔥 Filtros de año/mes en dashboard
+    if (tabId === 'dashboard') {
+      const yearFilter = document.getElementById('filterYear');
+      const monthFilter = document.getElementById('filterMonth');
+      
+      if (yearFilter && monthFilter) {
+        const applyFilters = async () => {
+          const year = yearFilter.value;
+          const month = monthFilter.value;
+          await this.loadTabContent('dashboard', this.currentUser.perfil_id);
+        };
+        
+        yearFilter.addEventListener('change', applyFilters);
+        monthFilter.addEventListener('change', applyFilters);
+      }
+    }
+
+    // 🔥 Event listeners para carrusel de imágenes
+    this.setupCarouselListeners();
+
     // Event listeners específicos por tab
     if (tabId === 'favoritos') {
       // Eliminar favorito
-      document.querySelectorAll('[data-remove-favorite]').forEach(btn => {
+      document.querySelectorAll('[data-favorite-id]').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-          const favoritoId = e.currentTarget.dataset.removeFavorite;
+          e.stopPropagation();
+          const favoritoId = e.currentTarget.dataset.favoriteId;
           if (confirm('¿Eliminar de favoritos?')) {
             try {
               await favoritesService.removeFavorite(favoritoId);
@@ -1124,7 +1306,274 @@ class Dashboard {
           }
         });
       });
+      
+      // Ver detalle de propiedad
+      document.querySelectorAll('[data-view-property]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const propId = e.currentTarget.dataset.viewProperty;
+          window.location.href = `propiedad.html?id=${propId}`;
+        });
+      });
     }
+
+    if (tabId === 'propiedades') {
+      // Renderizar página inicial e inicializar filtros
+      setTimeout(async () => {
+        await this.filters.setup();
+        this.renderPropertiesPage();
+      }, 100);
+    }
+  }
+
+  setupPropertyListeners() {
+    console.log('📋 setupPropertyListeners llamado');
+
+    // Ver detalle en popup
+    const viewBtns = document.querySelectorAll('[data-view-property]');
+    console.log(`🔍 Botones [data-view-property] encontrados: ${viewBtns.length}`);
+
+    viewBtns.forEach((btn, index) => {
+      console.log(`  Botón ${index + 1}: propId=${btn.dataset.viewProperty}`);
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const propId = e.currentTarget.dataset.viewProperty;
+        console.log(`🖱️ Click en botón Ver Detalle, propId: ${propId}`);
+        await this.showPropertyDetailPopup(propId);
+      });
+    });
+
+    // Mapa en popup
+    const mapBtns = document.querySelectorAll('[data-map-property]');
+    console.log(`🗺️ Botones [data-map-property] encontrados: ${mapBtns.length}`);
+
+    mapBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const lat = e.currentTarget.dataset.lat;
+        const lng = e.currentTarget.dataset.lng;
+        console.log(`🖱️ Click en botón Mapa, lat: ${lat}, lng: ${lng}`);
+        this.showMapPopup(lat, lng);
+      });
+    });
+
+    // Editar propiedad
+    const editBtns = document.querySelectorAll('[data-edit-property]');
+    console.log(`✏️ Botones [data-edit-property] encontrados: ${editBtns.length}`);
+
+    editBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const propId = e.currentTarget.dataset.editProperty;
+        console.log(`🖱️ Click en botón Editar, propId: ${propId}`);
+        window.location.href = `registro-propiedad.html?id=${propId}`;
+      });
+    });
+  }
+
+  setupAdminListeners(tabId) {
+    if (tabId === 'admin-usuarios') {
+      // Ver perfil de usuario
+      document.querySelectorAll('[data-view-user]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const userId = e.currentTarget.dataset.viewUser;
+          window.location.href = `usuario.html?id=${userId}`;
+        });
+      });
+    }
+
+    if (tabId === 'propiedades-admin') {
+      // Listeners admin
+      // Publicar propiedad
+      document.querySelectorAll('[data-publish-property]').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const propId = e.currentTarget.dataset.publishProperty;
+          if (confirm('¿Publicar esta propiedad?')) {
+            try {
+              const token = authService.getToken();
+              await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/estado`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ estado: 'publicado' })
+              });
+              showNotification('Propiedad publicada', 'success');
+              this.loadTabContent('propiedades', this.currentUser.perfil_id);
+            } catch (error) {
+              showNotification('Error al publicar', 'error');
+            }
+          }
+        });
+      });
+
+      // Pausar propiedad
+      document.querySelectorAll('[data-pause-property]').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const propId = e.currentTarget.dataset.pauseProperty;
+          if (confirm('¿Pausar esta propiedad?')) {
+            try {
+              const token = authService.getToken();
+              await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/estado`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ estado: 'pausado' })
+              });
+              showNotification('Propiedad pausada', 'success');
+              this.loadTabContent('propiedades', this.currentUser.perfil_id);
+            } catch (error) {
+              showNotification('Error al pausar', 'error');
+            }
+          }
+        });
+      });
+
+      // Asignar corredor
+      document.querySelectorAll('[data-assign-broker]').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const propId = e.currentTarget.dataset.assignBroker;
+          const corredorId = prompt('Ingresa el ID del corredor a asignar:');
+          if (corredorId) {
+            try {
+              const token = authService.getToken();
+              await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/asignar-corredor`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ corredor_id: parseInt(corredorId) })
+              });
+              showNotification('Corredor asignado', 'success');
+              this.loadTabContent('propiedades', this.currentUser.perfil_id);
+            } catch (error) {
+              showNotification('Error al asignar', 'error');
+            }
+          }
+        });
+      });
+    }
+  }
+
+  setupCarouselListeners() {
+    // Delegado al módulo carousel
+    this.carousel.setup();
+  }
+
+  async showPropertyDetailPopup(propId) {
+    console.log(`📄 showPropertyDetailPopup llamado con propId: ${propId}`);
+    try {
+      const token = authService.getToken();
+      console.log(`🔑 Token obtenido: ${token ? 'OK' : 'FALTA'}`);
+
+      const url = `${API_CONFIG.BASE_URL}/propiedades/${propId}`;
+      console.log(`📡 Fetching: ${url}`);
+
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      console.log(`📡 Response status: ${response.status}`);
+
+      const data = await response.json();
+      console.log(`📦 Data recibida:`, data);
+
+      const prop = data.data;
+
+      const modalHtml = `
+        <div class="modal-overlay" id="detailModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+          <div style="background: white; border-radius: 16px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="padding: var(--spacing-xl); border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: center;">
+              <h2 style="color: var(--azul-corporativo); margin: 0;">📄 Detalles de Propiedad</h2>
+              <button onclick="document.getElementById('detailModal').remove()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: var(--gris-medio);">&times;</button>
+            </div>
+            <div style="padding: var(--spacing-xl);">
+              <h3 style="margin-top: 0;">${prop.titulo}</h3>
+              <p style="color: var(--gris-medio); margin-bottom: var(--spacing-md);">📍 ${prop.direccion}, ${prop.distrito}</p>
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                <div><strong>Tipo:</strong> ${prop.tipo_inmueble}</div>
+                <div><strong>Operación:</strong> ${prop.tipo_operacion}</div>
+                <div><strong>Precio:</strong> S/ ${(prop.precio_venta || prop.precio_alquiler || 0).toLocaleString('es-PE')}</div>
+                <div><strong>Área:</strong> ${prop.area} m²</div>
+                <div><strong>Dormitorios:</strong> ${prop.dormitorios || 0}</div>
+                <div><strong>Baños:</strong> ${prop.banos || 0}</div>
+                <div><strong>Parqueos:</strong> ${prop.parqueos || 0}</div>
+                <div><strong>Estado:</strong> ${prop.estado}</div>
+              </div>
+              <div style="margin-bottom: var(--spacing-md);">
+                <strong>Descripción:</strong>
+                <p style="margin-top: 8px; line-height: 1.6;">${prop.descripcion || 'Sin descripción'}</p>
+              </div>
+              <div style="display: flex; gap: var(--spacing-sm); justify-content: flex-end;">
+                <button onclick="window.location.href='propiedad.html?id=${propId}'" class="btn btn-secondary">Ver Completo</button>
+                <button onclick="window.location.href='registro-propiedad.html?id=${propId}'" class="btn btn-primary">Editar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      console.log('✅ Modal HTML insertado en body');
+
+      document.getElementById('detailModal').addEventListener('click', (e) => {
+        if (e.target.id === 'detailModal') e.target.remove();
+      });
+      console.log('✅ Listener de cierre agregado al modal');
+    } catch (error) {
+      console.error('❌ Error en showPropertyDetailPopup:', error);
+      showNotification('Error al cargar detalles', 'error');
+    }
+  }
+
+  showMapPopup(lat, lng) {
+    if (!lat || !lng) {
+      showNotification('Sin coordenadas de ubicación', 'error');
+      return;
+    }
+
+    const modalHtml = `
+      <div class="modal-overlay" id="mapModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: 16px; max-width: 900px; width: 100%; max-height: 90vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+          <div style="padding: var(--spacing-lg); border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="color: var(--azul-corporativo); margin: 0;">🗺️ Ubicación</h2>
+            <button onclick="document.getElementById('mapModal').remove()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: var(--gris-medio);">&times;</button>
+          </div>
+          <div style="padding: var(--spacing-md);">
+            <div id="propertyMap" style="height: 500px; border-radius: 8px;"></div>
+            <div style="margin-top: var(--spacing-md); text-align: center;">
+              <p style="color: var(--gris-medio); margin-bottom: var(--spacing-sm);">
+                Coordenadas: ${lat}, ${lng}
+              </p>
+              <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="btn btn-primary">
+                Abrir en Google Maps
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Inicializar mapa Leaflet
+    setTimeout(() => {
+      const map = L.map('propertyMap').setView([lat, lng], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      L.marker([lat, lng]).addTo(map);
+    }, 100);
+    
+    document.getElementById('mapModal').addEventListener('click', (e) => {
+      if (e.target.id === 'mapModal') e.target.remove();
+    });
   }
 
   setupUserMenu() {

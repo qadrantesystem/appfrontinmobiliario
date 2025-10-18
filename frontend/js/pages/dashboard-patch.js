@@ -23,26 +23,17 @@
     try {
       const userData = await originalGetMyProfile.call(this);
 
-      console.log('🔍 Datos recibidos del backend:', userData);
+      // El API devuelve perfil.perfil_id, extraerlo al nivel raíz
+      if (userData.perfil && userData.perfil.perfil_id && !userData.perfil_id) {
+        userData.perfil_id = userData.perfil.perfil_id;
+      }
 
-      // Si perfil_id es undefined, intentar obtenerlo del localStorage
+      // Si aún no tiene perfil_id, intentar del localStorage
       if (!userData.perfil_id) {
-        console.warn('⚠️ perfil_id NO viene en la respuesta del backend');
         const storedUser = JSON.parse(localStorage.getItem('current_user') || '{}');
-
         if (storedUser.perfil_id) {
           userData.perfil_id = storedUser.perfil_id;
-          console.log('✅ perfil_id recuperado del localStorage:', userData.perfil_id);
-        } else {
-          // Si tampoco está en localStorage, asignar perfil 1 por defecto
-          userData.perfil_id = 1; // Demandante
-          console.warn('⚠️ Asignando perfil_id por defecto: 1 (Demandante)');
         }
-
-        // Actualizar localStorage con el perfil_id
-        this.saveUserToStorage(userData);
-      } else {
-        console.log('✅ perfil_id recibido del backend:', userData.perfil_id);
       }
 
       return userData;

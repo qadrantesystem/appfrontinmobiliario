@@ -202,7 +202,7 @@ class AuthService {
         localStorage.removeItem('current_user');
         this.currentUser = null;
         console.log('✅ Sesión cerrada');
-        window.location.href = '/frontend/login.html';
+        window.location.href = '/login';
     }
 
     /**

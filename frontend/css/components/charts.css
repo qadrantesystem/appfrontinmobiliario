@@ -1,0 +1,344 @@
+/**
+ * 📊 Charts Styles - Match Property
+ * Estilos para gráficos de torta y barras
+ */
+
+/* ===== PIE CHART ===== */
+.pie-chart-container {
+  margin: var(--spacing-xl) 0;
+}
+
+.chart-title {
+  color: var(--azul-corporativo);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+}
+
+.pie-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xl);
+  background: white;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--borde);
+}
+
+.pie-chart {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+}
+
+.pie-slice {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  stroke: white;
+  stroke-width: 2;
+}
+
+.pie-slice:hover {
+  opacity: 0.8;
+  filter: brightness(1.1);
+  transform-origin: center;
+}
+
+.chart-legend {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  background: var(--gris-claro);
+  transition: all 0.2s ease;
+}
+
+.legend-item:hover {
+  background: var(--gris-medio);
+  transform: translateX(4px);
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  flex: 1;
+  font-weight: 500;
+  color: var(--texto-oscuro);
+  font-size: 0.9rem;
+}
+
+.legend-value {
+  font-weight: 700;
+  color: var(--azul-corporativo);
+  font-size: 0.95rem;
+}
+
+/* ===== VERTICAL BAR CHART ===== */
+.bar-chart-container {
+  margin: var(--spacing-xl) 0;
+}
+
+.bar-chart-wrapper {
+  background: white;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--borde);
+}
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+.bar-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.bar-value {
+  text-align: center;
+  animation: fadeInDown 0.5s ease;
+}
+
+.bar-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 var(--spacing-sm);
+}
+
+.bar {
+  width: 100%;
+  max-width: 80px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  animation: growUp 0.8s ease;
+}
+
+.bar:hover {
+  opacity: 0.85;
+  transform: scaleY(1.05);
+}
+
+.bar-label {
+  margin-top: var(--spacing-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--texto-oscuro);
+  text-align: center;
+  max-width: 100px;
+  line-height: 1.2;
+}
+
+/* ===== HORIZONTAL BAR CHART ===== */
+.horizontal-bar-chart-container {
+  margin: var(--spacing-xl) 0;
+}
+
+.horizontal-bars {
+  background: white;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--borde);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.h-bar-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 100px;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.h-bar-label {
+  font-weight: 600;
+  color: var(--texto-oscuro);
+  font-size: 0.95rem;
+}
+
+.h-bar-container {
+  background: var(--gris-claro);
+  height: 32px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+}
+
+.h-bar {
+  height: 100%;
+  border-radius: var(--radius-md);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: growRight 0.8s ease;
+}
+
+.h-bar-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-align: right;
+}
+
+/* ===== KPI CARDS ===== */
+.kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xxl);
+}
+
+.kpi-card {
+  background: white;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--borde);
+  border-left: 4px solid var(--azul-corporativo);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.5s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-left-width: 6px;
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.kpi-icon {
+  font-size: 1.5rem;
+  color: var(--azul-corporativo);
+}
+
+.kpi-title {
+  font-size: 0.9rem;
+  color: var(--gris-medio);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: var(--spacing-sm);
+  color: var(--azul-corporativo);
+}
+
+.kpi-subtitle {
+  font-size: 0.85rem;
+  color: var(--gris-medio);
+  margin-top: var(--spacing-xs);
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-chart {
+  text-align: center;
+  padding: var(--spacing-xxl);
+  color: var(--gris-medio);
+  font-style: italic;
+  background: var(--gris-claro);
+  border-radius: var(--radius-lg);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes growUp {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes growRight {
+  from {
+    width: 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .h-bar-row {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .h-bar-label {
+    font-size: 0.9rem;
+  }
+
+  .h-bar-value {
+    text-align: left;
+    margin-top: var(--spacing-xs);
+  }
+
+  .kpis-grid {
+    grid-template-columns: repeat(2, 1fr); /* 🔥 2 columnas para aprovechar espacio */
+    gap: var(--spacing-md);
+  }
+
+  .chart-legend {
+    grid-template-columns: 1fr;
+  }
+
+  .bar-chart {
+    gap: var(--spacing-sm);
+  }
+
+  .bar-label {
+    font-size: 0.75rem;
+  }
+}

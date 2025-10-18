@@ -13,7 +13,7 @@ app.use((req, res, next) => {
 });
 
 // Rutas limpias - servir archivos HTML sin extensión (ANTES de archivos estáticos)
-const routes = ['index', 'busqueda', 'resultados', 'login', 'registro', 'recuperar'];
+const routes = ['index', 'busqueda', 'resultados', 'login', 'registro', 'recuperar', 'dashboard'];
 
 routes.forEach(route => {
   app.get(`/${route === 'index' ? '' : route}`, (req, res) => {
