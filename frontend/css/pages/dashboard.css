@@ -97,6 +97,110 @@
   gap: var(--spacing-md);
 }
 
+/* ========================================
+   BOTÓN HAMBURGUESA (MÓVIL)
+   ======================================== */
+
+.hamburger-btn {
+  display: none; /* Oculto por defecto en desktop */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--azul-corporativo);
+  border-radius: 2px;
+  transition: all var(--transition-fast);
+}
+
+.hamburger-btn:hover {
+  background: rgba(0, 102, 204, 0.08);
+}
+
+/* Animación del hamburguesa cuando está activo */
+.hamburger-btn.active span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.hamburger-btn.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-btn.active span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ========================================
+   MENÚ MÓVIL ACORDEÓN DASHBOARD
+   ======================================== */
+
+.dashboard-mobile-menu {
+  display: none; /* Oculto por defecto */
+  position: fixed;
+  top: 81px; /* Justo debajo del header */
+  left: 0;
+  right: 0;
+  background: var(--azul-medio);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 99;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--transition-normal);
+}
+
+.dashboard-mobile-menu.active {
+  display: block;
+  max-height: 500px;
+}
+
+.dashboard-mobile-menu .mobile-menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  color: var(--blanco);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  border-left: 4px solid transparent;
+}
+
+.dashboard-mobile-menu .mobile-menu-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-left-color: var(--dorado);
+}
+
+.dashboard-mobile-menu .mobile-menu-link.active {
+  background: rgba(255, 255, 255, 0.15);
+  border-left-color: var(--blanco);
+  font-weight: 600;
+}
+
+.dashboard-mobile-menu .mobile-menu-link svg {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.dashboard-mobile-menu .mobile-menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 8px 0;
+}
+
 /* Botón de Notificaciones */
 .icon-btn {
   position: relative;
@@ -772,8 +876,30 @@
     gap: 8px; /* 🔥 Reducir gap */
   }
 
+  /* 🔥 Mostrar botón hamburguesa en móvil */
+  .hamburger-btn {
+    display: flex;
+  }
+
+  /* 🔥 Ajustar posición del menú móvil según altura del header */
+  .dashboard-mobile-menu {
+    top: 62px;
+  }
+
   .user-info {
     display: none; /* 🔥 Ocultar nombre/rol en móvil */
+  }
+
+  /* 🔥 Ocultar flecha del menú de usuario en móvil */
+  .user-avatar-btn svg {
+    display: none;
+  }
+
+  /* 🔥 Ajustar dropdown de usuario en móvil */
+  .dropdown-menu {
+    right: 0;
+    left: auto;
+    min-width: 200px;
   }
 
   .user-avatar {
@@ -1079,6 +1205,27 @@
 
   .logo-img {
     height: 45px; /* 🔥 Logo aún más pequeño */
+  }
+
+  /* 🔥 Ajustar posición del menú móvil */
+  .dashboard-mobile-menu {
+    top: 53px;
+  }
+
+  .dashboard-mobile-menu .mobile-menu-link {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    gap: 10px;
+  }
+
+  /* 🔥 Botón hamburguesa más pequeño */
+  .hamburger-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .hamburger-btn span {
+    width: 18px;
   }
 
   .user-avatar {

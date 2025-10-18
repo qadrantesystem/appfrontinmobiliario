@@ -78,6 +78,7 @@ class Dashboard {
     // Setup UI
     this.setupUserMenu();
     this.setupLogout();
+    this.setupMobileMenu();
   }
 
   async loadCurrentUser() {
@@ -132,6 +133,15 @@ class Dashboard {
 
     // Avatar
     this.generateAvatar(user);
+
+    // 🔥 Mostrar "Registrar Propiedad" solo para Ofertantes y Admins
+    if (this.registrarLinkMobile) {
+      if (perfilId === 2 || perfilId === 4) {
+        this.registrarLinkMobile.style.display = 'flex';
+      } else {
+        this.registrarLinkMobile.style.display = 'none';
+      }
+    }
   }
 
   generateAvatar(user) {
@@ -154,6 +164,14 @@ class Dashboard {
     this.userMenuBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       this.userMenu.classList.toggle('active');
+      
+      // 🔥 Cerrar menú hamburguesa si está abierto
+      const hamburgerBtn = document.getElementById('dashboardHamburger');
+      const mobileMenu = document.getElementById('dashboardMobileMenu');
+      if (hamburgerBtn && mobileMenu) {
+        hamburgerBtn.classList.remove('active');
+        mobileMenu.classList.remove('active');
+      }
     });
 
     // Cerrar menú al hacer click fuera
@@ -171,6 +189,53 @@ class Dashboard {
         authService.logout();
       }
     });
+  }
+
+  setupMobileMenu() {
+    // 🔥 Toggle del menú móvil acordeón (solo navegación)
+    const hamburgerBtn = document.getElementById('dashboardHamburger');
+    const mobileMenu = document.getElementById('dashboardMobileMenu');
+    const registrarLinkMobile = document.getElementById('registrarLinkMobileDashboard');
+
+    if (!hamburgerBtn || !mobileMenu) {
+      console.warn('⚠️ Elementos del menú móvil no encontrados');
+      return;
+    }
+
+    // Toggle menú al hacer click en hamburguesa
+    hamburgerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hamburgerBtn.classList.toggle('active');
+      mobileMenu.classList.toggle('active');
+      
+      // Cerrar dropdown de usuario si está abierto
+      if (this.userMenu) {
+        this.userMenu.classList.remove('active');
+      }
+    });
+
+    // Cerrar menú al hacer click en un enlace
+    const mobileLinks = mobileMenu.querySelectorAll('.mobile-menu-link');
+    mobileLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        hamburgerBtn.classList.remove('active');
+        mobileMenu.classList.remove('active');
+      });
+    });
+
+    // Cerrar menú al hacer click fuera
+    document.addEventListener('click', (e) => {
+      if (mobileMenu && !mobileMenu.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+        hamburgerBtn.classList.remove('active');
+        mobileMenu.classList.remove('active');
+      }
+    });
+
+    // Mostrar/ocultar "Registrar Propiedad" según perfil
+    if (registrarLinkMobile) {
+      // Se actualizará cuando se cargue el usuario
+      this.registrarLinkMobile = registrarLinkMobile;
+    }
   }
 
   loadTabs(perfilId) {
