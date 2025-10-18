@@ -72,11 +72,17 @@ class HeaderComponent {
       this.currentUser = freshUser;
       this.displayUserInfo(freshUser);
 
-      // Mostrar/ocultar "Registrar Propiedad" según perfil
+      // Mostrar/ocultar "Registrar Propiedad" según perfil (desktop y móvil)
       const registrarLink = document.getElementById('registrarLink');
+      const registrarLinkMobile = document.getElementById('registrarLinkMobile');
       if (freshUser.perfil_id === 2 || freshUser.perfil_id === 4) {
-        registrarLink.style.display = 'block';
+        if (registrarLink) registrarLink.style.display = 'block';
+        if (registrarLinkMobile) registrarLinkMobile.style.display = 'flex';
       }
+
+      // 🔥 Ocultar botón de iniciar sesión en menú móvil (usuario autenticado)
+      const loginBtnMobile = document.getElementById('loginBtnMobile');
+      if (loginBtnMobile) loginBtnMobile.style.display = 'none';
 
     } catch (error) {
       console.error('❌ Error cargando datos del usuario:', error);
@@ -175,10 +181,53 @@ class HeaderComponent {
       }
     });
 
-    // Logout
+    // 🔥 Toggle del menú móvil acordeón
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    if (hamburgerBtn && mobileMenu) {
+      hamburgerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hamburgerBtn.classList.toggle('active');
+        mobileMenu.classList.toggle('active');
+      });
+
+      // Cerrar menú móvil al hacer click en un enlace
+      const mobileLinks = mobileMenu.querySelectorAll('.mobile-menu-link');
+      mobileLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          hamburgerBtn.classList.remove('active');
+          mobileMenu.classList.remove('active');
+        });
+      });
+
+      // Cerrar menú móvil al hacer click fuera
+      document.addEventListener('click', (e) => {
+        if (mobileMenu && !mobileMenu.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+          hamburgerBtn.classList.remove('active');
+          mobileMenu.classList.remove('active');
+        }
+      });
+
+      // Resaltar página actual en menú móvil
+      this.highlightMobileMenu();
+    }
+
+    // Logout (desktop)
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+          authService.logout();
+        }
+      });
+    }
+
+    // Logout (móvil)
+    const logoutBtnMobile = document.getElementById('logoutBtnMobile');
+    if (logoutBtnMobile) {
+      logoutBtnMobile.addEventListener('click', (e) => {
         e.preventDefault();
         if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
           authService.logout();
@@ -194,6 +243,23 @@ class HeaderComponent {
         // TODO: Implementar sistema de notificaciones
       });
     }
+  }
+
+  /**
+   * 🎯 Resaltar página actual en menú móvil
+   */
+  highlightMobileMenu() {
+    const mobileLinks = document.querySelectorAll('.mobile-menu-link');
+
+    mobileLinks.forEach(link => {
+      link.classList.remove('active');
+
+      // Verificar si el href coincide con la página actual
+      const href = link.getAttribute('href');
+      if (href && (href === this.currentPage || href === `./${this.currentPage}`)) {
+        link.classList.add('active');
+      }
+    });
   }
 
   /**
@@ -216,6 +282,20 @@ class HeaderComponent {
         <a href="login.html" class="nav-link">Iniciar Sesión</a>
       `;
     }
+
+    // 🔥 Mostrar/Ocultar opciones en menú móvil
+    const loginBtnMobile = document.getElementById('loginBtnMobile');
+    const logoutBtnMobile = document.getElementById('logoutBtnMobile');
+    const perfilLinkMobile = document.getElementById('perfilLinkMobile');
+    const planLinkMobile = document.getElementById('planLinkMobile');
+    const registrarLinkMobile = document.getElementById('registrarLinkMobile');
+
+    // Mostrar iniciar sesión, ocultar opciones de usuario autenticado
+    if (loginBtnMobile) loginBtnMobile.style.display = 'flex';
+    if (logoutBtnMobile) logoutBtnMobile.style.display = 'none';
+    if (perfilLinkMobile) perfilLinkMobile.style.display = 'none';
+    if (planLinkMobile) planLinkMobile.style.display = 'none';
+    if (registrarLinkMobile) registrarLinkMobile.style.display = 'none';
   }
 }
 

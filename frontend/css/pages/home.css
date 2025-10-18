@@ -278,6 +278,23 @@ body.video-finished .footer {
     margin-top: var(--spacing-md);
     text-align: center;
   }
+
+  /* 🔥 Botón Iniciar Sesión visible en menú móvil */
+  .nav-menu .btn-outline {
+    background: rgba(245, 166, 35, 0.15); /* Fondo dorado suave */
+    border: 2px solid var(--dorado);
+    color: var(--blanco);
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+  }
+
+  .nav-menu .btn-outline:hover {
+    background: var(--dorado);
+    border-color: var(--dorado);
+    color: var(--azul-corporativo);
+  }
 }
 
 /* Features Section */

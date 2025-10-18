@@ -261,6 +261,125 @@
 }
 
 /* ========================================
+   BOTÓN HAMBURGUESA (MÓVIL)
+   ======================================== */
+
+.hamburger-btn {
+  display: none; /* Oculto por defecto en desktop */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--azul-corporativo);
+  border-radius: 2px;
+  transition: all var(--transition-fast);
+}
+
+.hamburger-btn:hover {
+  background: rgba(0, 102, 204, 0.08);
+}
+
+/* Animación del hamburguesa cuando está activo */
+.hamburger-btn.active span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.hamburger-btn.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-btn.active span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ========================================
+   MENÚ MÓVIL ACORDEÓN
+   ======================================== */
+
+.mobile-menu {
+  display: none; /* Oculto por defecto */
+  position: fixed;
+  top: 38px; /* Justo debajo del header */
+  left: 0;
+  right: 0;
+  background: var(--azul-medio); /* 🔥 Fondo azul medio */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 99;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--transition-normal);
+}
+
+.mobile-menu.active {
+  display: block;
+  max-height: 500px; /* Altura suficiente para mostrar todo */
+}
+
+.mobile-menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  color: var(--blanco); /* 🔥 Texto blanco */
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  border-left: 4px solid transparent;
+}
+
+.mobile-menu-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-left-color: var(--dorado);
+}
+
+.mobile-menu-link.active {
+  background: rgba(255, 255, 255, 0.15);
+  border-left-color: var(--blanco);
+  font-weight: 600;
+}
+
+.mobile-menu-link svg {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+/* 🔥 Botón de Iniciar Sesión - Estilo destacado */
+.mobile-menu-login {
+  background: rgba(245, 166, 35, 0.15); /* Dorado suave */
+  border-left-color: var(--dorado) !important;
+  font-weight: 600;
+  padding: 12px 20px;
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+}
+
+.mobile-menu-login:hover {
+  background: rgba(245, 166, 35, 0.25);
+  border-left-color: var(--dorado) !important;
+}
+
+.mobile-menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 8px 0;
+}
+
+/* ========================================
    RESPONSIVE
    ======================================== */
 
@@ -279,17 +398,22 @@
     gap: 4px; /* 🔥 Gap ultra pegado */
   }
 
+  /* 🔥 Ocultar navegación principal en móvil */
   .main-nav {
-    gap: 2px; /* 🔥 Gap ultra pegado */
+    display: none;
   }
 
-  .nav-link {
-    font-size: 0.65rem;
-    padding: 2px 5px; /* 🔥 Ultra pegado */
+  /* 🔥 Mostrar botón hamburguesa en móvil */
+  .hamburger-btn {
+    display: flex;
+  }
+
+  .mobile-menu {
+    top: 36px; /* Ajustar a la altura del header en móvil */
   }
 
   .header-right {
-    gap: 3px;
+    gap: 6px;
   }
 
   .user-info {
@@ -305,6 +429,15 @@
     width: 24px;
     height: 24px;
   }
+
+  /* 🔥 Ocultar menú dropdown de usuario en móvil */
+  .user-avatar-btn svg {
+    display: none;
+  }
+
+  .dropdown-menu {
+    display: none !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -312,9 +445,14 @@
     height: 34px; /* 🔥 Ultra pegado en pantallas pequeñas */
   }
 
-  .nav-link {
-    font-size: 0.6rem;
-    padding: 2px 4px; /* 🔥 Ultra pegado */
+  .mobile-menu {
+    top: 34px; /* Ajustar a la altura del header */
+  }
+
+  .mobile-menu-link {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    gap: 10px;
   }
 
   .icon-btn {
@@ -325,5 +463,14 @@
   .user-avatar {
     width: 22px;
     height: 22px;
+  }
+
+  .hamburger-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .hamburger-btn span {
+    width: 18px;
   }
 }

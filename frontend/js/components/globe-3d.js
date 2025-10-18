@@ -2,7 +2,12 @@
 class Globe3D {
   constructor() {
     this.container = document.querySelector('.globe-container');
-    if (!this.container) return;
+    
+    // 🔥 Validar que el contenedor exista antes de continuar
+    if (!this.container) {
+      console.warn('⚠️ Contenedor del globo 3D no encontrado en esta página');
+      return;
+    }
 
     this.features = [
       {
@@ -27,6 +32,9 @@ class Globe3D {
   }
 
   init() {
+    // 🔥 Verificar nuevamente que el contenedor existe
+    if (!this.container) return;
+    
     this.createTitle();
     this.createGlobeWrapper();
     this.createGlobe();
@@ -228,6 +236,13 @@ class Globe3D {
   makeGlobeDraggable() {
     const globe = document.querySelector('.globe');
     const orbit = document.querySelector('.buildings-orbit');
+    
+    // 🔥 Validar que los elementos existan
+    if (!globe || !orbit) {
+      console.warn('⚠️ Elementos del globo no encontrados en esta página');
+      return;
+    }
+    
     let isDragging = false;
     let startX = 0;
     let currentRotation = 0;

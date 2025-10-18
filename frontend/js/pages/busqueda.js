@@ -60,6 +60,12 @@ class BusquedaPage {
     const inputPresupuesto = document.getElementById('presupuesto');
     const helperPresupuesto = document.getElementById('helperPresupuesto');
 
+    // 🔥 Validar que los elementos existan
+    if (!radioCompra || !radioAlquiler || !labelPresupuesto || !inputPresupuesto || !helperPresupuesto) {
+      console.warn('⚠️ Elementos de presupuesto no encontrados en esta página');
+      return;
+    }
+
     const actualizarCampo = () => {
       const esCompra = radioCompra.checked;
       
