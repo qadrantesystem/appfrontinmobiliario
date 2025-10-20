@@ -1044,17 +1044,46 @@ class Dashboard {
       const data = await response.json();
 
       // ✅ El API ahora retorna imagenes[] directamente
-      this.allProperties = data.data || [];
+      const propiedades = data.data || [];
+      
+      // ✅ ORDENAR: Última creada PRIMERO (por registro_cab_id descendente)
+      this.allProperties = propiedades.sort((a, b) => {
+        const idA = a.registro_cab_id || 0;
+        const idB = b.registro_cab_id || 0;
+        return idB - idA; // Descendente (mayor ID = más reciente)
+      });
 
       this.pagination.updateItemsPerPage();
 
       console.log('✅ Propiedades cargadas:', this.allProperties.length);
-      console.log('📦 Primera propiedad:', this.allProperties[0]);
-      console.log('📦 Imágenes:', this.allProperties[0]?.imagenes);
-      console.log('📞 Teléfono:', this.allProperties[0]?.telefono);
-      console.log('📧 Email:', this.allProperties[0]?.email);
-      console.log('🏠 Dirección:', this.allProperties[0]?.direccion);
-      console.log('📊 Estado CRM:', this.allProperties[0]?.estado_crm);
+      console.log('📋 IDs disponibles:', this.allProperties.map(p => p.registro_cab_id));
+      
+      if (this.allProperties.length > 0) {
+        const ultima = this.allProperties[0];
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📦 ÚLTIMA PROPIEDAD CREADA (más reciente):');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🆔 ID:', ultima.registro_cab_id);
+        console.log('📝 Título:', ultima.titulo);
+        console.log('🏢 Tipo:', ultima.tipo_inmueble_nombre);
+        console.log('📍 Distrito:', ultima.distrito_nombre);
+        console.log('🏠 Dirección:', ultima.direccion);
+        console.log('🗺️ Latitud:', ultima.latitud, '(Tipo:', typeof ultima.latitud + ')');
+        console.log('🗺️ Longitud:', ultima.longitud, '(Tipo:', typeof ultima.longitud + ')');
+        console.log('📏 Área:', ultima.area, 'm²');
+        console.log('🛏️ Habitaciones:', ultima.habitaciones);
+        console.log('🚿 Baños:', ultima.banos);
+        console.log('🚗 Parqueos:', ultima.parqueos);
+        console.log('💰 Transacción:', ultima.transaccion);
+        console.log('💵 Precio:', ultima.transaccion === 'venta' ? ultima.precio_venta : ultima.precio_alquiler, ultima.moneda);
+        console.log('📊 Estado:', ultima.estado);
+        console.log('📈 Estado CRM:', ultima.estado_crm);
+        console.log('📸 Imagen Principal:', ultima.imagen_principal);
+        console.log('🖼️ Galería:', ultima.imagenes?.length || 0, 'imágenes');
+        console.log('📞 Teléfono:', ultima.telefono);
+        console.log('📧 Email:', ultima.email);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      }
 
       // Header con filtros usando el módulo
       const content = `
@@ -1063,9 +1092,9 @@ class Dashboard {
             <h2 style="color: var(--azul-corporativo); margin: 0;">
               Mis Propiedades (<span id="propCount">${this.allProperties.length}</span>)
             </h2>
-            <a href="registro-propiedad.html" class="btn btn-primary">
-              + Nueva Propiedad
-            </a>
+            <button id="btnNuevaPropiedad" class="btn btn-primary">
+              ➕ Nueva Propiedad
+            </button>
           </div>
 
           ${this.filters.render()}
@@ -1229,10 +1258,17 @@ class Dashboard {
             ` : ''}
             
             <p class="property-description">${(prop.descripcion || '').substring(0, 120)}...</p>
-            <div class="admin-actions-simple">
+            <div class="admin-actions-simple" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 0.5rem;">
               <button class="btn-admin" data-view-property="${prop.registro_cab_id}">📄 Detalle</button>
-              <button class="btn-admin" data-map-property="${prop.registro_cab_id}" data-lat="${prop.latitud}" data-lng="${prop.longitud}">🗺️ Mapa</button>
+              ${prop.latitud && prop.longitud ? `
+                <button class="btn-admin" data-map-property="${prop.registro_cab_id}" data-lat="${prop.latitud}" data-lng="${prop.longitud}">🗺️ Mapa</button>
+              ` : `
+                <button class="btn-admin" disabled style="opacity: 0.5; cursor: not-allowed;" title="Sin coordenadas de ubicación">🗺️ Mapa</button>
+              `}
               <button class="btn-admin" data-edit-property="${prop.registro_cab_id}">✏️ Editar</button>
+              ${this.currentUser?.perfil_id === 4 ? `
+                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}" style="background: var(--dorado); color: white;">👤 Asignar</button>
+              ` : ''}
             </div>
           </div>
         </div>
@@ -1432,13 +1468,60 @@ class Dashboard {
     console.log(`✏️ Botones [data-edit-property] encontrados: ${editBtns.length}`);
 
     editBtns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        const propId = e.currentTarget.dataset.editProperty;
-        console.log(`🖱️ Click en botón Editar, propId: ${propId}`);
-        window.location.href = `registro-propiedad.html?id=${propId}`;
+        const propId = parseInt(e.currentTarget.dataset.editProperty);
+        
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🖱️ CLICK EN BOTÓN EDITAR');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('Dataset:', e.currentTarget.dataset);
+        console.log('dataset.editProperty:', e.currentTarget.dataset.editProperty);
+        console.log('propId (parseado):', propId);
+        console.log('Tipo:', typeof propId);
+        console.log('Es válido?', !isNaN(propId) && propId > 0);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        
+        if (!propId || isNaN(propId)) {
+          console.error('❌ ID inválido:', propId);
+          showNotification('❌ Error: ID de propiedad inválido', 'error');
+          return;
+        }
+        
+        // Abrir formulario en modo EDITAR
+        const propertyForm = new PropertyForm(this, propId);
+        await propertyForm.init();
       });
     });
+
+    // Asignar corredor (solo admin)
+    const assignBtns = document.querySelectorAll('[data-assign-broker]');
+    console.log(`👤 Botones [data-assign-broker] encontrados: ${assignBtns.length}`);
+
+    assignBtns.forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const propId = e.currentTarget.dataset.assignBroker;
+        console.log(`🖱️ Click en botón Asignar Corredor, propId: ${propId}`);
+        await this.showAssignBrokerPopup(propId);
+      });
+    });
+
+    // ➕ Nueva Propiedad (formulario multipaso)
+    const btnNuevaPropiedad = document.getElementById('btnNuevaPropiedad');
+    if (btnNuevaPropiedad) {
+      console.log('✅ Botón Nueva Propiedad encontrado');
+      btnNuevaPropiedad.addEventListener('click', () => {
+        console.log('🖱️ Click en Nueva Propiedad');
+        this.showPropertyForm();
+      });
+    }
+  }
+
+  showPropertyForm(propId = null) {
+    console.log('🎯 Abriendo formulario de propiedad...', propId ? `Editar ID: ${propId}` : 'Nueva');
+    const form = new PropertyForm(this, propId);
+    form.init();
   }
 
   setupAdminListeners(tabId) {
@@ -1541,29 +1624,40 @@ class Dashboard {
   async showPropertyDetailPopup(propId) {
     console.log(`📄 showPropertyDetailPopup llamado con propId: ${propId}`);
     try {
-      const token = authService.getToken();
-      console.log(`🔑 Token obtenido: ${token ? 'OK' : 'FALTA'}`);
+      // ✅ WORKAROUND CORS: Buscar en memoria primero
+      let prop = this.allProperties.find(p => p.registro_cab_id == propId);
+      
+      if (!prop) {
+        // Si no está en memoria, intentar fetch
+        const token = authService.getToken();
+        console.log(`🔑 Token obtenido: ${token ? 'OK' : 'FALTA'}`);
 
-      const url = `${API_CONFIG.BASE_URL}/propiedades/${propId}`;
-      console.log(`📡 Fetching: ${url}`);
+        const url = `${API_CONFIG.BASE_URL}/propiedades/${propId}`;
+        console.log(`📡 Fetching: ${url}`);
 
-      const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` },
+          mode: 'cors'
+        });
 
-      console.log(`📡 Response status: ${response.status}`);
+        console.log(`📡 Response status: ${response.status}`);
 
-      const data = await response.json();
-      console.log(`📦 Data recibida:`, data);
-
-      const prop = data.data;
+        const data = await response.json();
+        console.log(`📦 Data recibida:`, data);
+        prop = data.data;
+      } else {
+        console.log(`✅ Propiedad encontrada en memoria`);
+      }
 
       const modalHtml = `
-        <div class="modal-overlay" id="detailModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;">
-          <div style="background: white; border-radius: 16px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-            <div style="padding: var(--spacing-xl); border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: center;">
-              <h2 style="color: var(--azul-corporativo); margin: 0;">📄 Detalles de Propiedad</h2>
-              <button onclick="document.getElementById('detailModal').remove()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: var(--gris-medio);">&times;</button>
+        <div class="modal-overlay" id="detailModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.2s ease;">
+          <div style="background: white; border-radius: 16px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.4); animation: slideUp 0.3s ease;">
+            <div style="padding: var(--spacing-xl); border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--azul-corporativo) 0%, #0056b3 100%); color: white; border-radius: 16px 16px 0 0;">
+              <h2 style="margin: 0; color: white; display: flex; align-items: center; gap: 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                Detalles de Propiedad
+              </h2>
+              <button onclick="document.getElementById('detailModal').remove()" style="background: rgba(255,255,255,0.2); border: none; font-size: 24px; cursor: pointer; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">&times;</button>
             </div>
             <div style="padding: var(--spacing-xl);">
               <h3 style="margin-top: 0;">${prop.titulo}</h3>
@@ -1604,17 +1698,27 @@ class Dashboard {
   }
 
   showMapPopup(lat, lng) {
-    if (!lat || !lng) {
-      showNotification('Sin coordenadas de ubicación', 'error');
+    console.log(`🗺️ showMapPopup llamado - lat: ${lat}, lng: ${lng}`);
+    
+    // ✅ Validar y convertir a números
+    lat = parseFloat(lat);
+    lng = parseFloat(lng);
+    
+    if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+      console.error('❌ Coordenadas inválidas:', { lat, lng });
+      showNotification('📍 Esta propiedad no tiene coordenadas de ubicación', 'warning');
       return;
     }
 
     const modalHtml = `
-      <div class="modal-overlay" id="mapModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;">
-        <div style="background: white; border-radius: 16px; max-width: 900px; width: 100%; max-height: 90vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-          <div style="padding: var(--spacing-lg); border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="color: var(--azul-corporativo); margin: 0;">🗺️ Ubicación</h2>
-            <button onclick="document.getElementById('mapModal').remove()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: var(--gris-medio);">&times;</button>
+      <div class="modal-overlay" id="mapModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.2s ease;">
+        <div style="background: white; border-radius: 16px; max-width: 900px; width: 100%; max-height: 90vh; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.4); animation: slideUp 0.3s ease;">
+          <div style="padding: var(--spacing-lg); border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+            <h2 style="margin: 0; color: white; display: flex; align-items: center; gap: 0.5rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              Ubicación en Mapa
+            </h2>
+            <button onclick="document.getElementById('mapModal').remove()" style="background: rgba(255,255,255,0.2); border: none; font-size: 24px; cursor: pointer; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">&times;</button>
           </div>
           <div style="padding: var(--spacing-md);">
             <div id="propertyMap" style="height: 500px; border-radius: 8px;"></div>
@@ -1646,19 +1750,144 @@ class Dashboard {
     });
   }
 
-  setupUserMenu() {
-    // Toggle dropdown
-    this.userMenuBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.userMenu.classList.toggle('active');
-    });
+  async showAssignBrokerPopup(propId) {
+    try {
+      const token = authService.getToken();
+      
+      // Obtener lista de corredores (perfil_id = 3)
+      const response = await fetch(`${API_CONFIG.BASE_URL}/usuarios?perfil_id=3`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        showNotification('Error al cargar corredores', 'error');
+        return;
+      }
+      
+      const data = await response.json();
+      const corredores = data.data || [];
+      
+      if (corredores.length === 0) {
+        showNotification('No hay corredores disponibles', 'warning');
+        return;
+      }
+      
+      const modalHtml = `
+        <div class="modal-overlay" id="assignBrokerModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+          <div style="background: white; border-radius: 16px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="padding: var(--spacing-xl); border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: center; background: var(--azul-corporativo); color: white; border-radius: 16px 16px 0 0;">
+              <h2 style="margin: 0; color: white;">👤 Asignar Corredor</h2>
+              <button onclick="document.getElementById('assignBrokerModal').remove()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: white;">&times;</button>
+            </div>
+            <div style="padding: var(--spacing-xl);">
+              <p style="margin-bottom: var(--spacing-lg); color: var(--gris-oscuro);">Selecciona el corredor que gestionará esta propiedad:</p>
+              <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                ${corredores.map(corredor => `
+                  <button 
+                    class="broker-option" 
+                    data-broker-id="${corredor.usuario_id}"
+                    style="padding: var(--spacing-md); border: 2px solid var(--borde); border-radius: 8px; background: white; cursor: pointer; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: var(--spacing-sm);"
+                    onmouseover="this.style.borderColor='var(--azul-corporativo)'; this.style.background='rgba(0,102,204,0.05)';"
+                    onmouseout="this.style.borderColor='var(--borde)'; this.style.background='white';"
+                  >
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--azul-corporativo); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">
+                      ${(corredor.nombre?.[0] || 'C').toUpperCase()}
+                    </div>
+                    <div style="flex: 1;">
+                      <div style="font-weight: 600; color: var(--azul-corporativo); margin-bottom: 4px;">${corredor.nombre} ${corredor.apellido}</div>
+                      <div style="font-size: 0.85rem; color: var(--gris-medio);">📧 ${corredor.email}</div>
+                    </div>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      
+      // Event listeners para seleccionar corredor
+      document.querySelectorAll('.broker-option').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const brokerId = btn.dataset.brokerId;
+          await this.assignBrokerToProperty(propId, brokerId);
+          document.getElementById('assignBrokerModal').remove();
+        });
+      });
+      
+      // Cerrar al hacer click fuera
+      document.getElementById('assignBrokerModal').addEventListener('click', (e) => {
+        if (e.target.id === 'assignBrokerModal') e.target.remove();
+      });
+      
+    } catch (error) {
+      console.error('Error en showAssignBrokerPopup:', error);
+      showNotification('Error al mostrar corredores', 'error');
+    }
+  }
 
-    // Cerrar al hacer click fuera
-    document.addEventListener('click', (e) => {
+  async assignBrokerToProperty(propId, brokerId) {
+    try {
+      const token = authService.getToken();
+      
+      const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/asignar-corredor`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ corredor_id: parseInt(brokerId) })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al asignar corredor');
+      }
+      
+      showNotification('✅ Corredor asignado exitosamente', 'success');
+      
+      // Recargar las propiedades
+      this.renderPropertiesPage();
+      
+    } catch (error) {
+      console.error('Error asignando corredor:', error);
+      showNotification('❌ Error al asignar corredor', 'error');
+    }
+  }
+
+  setupUserMenu() {
+    console.log('🎯 Configurando menú de usuario...');
+    console.log('userMenuBtn:', this.userMenuBtn);
+    console.log('userMenu:', this.userMenu);
+    
+    if (!this.userMenuBtn || !this.userMenu) {
+      console.error('❌ Elementos del menú no encontrados');
+      return;
+    }
+    
+    // ✅ Toggle dropdown con soporte para touch
+    const toggleMenu = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('🖱️ Toggle menú clickeado');
+      this.userMenu.classList.toggle('active');
+      console.log('Menu active:', this.userMenu.classList.contains('active'));
+    };
+    
+    this.userMenuBtn.addEventListener('click', toggleMenu);
+    this.userMenuBtn.addEventListener('touchend', toggleMenu); // ✅ Soporte móvil
+
+    // ✅ Cerrar al hacer click/touch fuera
+    const closeMenu = (e) => {
       if (!this.userMenu.contains(e.target)) {
         this.userMenu.classList.remove('active');
       }
-    });
+    };
+    
+    document.addEventListener('click', closeMenu);
+    document.addEventListener('touchend', closeMenu); // ✅ Soporte móvil
+    
+    console.log('✅ Menú de usuario configurado');
   }
 
   setupLogout() {

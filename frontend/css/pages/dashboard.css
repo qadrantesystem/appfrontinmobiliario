@@ -135,7 +135,7 @@
 /* Menú de Usuario */
 .user-menu {
   position: relative;
-  z-index: 250; /* 🔥 Asegurar que esté por encima de todo */
+  z-index: 99999; /* 🔥 Z-index altísimo para móvil */
 }
 
 .user-avatar-btn {
@@ -148,10 +148,17 @@
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent; /* 🔥 Quitar highlight azul en móvil */
+  touch-action: manipulation; /* 🔥 Optimizar para touch */
+  user-select: none; /* 🔥 Evitar selección de texto */
 }
 
 .user-avatar-btn:hover {
   background: rgba(0, 51, 102, 0.05);
+}
+
+.user-avatar-btn:active {
+  background: rgba(0, 51, 102, 0.1); /* 🔥 Feedback visual en móvil */
 }
 
 .user-avatar {
@@ -201,16 +208,17 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
+  min-width: 240px;
   background: var(--blanco);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--borde);
-  min-width: 220px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
   transition: all var(--transition-fast);
-  z-index: 300; /* 🔥 Z-index más alto para estar por encima de todo */
+  z-index: 9999; /* 🔥 Z-index altísimo para móvil */
+  pointer-events: auto; /* 🔥 Asegurar que sea clickeable */
 }
 
 .user-menu.active .dropdown-menu {
@@ -811,6 +819,43 @@
     padding: 6px 0; /* 🔥 Más compacto en móvil */
   }
 
+  /* 🔥 Botones más compactos y redondeados en móvil */
+  .btn {
+    padding: 8px 14px !important;
+    font-size: 0.85rem !important;
+    border-radius: 10px !important;
+  }
+
+  .btn-primary, .btn-secondary {
+    min-height: 36px;
+  }
+
+  .btn-admin {
+    padding: 6px 10px !important;
+    font-size: 0.8rem !important;
+    border-radius: 8px !important;
+  }
+
+  /* Menú de usuario en móvil */
+  .user-menu {
+    z-index: 99999 !important;
+    position: relative;
+  }
+
+  .dropdown-menu {
+    position: fixed !important;
+    top: 60px !important;
+    right: 10px !important;
+    z-index: 999999 !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .dropdown-menu.active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+  }
+
   .header-container {
     padding: 0 12px; /* 🔥 Padding reducido en móvil */
   }
@@ -1089,15 +1134,19 @@
 }
 
 .multi-select__panel {
-  position: static;
-  margin-top: 6px;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  margin-top: 0;
   background: var(--blanco, #fff);
-  border: 2px solid var(--borde);
+  border: 2px solid var(--azul-corporativo);
   border-radius: 10px;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   padding: 8px;
   max-height: 360px;
-  overflow: hidden;
+  overflow-y: auto;
   background-clip: padding-box;
 }
 

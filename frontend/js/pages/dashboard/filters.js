@@ -12,9 +12,12 @@
 
     render() {
       return `
-        <div style="background: white; padding: var(--spacing-md); border-radius: var(--radius-md); border: 1px solid var(--borde); margin-bottom: var(--spacing-md);">
-          <div style="display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap;">
-            <span style="color: var(--azul-corporativo); font-weight: 600; font-size: 0.9rem;">🔍 Filtros</span>
+        <div style="background: white; padding: var(--spacing-md); border-radius: 8px; border: 1px solid var(--borde); margin-bottom: var(--spacing-md);">
+          <div style="display: flex; align-items: center; gap: var(--spacing-sm); flex-wrap: wrap;">
+            <span style="color: var(--azul-corporativo); font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              Filtros:
+            </span>
             
             <!-- Tipo Inmueble -->
             <div style="flex: 1; min-width: 200px;">
@@ -54,7 +57,10 @@
               </div>
             </div>
 
-            <button id="btnClearAllFilters" class="btn btn-secondary" style="padding: 8px 16px;">Limpiar</button>
+
+            <button id="btnClearAllFilters" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">
+              Limpiar
+            </button>
           </div>
         </div>
       `;
