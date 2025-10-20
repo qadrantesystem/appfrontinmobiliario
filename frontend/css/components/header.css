@@ -430,13 +430,25 @@
     height: 24px;
   }
 
-  /* 🔥 Ocultar menú dropdown de usuario en móvil */
+  /* 🔥 Ocultar flecha en móvil */
   .user-avatar-btn svg {
     display: none;
   }
 
+  /* ✅ Ajustar dropdown para móvil */
   .dropdown-menu {
-    display: none !important;
+    position: fixed !important;
+    top: 40px !important;
+    right: 5px !important;
+    left: auto !important;
+    min-width: 180px !important;
+    z-index: 9999 !important;
+  }
+  
+  .user-menu.active .dropdown-menu {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }
 
@@ -472,5 +484,11 @@
 
   .hamburger-btn span {
     width: 18px;
+  }
+  
+  /* ✅ Dropdown más pequeño en pantallas muy pequeñas */
+  .dropdown-menu {
+    top: 38px !important;
+    min-width: 160px !important;
   }
 }

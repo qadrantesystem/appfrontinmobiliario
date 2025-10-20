@@ -1196,6 +1196,11 @@ class Dashboard {
         <div class="property-card" data-property-id="${prop.registro_cab_id}">
           <div class="property-number">${pageData.startIndex + index + 1}</div>
           
+          <!-- ❤️ Botón de Favorito -->
+          <button class="favorite-btn" data-favorite-property="${prop.registro_cab_id}" title="Agregar a favoritos" style="position: absolute; top: 10px; right: 10px; background: white; border: 2px solid #333; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; z-index: 30; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+            ♡
+          </button>
+          
           <!-- Badge de Estado de Propiedad -->
           <div class="property-badge" style="position: absolute; top: 50px; left: 10px; background: ${estadoBadge.color}; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; z-index: 20;">
             ${estadoBadge.text}
@@ -1491,6 +1496,51 @@ class Dashboard {
         // Abrir formulario en modo EDITAR
         const propertyForm = new PropertyForm(this, propId);
         await propertyForm.init();
+      });
+    });
+
+    // ❤️ Favoritos - Cargar estado inicial
+    const favoriteBtns = document.querySelectorAll('[data-favorite-property]');
+    console.log(`❤️ Botones [data-favorite-property] encontrados: ${favoriteBtns.length}`);
+
+    // 🔥 Cargar favoritos del usuario y marcar corazones
+    this.loadFavoritesState();
+
+    favoriteBtns.forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const propId = parseInt(e.currentTarget.dataset.favoriteProperty);
+        
+        // Verificar si es favorito por el emoji
+        const isFavorito = e.currentTarget.textContent.trim() === '❤️';
+        
+        console.log(`❤️ Click favorito - ID: ${propId}, es favorito: ${isFavorito}`);
+        
+        // Toggle favorito en API
+        const success = await favoritesActionService.toggleFavorito(propId, isFavorito);
+        
+        if (success) {
+          if (isFavorito) {
+            // Está rojo → quitarlo → blanco con borde
+            e.currentTarget.textContent = '♡';
+            e.currentTarget.style.border = '2px solid #333';
+            e.currentTarget.style.background = 'white';
+            e.currentTarget.title = 'Agregar a favoritos';
+          } else {
+            // Está blanco → agregarlo → rojo
+            e.currentTarget.textContent = '❤️';
+            e.currentTarget.style.border = 'none';
+            e.currentTarget.style.background = 'white';
+            e.currentTarget.title = 'Quitar de favoritos';
+          }
+          
+          // Animación
+          e.currentTarget.style.transform = 'scale(1.3)';
+          setTimeout(() => {
+            e.currentTarget.style.transform = 'scale(1)';
+          }, 200);
+        }
       });
     });
 
@@ -1855,6 +1905,40 @@ class Dashboard {
     }
   }
 
+  async loadFavoritesState() {
+    try {
+      const token = authService.getToken();
+      if (!token) return;
+
+      console.log('❤️ Cargando favoritos del usuario...');
+      
+      const response = await fetch(`${API_CONFIG.BASE_URL}/favoritos/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const favoritos = data.data || [];
+      
+      console.log(`✅ ${favoritos.length} favoritos cargados`);
+
+      // Marcar corazones rojos para favoritos
+      favoritos.forEach(fav => {
+        const propId = fav.registro_cab_id || fav.propiedad_id;
+        const btn = document.querySelector(`[data-favorite-property="${propId}"]`);
+        if (btn) {
+          btn.textContent = '❤️'; // Corazón rojo relleno
+          btn.style.border = 'none';
+          btn.title = 'Quitar de favoritos';
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Error cargando favoritos:', error);
+    }
+  }
+
   setupUserMenu() {
     console.log('🎯 Configurando menú de usuario...');
     console.log('userMenuBtn:', this.userMenuBtn);
@@ -1865,27 +1949,42 @@ class Dashboard {
       return;
     }
     
-    // ✅ Toggle dropdown con soporte para touch
+    const dropdown = document.getElementById('userDropdown');
+    console.log('dropdown:', dropdown);
+    
+    // ✅ Toggle simple con log
     const toggleMenu = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('🖱️ Toggle menú clickeado');
-      this.userMenu.classList.toggle('active');
-      console.log('Menu active:', this.userMenu.classList.contains('active'));
-    };
-    
-    this.userMenuBtn.addEventListener('click', toggleMenu);
-    this.userMenuBtn.addEventListener('touchend', toggleMenu); // ✅ Soporte móvil
-
-    // ✅ Cerrar al hacer click/touch fuera
-    const closeMenu = (e) => {
-      if (!this.userMenu.contains(e.target)) {
-        this.userMenu.classList.remove('active');
+      
+      const isActive = this.userMenu.classList.toggle('active');
+      console.log(`📱 Menú ${isActive ? 'ABIERTO' : 'CERRADO'}`);
+      
+      // Forzar display en móvil
+      if (dropdown) {
+        if (isActive) {
+          dropdown.style.display = 'block';
+          dropdown.style.opacity = '1';
+          dropdown.style.visibility = 'visible';
+          dropdown.style.transform = 'translateY(0)';
+        } else {
+          dropdown.style.display = 'none';
+        }
       }
     };
     
-    document.addEventListener('click', closeMenu);
-    document.addEventListener('touchend', closeMenu); // ✅ Soporte móvil
+    // Solo click (más confiable)
+    this.userMenuBtn.addEventListener('click', toggleMenu);
+
+    // ✅ Cerrar al hacer click fuera
+    document.addEventListener('click', (e) => {
+      if (!this.userMenu.contains(e.target)) {
+        this.userMenu.classList.remove('active');
+        if (dropdown) {
+          dropdown.style.display = 'none';
+        }
+      }
+    });
     
     console.log('✅ Menú de usuario configurado');
   }

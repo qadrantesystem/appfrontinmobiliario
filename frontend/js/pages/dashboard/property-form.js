@@ -235,15 +235,30 @@ class PropertyForm {
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('🔄 MAPEANDO DATOS A formData...');
       
-      // Mapear datos a formData
+      // 🔍 Buscar IDs desde los catálogos (backend devuelve nombres)
+      const tipoInmuebleId = prop.tipo_inmueble_id || 
+        this.tiposInmuebles.find(t => t.nombre === prop.tipo_inmueble)?.tipo_inmueble_id;
+      
+      const distritoId = prop.distrito_id || 
+        this.distritos.find(d => d.nombre === prop.distrito)?.distrito_id;
+      
+      console.log('🔍 tipo_inmueble (nombre):', prop.tipo_inmueble);
+      console.log('🔍 tipo_inmueble_id (encontrado):', tipoInmuebleId);
+      console.log('🔍 distrito (nombre):', prop.distrito);
+      console.log('🔍 distrito_id (encontrado):', distritoId);
+      console.log('🔍 nombre_inmueble:', prop.nombre_inmueble);
+      console.log('🔍 titulo:', prop.titulo);
+      console.log('🔍 TODOS LOS CAMPOS:', Object.keys(prop));
+      
+      // Mapear datos a formData (ajustado a estructura real del backend)
       this.formData = {
-        propietario_real_nombre: prop.propietario_real_nombre || '',
-        propietario_real_dni: prop.propietario_real_dni || '',
-        propietario_real_telefono: prop.propietario_real_telefono || '',
-        propietario_real_email: prop.propietario_real_email || '',
+        propietario_real_nombre: prop.propietario?.nombre || '',
+        propietario_real_dni: prop.propietario?.dni || '',
+        propietario_real_telefono: prop.propietario?.telefono || '',
+        propietario_real_email: prop.propietario?.email || '',
         
-        tipo_inmueble_id: prop.tipo_inmueble_id,
-        distrito_id: prop.distrito_id,
+        tipo_inmueble_id: tipoInmuebleId,
+        distrito_id: distritoId,
         nombre_inmueble: prop.nombre_inmueble || '',
         direccion: prop.direccion || '',
         latitud: prop.latitud || null,
@@ -272,18 +287,34 @@ class PropertyForm {
         imagenes_galeria: [],
         
         // Características existentes
-        caracteristicas: prop.caracteristicas?.map(c => ({
-          caracteristica_id: c.caracteristica_id,
-          valor: c.valor
-        })) || []
+        caracteristicas: (() => {
+          console.log('🔍 Características raw:', prop.caracteristicas);
+          console.log('🔍 Primera característica:', prop.caracteristicas?.[0]);
+          
+          if (!prop.caracteristicas || prop.caracteristicas.length === 0) {
+            console.warn('⚠️ No hay características en prop.caracteristicas');
+            return [];
+          }
+          
+          const mapped = prop.caracteristicas.map(c => {
+            console.log('  Mapeando:', c);
+            return {
+              caracteristica_id: c.caracteristica_id || c.id,
+              valor: c.valor || c.value || 'Sí'
+            };
+          });
+          
+          console.log('✅ Características mapeadas:', mapped);
+          return mapped;
+        })()
       };
       
       console.log('✅ formData MAPEADO:', this.formData);
       
       // Cargar características del tipo
-      if (prop.tipo_inmueble_id) {
-        console.log('🔄 Cargando características para tipo_inmueble_id:', prop.tipo_inmueble_id);
-        await this.loadCaracteristicasPorTipo(prop.tipo_inmueble_id);
+      if (tipoInmuebleId) {
+        console.log('🔄 Cargando características para tipo_inmueble_id:', tipoInmuebleId);
+        await this.loadCaracteristicasPorTipo(tipoInmuebleId);
       }
       
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -298,7 +329,7 @@ class PropertyForm {
       console.error('❌ Error al cargar propiedad:', error);
       showNotification('❌ Error al cargar la propiedad', 'error');
       // Volver a la lista
-      this.dashboard.renderPropertiesPage();
+      await this.dashboard.loadTabContent('propiedades', this.dashboard.currentUser.perfil_id);
     }
   }
 
@@ -529,8 +560,10 @@ class PropertyForm {
     
     // Pre-llenar campos si está en modo EDITAR
     if (this.propId) {
-      console.log('🔄 Modo EDITAR detectado, llamando a populateFormFields()...');
-      this.populateFormFields();
+      // ⏱️ Esperar que el DOM esté completamente renderizado
+      setTimeout(() => {
+        this.populateFormFields();
+      }, 100);
     } else {
       console.log('ℹ️ Modo NUEVO, no se pre-llenan campos');
     }
@@ -566,49 +599,112 @@ class PropertyForm {
       }
     } 
     else if (this.currentStep === 2) {
-      document.getElementById('tipo_inmueble_id').value = this.formData.tipo_inmueble_id || '';
-      document.getElementById('distrito_id').value = this.formData.distrito_id || '';
-      document.getElementById('nombre_inmueble').value = this.formData.nombre_inmueble || '';
-      document.getElementById('direccion').value = this.formData.direccion || '';
-      document.getElementById('latitud').value = this.formData.latitud || '';
-      document.getElementById('longitud').value = this.formData.longitud || '';
+      console.log('📝 Llenando campos del Paso 2 (Información Básica)');
+      console.log('  tipo_inmueble_id:', this.formData.tipo_inmueble_id);
+      console.log('  distrito_id:', this.formData.distrito_id);
+      console.log('  nombre_inmueble:', this.formData.nombre_inmueble);
+      
+      const campos = {
+        'tipo_inmueble_id': this.formData.tipo_inmueble_id || '',
+        'distrito_id': this.formData.distrito_id || '',
+        'nombre_inmueble': this.formData.nombre_inmueble || '',
+        'direccion': this.formData.direccion || '',
+        'latitud': this.formData.latitud || '',
+        'longitud': this.formData.longitud || ''
+      };
+      
+      for (const [id, valor] of Object.entries(campos)) {
+        const campo = document.getElementById(id);
+        if (campo) {
+          campo.value = valor;
+          console.log(`  ✅ ${id} = "${valor}"`);
+        } else {
+          console.error(`  ❌ Campo ${id} NO ENCONTRADO en el DOM`);
+        }
+      }
     } 
     else if (this.currentStep === 3) {
-      document.getElementById('area').value = this.formData.area || '';
-      document.getElementById('habitaciones').value = this.formData.habitaciones || '';
-      document.getElementById('banos').value = this.formData.banos || '';
-      document.getElementById('parqueos').value = this.formData.parqueos || '';
-      document.getElementById('antiguedad').value = this.formData.antiguedad || '';
+      console.log('📝 Llenando campos del Paso 3 (Características)');
+      console.log('  area:', this.formData.area);
+      console.log('  habitaciones:', this.formData.habitaciones);
+      console.log('  caracteristicas:', this.formData.caracteristicas?.length || 0);
+      
+      const campos = {
+        'area': this.formData.area || '',
+        'habitaciones': this.formData.habitaciones || '',
+        'banos': this.formData.banos || '',
+        'parqueos': this.formData.parqueos || '',
+        'antiguedad': this.formData.antiguedad || ''
+      };
+      
+      for (const [id, valor] of Object.entries(campos)) {
+        const campo = document.getElementById(id);
+        if (campo) {
+          campo.value = valor;
+          console.log(`  ✅ ${id} = "${valor}"`);
+        } else {
+          console.error(`  ❌ Campo ${id} NO ENCONTRADO en el DOM`);
+        }
+      }
       
       // Pre-seleccionar características
-      this.formData.caracteristicas.forEach(carac => {
+      console.log('  🔄 Pre-seleccionando características dinámicas...');
+      this.formData.caracteristicas?.forEach(carac => {
         const input = document.querySelector(`[data-carac-id="${carac.caracteristica_id}"]`);
         if (input) {
           if (input.type === 'checkbox') {
             input.checked = carac.valor === 'Sí';
+            console.log(`    ✅ Checkbox ${carac.caracteristica_id} checked`);
           } else {
             input.value = carac.valor;
+            console.log(`    ✅ Input ${carac.caracteristica_id} = "${carac.valor}"`);
           }
+        } else {
+          console.warn(`    ⚠️ Input caracteristica_id=${carac.caracteristica_id} no encontrado`);
         }
       });
     }
     else if (this.currentStep === 4) {
+      console.log('📝 Llenando campos del Paso 4 (Precios y Descripción)');
+      console.log('  transaccion:', this.formData.transaccion);
+      console.log('  precio_venta:', this.formData.precio_venta);
+      console.log('  titulo:', this.formData.titulo);
+      
       // Pre-seleccionar transacción
       const transaccionRadio = document.querySelector(`input[name="transaccion"][value="${this.formData.transaccion}"]`);
       if (transaccionRadio) {
         transaccionRadio.checked = true;
+        console.log(`  ✅ Transacción "${this.formData.transaccion}" seleccionada`);
         // Trigger click para activar la card y mostrar campos correctos
         transaccionRadio.closest('.transaction-card')?.click();
+      } else {
+        console.error(`  ❌ Radio transaccion="${this.formData.transaccion}" NO ENCONTRADO`);
       }
       
       // Rellenar precios
-      document.getElementById('precio_venta').value = this.formData.precio_venta || '';
-      document.getElementById('precio_alquiler').value = this.formData.precio_alquiler || '';
-      document.getElementById('moneda_venta').value = this.formData.moneda || 'PEN';
-      document.getElementById('moneda_alquiler').value = this.formData.moneda || 'PEN';
-      document.getElementById('titulo').value = this.formData.titulo || '';
-      document.getElementById('descripcion').value = this.formData.descripcion || '';
+      const campos = {
+        'precio_venta': this.formData.precio_venta || '',
+        'precio_alquiler': this.formData.precio_alquiler || '',
+        'moneda_venta': this.formData.moneda || 'PEN',
+        'moneda_alquiler': this.formData.moneda || 'PEN',
+        'titulo': this.formData.titulo || '',
+        'descripcion': this.formData.descripcion || ''
+      };
+      
+      for (const [id, valor] of Object.entries(campos)) {
+        const campo = document.getElementById(id);
+        if (campo) {
+          campo.value = valor;
+          console.log(`  ✅ ${id} = "${valor}"`);
+        } else {
+          console.error(`  ❌ Campo ${id} NO ENCONTRADO en el DOM`);
+        }
+      }
     }
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('✅ populateFormFields() COMPLETADO');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
 
   renderHeader() {
@@ -1066,9 +1162,17 @@ class PropertyForm {
 
   setupEventListeners() {
     // Volver a lista
-    document.getElementById('btnVolverLista')?.addEventListener('click', () => {
-      this.dashboard.renderPropertiesPage();
-    });
+    const btnVolver = document.getElementById('btnVolverLista');
+    if (btnVolver) {
+      btnVolver.addEventListener('click', async () => {
+        console.log('🔙 Click en Volver a Lista');
+        // Recargar la pestaña completa de propiedades
+        await this.dashboard.loadTabContent('propiedades', this.dashboard.currentUser.perfil_id);
+      });
+      console.log('✅ Botón "Volver a Lista" conectado');
+    } else {
+      console.error('❌ Botón "btnVolverLista" NO ENCONTRADO');
+    }
 
     // Navegación
     document.getElementById('btnAnterior')?.addEventListener('click', () => this.previousStep());
