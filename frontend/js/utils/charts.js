@@ -1,5 +1,5 @@
 /**
- * 📊 Charts Utility - Match Property
+ * 📊 Charts Utility - Quadrante
  * Gráficos de torta y barras sin librerías externas
  */
 

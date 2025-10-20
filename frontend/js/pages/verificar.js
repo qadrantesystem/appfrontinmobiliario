@@ -1,5 +1,5 @@
 /**
- * ✅ Verificar Email Page - Match Property
+ * ✅ Verificar Email Page - Quadrante
  * Integración con Backend API
  */
 

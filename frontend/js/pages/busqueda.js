@@ -1,4 +1,4 @@
-// Página de Búsqueda Simplificada - Match Property
+// Página de Búsqueda Simplificada - Quadrante
 class BusquedaPage {
   constructor() {
     this.distritos = [];

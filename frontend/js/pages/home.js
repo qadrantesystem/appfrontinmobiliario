@@ -1,4 +1,4 @@
-// Home Page - Match Property
+// Home Page - Quadrante
 class HomePage {
   constructor() {
     this.distritos = [];

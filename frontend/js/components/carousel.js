@@ -1,4 +1,4 @@
-// Carrusel Hero - Match Property
+// Carrusel Hero - Quadrante
 class Carousel {
   constructor() {
     this.currentSlide = 0;

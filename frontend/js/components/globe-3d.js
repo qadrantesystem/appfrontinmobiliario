@@ -1,4 +1,4 @@
-// Globo 3D con Edificios Épico - Match Property
+// Globo 3D con Edificios Épico - Quadrante
 class Globe3D {
   constructor() {
     this.container = document.querySelector('.globe-container');
@@ -46,7 +46,7 @@ class Globe3D {
   createTitle() {
     const title = document.createElement('div');
     title.className = 'globe-title';
-    title.innerHTML = '<span class="title-porque">POR QUÉ</span><br><span class="title-match">MATCH</span> <span class="title-property">Property?</span>';
+    title.innerHTML = '<span class="title-porque">POR QUÉ</span><br><span class="title-match">QUADRANTE</span><span class="title-property">?</span>';
     this.container.appendChild(title);
   }
 

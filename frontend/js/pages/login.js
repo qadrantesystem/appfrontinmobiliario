@@ -1,5 +1,5 @@
 /**
- * 🔐 Login Page - Match Property
+ * 🔐 Login Page - Quadrante
  * Integración con Backend API
  */
 

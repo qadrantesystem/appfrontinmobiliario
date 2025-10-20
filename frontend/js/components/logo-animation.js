@@ -1,4 +1,4 @@
-// Logo Animation - Match Property
+// Logo Animation - Quadrante
 // Detectar iOS
 const iOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
 if (iOS) document.body.classList.add('iOS');

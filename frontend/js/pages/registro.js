@@ -1,5 +1,5 @@
 /**
- * 📝 Registro Page - Match Property
+ * 📝 Registro Page - Quadrante
  * Integración con Backend API + Modal de Verificación
  */
 

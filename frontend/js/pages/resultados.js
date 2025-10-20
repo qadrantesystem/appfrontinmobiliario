@@ -1,4 +1,4 @@
-// Página de Resultados con Filtros Dinámicos - Match Property
+// Página de Resultados con Filtros Dinámicos - Quadrante
 class ResultadosPage {
   constructor() {
     this.propiedades = [];
@@ -1894,6 +1894,12 @@ class ResultadosPage {
       return `
       <div class="property-card" data-property-id="${propId}">
         <div class="property-number">${startIndex + index + 1}</div>
+        
+        <!-- ❤️ Botón de Favorito -->
+        <button class="favorite-btn-float" data-favorite-property="${propId}" title="Agregar a favoritos" style="position: absolute; top: 10px; right: 10px; background: white; border: 2px solid #333; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; z-index: 30; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+          ♡
+        </button>
+        
         <div class="property-image-carousel">
           <div class="carousel-images" data-current="0">
             ${prop.imagenes.map((img, i) => `
@@ -1913,12 +1919,7 @@ class ResultadosPage {
         <div class="property-info">
           <h3 class="property-title">${prop.titulo}</h3>
           <div class="property-location">📍 ${prop.direccion}</div>
-          <div class="property-price-row">
-            <div class="property-price">${this.renderPrecio(prop)}</div>
-            <button class="favorite-btn" data-property-id="${propId}" aria-label="Marcar favorito" title="Agregar a favoritos">
-              ${this.favoritos.includes(propId) ? '❤' : '♡'}
-            </button>
-          </div>
+          <div class="property-price">${this.renderPrecio(prop)}</div>
           <div class="property-features">
             <span class="feature">📐 ${prop.area} m²</span>
             <span class="feature">🚗 ${prop.parqueos} parqueos</span>
@@ -1943,6 +1944,10 @@ class ResultadosPage {
 
     container.innerHTML = html;
     this.setupCardListeners();
+    
+    // ❤️ Configurar favoritos
+    this.setupFavoriteButtons();
+    this.loadFavoritesState();
 
     // Renderizar paginador
     this.renderPaginador(totalPages, startIndex + 1, endIndex, totalPropiedades);
@@ -2141,6 +2146,83 @@ class ResultadosPage {
         e.currentTarget.textContent = this.favoritos.includes(propId) ? '❤' : '♡';
       });
     });
+  }
+
+  setupFavoriteButtons() {
+    const favoriteBtns = document.querySelectorAll('[data-favorite-property]');
+    console.log(`❤️ Botones favoritos encontrados: ${favoriteBtns.length}`);
+
+    favoriteBtns.forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const propId = parseInt(e.currentTarget.dataset.favoriteProperty);
+        
+        // Verificar si es favorito por el emoji
+        const isFavorito = e.currentTarget.textContent.trim() === '❤️';
+        
+        console.log(`❤️ Click favorito - ID: ${propId}, es favorito: ${isFavorito}`);
+        
+        // Toggle favorito en API
+        const success = await favoritesActionService.toggleFavorito(propId, isFavorito);
+        
+        if (success) {
+          if (isFavorito) {
+            // Está rojo → quitarlo → blanco con borde
+            e.currentTarget.textContent = '♡';
+            e.currentTarget.style.border = '2px solid #333';
+            e.currentTarget.style.background = 'white';
+            e.currentTarget.title = 'Agregar a favoritos';
+          } else {
+            // Está blanco → agregarlo → rojo
+            e.currentTarget.textContent = '❤️';
+            e.currentTarget.style.border = 'none';
+            e.currentTarget.style.background = 'white';
+            e.currentTarget.title = 'Quitar de favoritos';
+          }
+          
+          // Animación
+          e.currentTarget.style.transform = 'scale(1.3)';
+          setTimeout(() => {
+            e.currentTarget.style.transform = 'scale(1)';
+          }, 200);
+        }
+      });
+    });
+  }
+
+  async loadFavoritesState() {
+    try {
+      const token = authService.getToken();
+      if (!token) return;
+
+      console.log('❤️ Cargando favoritos del usuario...');
+      
+      const response = await fetch(`${API_CONFIG.BASE_URL}/favoritos/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const favoritos = data.data || [];
+      
+      console.log(`✅ ${favoritos.length} favoritos cargados`);
+
+      // Marcar corazones rojos para favoritos
+      favoritos.forEach(fav => {
+        const propId = fav.registro_cab_id || fav.propiedad_id;
+        const btn = document.querySelector(`[data-favorite-property="${propId}"]`);
+        if (btn) {
+          btn.textContent = '❤️'; // Corazón rojo relleno
+          btn.style.border = 'none';
+          btn.title = 'Quitar de favoritos';
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Error cargando favoritos:', error);
+    }
   }
 
   attachPaginadorListeners() {

@@ -1,5 +1,5 @@
 /**
- * 🔑 Recuperar Contraseña Page - Match Property
+ * 🔑 Recuperar Contraseña Page - Quadrante
  * Integración con Backend API
  */
 
