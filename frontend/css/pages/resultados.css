@@ -1,4 +1,86 @@
 /* ===========================
+   TOAST NOTIFICATIONS
+   =========================== */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--blanco);
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 300px;
+  max-width: 400px;
+  opacity: 0;
+  transform: translateX(400px);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  pointer-events: auto;
+  border-left: 4px solid var(--azul-corporativo);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+  color: var(--texto-principal);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.toast-warning {
+  border-left-color: #f39c12;
+}
+
+.toast-success {
+  border-left-color: #27ae60;
+}
+
+.toast-error {
+  border-left-color: #e74c3c;
+}
+
+.toast-info {
+  border-left-color: var(--azul-corporativo);
+}
+
+@media (max-width: 768px) {
+  .toast-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+  }
+  
+  .toast {
+    min-width: auto;
+    max-width: 100%;
+    transform: translateY(-100px);
+  }
+  
+  .toast.show {
+    transform: translateY(0);
+  }
+}
+
+/* ===========================
    HEADER RESULTADOS
    =========================== */
 .header-resultados {
@@ -882,6 +964,8 @@
   display: flex;
   border-radius: clamp(10px, 2vw, 12px);
   overflow: hidden;
+  position: relative;
+  z-index: 10;
 }
 
 .placeholder-image-container {
@@ -1130,19 +1214,37 @@
   transform: translateX(-50%) translateY(0);
 }
 
-/* Favoritos en card */
+/* Favoritos en card - Junto al precio */
 .property-card { position: relative; }
-.favorite-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255,255,255,0.9);
-  border: 2px solid var(--borde);
-  border-radius: 999px;
-  padding: 6px 10px;
-  cursor: pointer;
-  z-index: 25;
+
+.property-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
+
+.favorite-btn {
+  background: transparent;
+  border: 2px solid var(--azul-corporativo);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.favorite-btn:hover {
+  background: var(--azul-corporativo);
+  transform: scale(1.1);
+}
+
 .favorite-btn .fa-heart { color: #e63946; }
 
 /* ===========================
@@ -1403,6 +1505,8 @@
   display: flex;
   border-radius: clamp(10px, 2vw, 12px);
   overflow: hidden;
+  position: relative;
+  z-index: 10;
 }
 
 .map-canvas {
@@ -1410,6 +1514,18 @@
   height: 100%;
   z-index: 1;
   border-radius: clamp(10px, 2vw, 12px);
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+#propertiesList {
+  position: relative;
+  z-index: 5;
 }
 
 /* Custom Leaflet Markers */

@@ -123,18 +123,36 @@ class BusquedaPage {
 
   async loadData() {
     try {
+      const API_BASE = 'https://appbackimmobiliaria-production.up.railway.app/api/v1';
+      
       const [distritosRes, tiposRes] = await Promise.all([
-        fetch('data/distritos.json'),
-        fetch('data/tipos-inmuebles.json')
+        fetch(`${API_BASE}/distritos`),
+        fetch(`${API_BASE}/tipos-inmueble`)
       ]);
+
+      if (!distritosRes.ok || !tiposRes.ok) {
+        throw new Error(`Error en API - Distritos: ${distritosRes.status}, Tipos: ${tiposRes.status}`);
+      }
 
       const distritosData = await distritosRes.json();
       const tiposData = await tiposRes.json();
 
-      this.distritos = distritosData.distritos;
-      this.tiposInmuebles = tiposData.tipos;
+      this.distritos = distritosData.map(d => ({
+        id: d.distrito_id,
+        nombre: d.nombre,
+        ciudad: d.ciudad,
+        provincia: d.provincia
+      }));
+
+      this.tiposInmuebles = tiposData.map(t => ({
+        id: t.tipo_inmueble_id,
+        nombre: t.nombre,
+        icono: t.icono || '🏠',
+        descripcion: t.descripcion
+      }));
     } catch (error) {
       console.error('Error cargando datos:', error);
+      alert('Error al cargar los datos. Por favor recarga la página.');
     }
   }
 

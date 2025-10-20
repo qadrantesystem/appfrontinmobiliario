@@ -1,6 +1,9 @@
 // Home Page - Match Property
 class HomePage {
   constructor() {
+    this.distritos = [];
+    this.tiposInmuebles = [];
+    this.datosModalCargados = false;
     this.init();
   }
 
@@ -105,16 +108,19 @@ class HomePage {
     const modalBusqueda = document.getElementById('modalBusqueda');
     const btnCerrarModal = document.getElementById('btnCerrarModal');
 
-    const abrirModal = (e) => {
+    const abrirModal = async (e) => {
       e.preventDefault();
       
       if (modalBusqueda) {
         // Mostrar modal
         modalBusqueda.style.display = 'flex';
         document.body.classList.add('modal-open');
-        
-        // Prevenir scroll en el fondo
         document.body.style.overflow = 'hidden';
+        
+        // Cargar datos si no están cargados
+        if (!this.datosModalCargados) {
+          await this.cargarDatosModal();
+        }
       }
     };
 
@@ -174,12 +180,17 @@ class HomePage {
     
     if (openModal === 'true') {
       // Esperar un poco para que todo esté cargado
-      setTimeout(() => {
+      setTimeout(async () => {
         const modalBusqueda = document.getElementById('modalBusqueda');
         if (modalBusqueda) {
           modalBusqueda.style.display = 'flex';
           document.body.classList.add('modal-open');
           document.body.style.overflow = 'hidden';
+          
+          // Cargar datos del modal
+          if (!this.datosModalCargados) {
+            await this.cargarDatosModal();
+          }
         }
         
         // Limpiar el parámetro de la URL sin recargar la página
@@ -187,6 +198,193 @@ class HomePage {
         window.history.replaceState({}, '', newUrl);
       }, 500);
     }
+  }
+
+  async cargarDatosModal() {
+    try {
+      const API_BASE = 'https://appbackimmobiliaria-production.up.railway.app/api/v1';
+      
+      const [distritosRes, tiposRes] = await Promise.all([
+        fetch(`${API_BASE}/distritos`),
+        fetch(`${API_BASE}/tipos-inmueble`)
+      ]);
+
+      if (!distritosRes.ok || !tiposRes.ok) {
+        throw new Error('Error en la API');
+      }
+
+      this.distritos = await distritosRes.json();
+      this.tiposInmuebles = await tiposRes.json();
+      
+      this.renderDistritosModal();
+      this.renderTiposModal();
+      this.setupTransaccionChange();
+      this.setupFormModal();
+      
+      this.datosModalCargados = true;
+    } catch (error) {
+      console.error('Error cargando datos del modal:', error);
+    }
+  }
+
+  setupTransaccionChange() {
+    const selectTransaccion = document.getElementById('transaccion');
+    const labelPresupuesto = document.getElementById('labelPresupuesto');
+    const helperPresupuesto = document.getElementById('helperPresupuesto');
+    
+    if (!selectTransaccion || !labelPresupuesto) return;
+    
+    selectTransaccion.addEventListener('change', (e) => {
+      if (e.target.value === 'compra') {
+        labelPresupuesto.textContent = 'Presupuesto Compra (USD)';
+        if (helperPresupuesto) helperPresupuesto.textContent = 'Tolerancia ±15%';
+      } else {
+        labelPresupuesto.textContent = 'Presupuesto Alquiler (USD/mes)';
+        if (helperPresupuesto) helperPresupuesto.textContent = 'Tolerancia ±15%';
+      }
+    });
+  }
+
+  renderDistritosModal() {
+    const optionsContainer = document.getElementById('distritoOptions');
+    const tagsContainer = document.getElementById('distritoTags');
+    const placeholder = document.getElementById('distritoPlaceholder');
+    if (!optionsContainer) return;
+
+    // Ordenar alfabéticamente
+    const distritosOrdenados = [...this.distritos].sort((a, b) => 
+      a.nombre.localeCompare(b.nombre, 'es')
+    );
+
+    const html = distritosOrdenados.map(d => `
+      <label class="multi-option">
+        <input type="checkbox" value="${d.distrito_id}" data-nombre="${d.nombre}">
+        <span>${d.nombre}</span>
+      </label>
+    `).join('');
+
+    optionsContainer.innerHTML = html;
+    
+    // Actualizar tags cuando se selecciona/deselecciona
+    const updateTags = () => {
+      const selected = Array.from(
+        optionsContainer.querySelectorAll('input[type="checkbox"]:checked')
+      );
+      
+      if (selected.length === 0) {
+        tagsContainer.innerHTML = '';
+        placeholder.style.display = '';
+      } else {
+        placeholder.style.display = 'none';
+        const nombres = selected.map(cb => cb.getAttribute('data-nombre'));
+        const maxChips = 3;
+        const chips = nombres.slice(0, maxChips).map(n => 
+          `<span class="multi-select__tag">${n}</span>`
+        ).join('');
+        const extra = nombres.length > maxChips ? 
+          `<span class="multi-select__tag">+${nombres.length - maxChips}</span>` : '';
+        tagsContainer.innerHTML = chips + extra;
+      }
+    };
+
+    // Event listener en cada checkbox
+    optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', updateTags);
+    });
+    
+    // Setup toggle del panel
+    const toggleBtn = document.getElementById('distritoToggle');
+    const panel = document.getElementById('distritoPanel');
+    const multiContainer = document.getElementById('distritoMulti');
+    
+    if (toggleBtn && panel) {
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = panel.hidden;
+        panel.hidden = !isHidden;
+        toggleBtn.setAttribute('aria-expanded', !isHidden);
+        if (multiContainer) multiContainer.classList.toggle('open');
+      });
+      
+      // Cerrar al hacer click fuera
+      document.addEventListener('click', (e) => {
+        if (multiContainer && !multiContainer.contains(e.target)) {
+          panel.hidden = true;
+          toggleBtn.setAttribute('aria-expanded', 'false');
+          multiContainer.classList.remove('open');
+        }
+      });
+    }
+    
+    // Botones Seleccionar todos / Limpiar
+    const selectAllBtn = document.getElementById('distritoSelectAll');
+    const clearBtn = document.getElementById('distritoClear');
+    
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener('click', () => {
+        optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.checked = true;
+        });
+        updateTags();
+      });
+    }
+    
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.checked = false;
+        });
+        updateTags();
+      });
+    }
+  }
+
+  renderTiposModal() {
+    const select = document.getElementById('tipoInmueble');
+    if (!select) return;
+
+    const html = this.tiposInmuebles.map(t => 
+      `<option value="${t.tipo_inmueble_id}">${t.nombre}</option>`
+    ).join('');
+
+    select.innerHTML = `<option value="">Selecciona tipo...</option>` + html;
+  }
+
+  setupFormModal() {
+    const btnHacerMatch = document.getElementById('btnHacerMatch');
+    if (!btnHacerMatch) return;
+
+    btnHacerMatch.addEventListener('click', () => {
+      // Obtener distritos seleccionados (checkboxes)
+      const distritosSeleccionados = Array.from(
+        document.querySelectorAll('#distritoOptions input[type="checkbox"]:checked')
+      ).map(cb => parseInt(cb.value));
+
+      const tipo = document.getElementById('tipoInmueble').value;
+      const transaccion = document.getElementById('transaccion')?.value || 'compra';
+      const metraje = document.getElementById('metraje')?.value;
+      const presupuesto = document.getElementById('presupuesto')?.value;
+
+      if (distritosSeleccionados.length === 0 || !tipo) {
+        alert('Por favor selecciona al menos un distrito y un tipo de inmueble');
+        return;
+      }
+
+      const filtros = {
+        pais: 'PERU',
+        departamento: 'LIMA',
+        provincia: 'LIMA',
+        distritos_ids: distritosSeleccionados,
+        tipo_inmueble_id: parseInt(tipo),
+        transaccion: transaccion,
+        area: metraje ? parseInt(metraje) : null,
+        presupuesto_compra: transaccion === 'compra' && presupuesto ? parseInt(presupuesto) : null,
+        presupuesto_alquiler: transaccion === 'alquiler' && presupuesto ? parseInt(presupuesto) : null
+      };
+
+      localStorage.setItem('filtros_simplificados', JSON.stringify(filtros));
+      window.location.href = 'resultados.html';
+    });
   }
 }
 

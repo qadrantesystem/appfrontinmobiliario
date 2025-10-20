@@ -1,0 +1,179 @@
+/**
+ * 🎯 Dashboard Admin - Estilos Adicionales
+ * Mantenimientos, Aprobaciones y Reportes
+ */
+
+/* ========================================
+   MANTENIMIENTOS
+   ======================================== */
+
+.maintenance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.maintenance-card {
+  background: var(--blanco);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  border: 2px solid var(--borde);
+  transition: all var(--transition-normal);
+  text-align: center;
+}
+
+.maintenance-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--azul-corporativo);
+}
+
+.maintenance-card svg {
+  width: 48px;
+  height: 48px;
+  color: var(--azul-corporativo);
+  margin-bottom: var(--spacing-md);
+}
+
+.maintenance-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--azul-corporativo);
+  margin-bottom: var(--spacing-sm);
+}
+
+.maintenance-card p {
+  color: var(--gris-medio);
+  font-size: 0.95rem;
+  margin-bottom: var(--spacing-lg);
+}
+
+/* ========================================
+   APROBACIONES
+   ======================================== */
+
+.approvals-section {
+  margin-top: var(--spacing-lg);
+}
+
+.approvals-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.stat-card {
+  background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-medio) 100%);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  color: var(--blanco);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon svg {
+  width: 28px;
+  height: 28px;
+  color: var(--blanco);
+}
+
+.stat-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .maintenance-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+  }
+
+  .maintenance-card {
+    padding: var(--spacing-lg);
+  }
+
+  .maintenance-card svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .stat-card {
+    padding: var(--spacing-md);
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .stat-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .maintenance-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+
+  .maintenance-card {
+    padding: var(--spacing-md);
+  }
+
+  .maintenance-card h3 {
+    font-size: 0.95rem;
+  }
+
+  .maintenance-card p {
+    font-size: 0.8rem;
+    display: none; /* Ocultar descripción en móvil muy pequeño */
+  }
+
+  .approvals-stats {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+}

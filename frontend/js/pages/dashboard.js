@@ -57,7 +57,8 @@ class Dashboard {
         { id: 'favoritos', name: 'Favoritos', icon: this.getIcon('heart') },
         { id: 'historial', name: 'Búsquedas', icon: this.getIcon('search') },
         { id: 'usuarios', name: 'Usuarios', icon: this.getIcon('users') },
-        { id: 'reportes', name: 'Reportes', icon: this.getIcon('file') }
+        { id: 'mantenimientos', name: 'Mantenimientos', icon: this.getIcon('settings') },
+        { id: 'aprobaciones', name: 'Aprobaciones', icon: this.getIcon('check-circle') }
       ]
     };
 
@@ -78,7 +79,12 @@ class Dashboard {
     // Setup UI
     this.setupUserMenu();
     this.setupLogout();
-    this.setupMobileMenu();
+    
+    // 🔒 Iniciar gestor de inactividad
+    if (window.inactivityManager) {
+      inactivityManager.start();
+      console.log('✅ Gestor de inactividad iniciado');
+    }
   }
 
   async loadCurrentUser() {
@@ -134,12 +140,13 @@ class Dashboard {
     // Avatar
     this.generateAvatar(user);
 
-    // 🔥 Mostrar "Registrar Propiedad" solo para Ofertantes y Admins
-    if (this.registrarLinkMobile) {
-      if (perfilId === 2 || perfilId === 4) {
-        this.registrarLinkMobile.style.display = 'flex';
+    // 🔥 Ocultar "Mi Plan" para administradores (perfil_id === 4)
+    const planLink = document.getElementById('planLink');
+    if (planLink) {
+      if (perfilId === 4) {
+        planLink.style.display = 'none';
       } else {
-        this.registrarLinkMobile.style.display = 'none';
+        planLink.style.display = 'flex';
       }
     }
   }
@@ -160,18 +167,16 @@ class Dashboard {
   }
 
   setupUserMenu() {
+    if (!this.userMenuBtn || !this.userMenu) {
+      console.error('❌ Elementos del menú de usuario no encontrados');
+      return;
+    }
+
     // Toggle del menú de usuario
     this.userMenuBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      this.userMenu.classList.toggle('active');
-      
-      // 🔥 Cerrar menú hamburguesa si está abierto
-      const hamburgerBtn = document.getElementById('dashboardHamburger');
-      const mobileMenu = document.getElementById('dashboardMobileMenu');
-      if (hamburgerBtn && mobileMenu) {
-        hamburgerBtn.classList.remove('active');
-        mobileMenu.classList.remove('active');
-      }
+      const isActive = this.userMenu.classList.toggle('active');
+      console.log(`${isActive ? '✅' : '❌'} Menú de usuario ${isActive ? 'abierto' : 'cerrado'}`);
     });
 
     // Cerrar menú al hacer click fuera
@@ -180,6 +185,8 @@ class Dashboard {
         this.userMenu.classList.remove('active');
       }
     });
+
+    console.log('✅ setupUserMenu() completado');
   }
 
   setupLogout() {
@@ -189,53 +196,6 @@ class Dashboard {
         authService.logout();
       }
     });
-  }
-
-  setupMobileMenu() {
-    // 🔥 Toggle del menú móvil acordeón (solo navegación)
-    const hamburgerBtn = document.getElementById('dashboardHamburger');
-    const mobileMenu = document.getElementById('dashboardMobileMenu');
-    const registrarLinkMobile = document.getElementById('registrarLinkMobileDashboard');
-
-    if (!hamburgerBtn || !mobileMenu) {
-      console.warn('⚠️ Elementos del menú móvil no encontrados');
-      return;
-    }
-
-    // Toggle menú al hacer click en hamburguesa
-    hamburgerBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      hamburgerBtn.classList.toggle('active');
-      mobileMenu.classList.toggle('active');
-      
-      // Cerrar dropdown de usuario si está abierto
-      if (this.userMenu) {
-        this.userMenu.classList.remove('active');
-      }
-    });
-
-    // Cerrar menú al hacer click en un enlace
-    const mobileLinks = mobileMenu.querySelectorAll('.mobile-menu-link');
-    mobileLinks.forEach(link => {
-      link.addEventListener('click', () => {
-        hamburgerBtn.classList.remove('active');
-        mobileMenu.classList.remove('active');
-      });
-    });
-
-    // Cerrar menú al hacer click fuera
-    document.addEventListener('click', (e) => {
-      if (mobileMenu && !mobileMenu.contains(e.target) && !hamburgerBtn.contains(e.target)) {
-        hamburgerBtn.classList.remove('active');
-        mobileMenu.classList.remove('active');
-      }
-    });
-
-    // Mostrar/ocultar "Registrar Propiedad" según perfil
-    if (registrarLinkMobile) {
-      // Se actualizará cuando se cargue el usuario
-      this.registrarLinkMobile = registrarLinkMobile;
-    }
   }
 
   loadTabs(perfilId) {
@@ -317,8 +277,12 @@ class Dashboard {
         content = await this.getPropiedadesContent();
       } else if (tabId === 'perfil') {
         content = this.getPerfilContent();
+      } else if (tabId === 'mantenimientos') {
+        content = this.getMantenimientosContent();
+      } else if (tabId === 'aprobaciones') {
+        content = this.getAprobacionesContent();
       } else {
-        // Tabs no implementados (Corredor, Admin)
+        // Tabs no implementados (Corredor)
         content = this.getPlaceholderContent(tabId);
       }
 
@@ -1085,8 +1049,12 @@ class Dashboard {
       this.pagination.updateItemsPerPage();
 
       console.log('✅ Propiedades cargadas:', this.allProperties.length);
-      console.log('📦 Primera propiedad con imagenes[]:', this.allProperties[0]);
-      console.log('📦 Imagenes de la primera:', this.allProperties[0]?.imagenes);
+      console.log('📦 Primera propiedad:', this.allProperties[0]);
+      console.log('📦 Imágenes:', this.allProperties[0]?.imagenes);
+      console.log('📞 Teléfono:', this.allProperties[0]?.telefono);
+      console.log('📧 Email:', this.allProperties[0]?.email);
+      console.log('🏠 Dirección:', this.allProperties[0]?.direccion);
+      console.log('📊 Estado CRM:', this.allProperties[0]?.estado_crm);
 
       // Header con filtros usando el módulo
       const content = `
@@ -1185,11 +1153,28 @@ class Dashboard {
         'vendido': { color: '#8b5cf6', text: 'VENDIDO' }
       }[prop.estado] || { color: '#6b7280', text: 'BORRADOR' };
 
+      // 🎯 Nuevo: Badge de Estado CRM
+      const estadoCRMBadge = {
+        'lead': { color: '#6b7280', text: '🔍 Lead' },
+        'contactado': { color: '#3b82f6', text: '📞 Contactado' },
+        'visita_programada': { color: '#eab308', text: '📅 Visita Programada' },
+        'negociacion': { color: '#f97316', text: '💼 En Negociación' },
+        'cerrado_ganado': { color: '#22c55e', text: '✅ Cerrado - Ganado' },
+        'cerrado_perdido': { color: '#ef4444', text: '❌ Cerrado - Perdido' }
+      }[prop.estado_crm] || { color: '#6b7280', text: '⚪ Sin Estado' };
+
       return `
         <div class="property-card" data-property-id="${prop.registro_cab_id}">
           <div class="property-number">${pageData.startIndex + index + 1}</div>
+          
+          <!-- Badge de Estado de Propiedad -->
           <div class="property-badge" style="position: absolute; top: 50px; left: 10px; background: ${estadoBadge.color}; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; z-index: 20;">
             ${estadoBadge.text}
+          </div>
+          
+          <!-- 🎯 Nuevo: Badge de Estado CRM -->
+          <div class="property-crm-badge" style="position: absolute; top: 50px; right: 10px; background: ${estadoCRMBadge.color}; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">
+            ${estadoCRMBadge.text}
           </div>
           <div class="property-image-carousel">
             <div class="carousel-images" data-current="0">
@@ -1223,6 +1208,26 @@ class Dashboard {
               <span>👁️ ${prop.vistas || 0} vistas</span>
               <span>📞 ${prop.contactos || 0} contactos</span>
             </div>
+            
+            <!-- 🎯 Nuevo: Información de Contacto del Propietario -->
+            ${(prop.telefono || prop.email) ? `
+              <div class="property-contact" style="background: rgba(0, 102, 204, 0.03); border-radius: 8px; padding: 10px 12px; margin: 0.75rem 0; border-left: 3px solid var(--azul-corporativo);">
+                <div style="font-size: 0.8rem; color: var(--gris-medio); margin-bottom: 6px; font-weight: 600;">👤 Contacto del Propietario</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  ${prop.telefono ? `
+                    <a href="tel:${prop.telefono}" class="contact-btn" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #22c55e; color: white; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
+                      📱 ${prop.telefono}
+                    </a>
+                  ` : ''}
+                  ${prop.email ? `
+                    <a href="mailto:${prop.email}" class="contact-btn" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #3b82f6; color: white; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
+                      📧 ${prop.email}
+                    </a>
+                  ` : ''}
+                </div>
+              </div>
+            ` : ''}
+            
             <p class="property-description">${(prop.descripcion || '').substring(0, 120)}...</p>
             <div class="admin-actions-simple">
               <button class="btn-admin" data-view-property="${prop.registro_cab_id}">📄 Detalle</button>
@@ -1666,6 +1671,85 @@ class Dashboard {
     });
   }
 
+  /**
+   * 🔧 Vista de Mantenimientos (Admin)
+   */
+  getMantenimientosContent() {
+    return `
+      <div class="tab-header">
+        <h2>Mantenimientos del Sistema</h2>
+        <p class="tab-subtitle">Gestiona las configuraciones y catálogos del sistema</p>
+      </div>
+
+      <div class="maintenance-grid">
+        <div class="maintenance-card">
+          ${this.getIcon('building')}
+          <h3>Tipos de Inmuebles</h3>
+          <p>Gestionar catálogo de tipos de propiedades</p>
+          <button class="btn btn-outline btn-sm">Administrar</button>
+        </div>
+        
+        <div class="maintenance-card">
+          ${this.getIcon('map')}
+          <h3>Distritos</h3>
+          <p>Gestionar ubicaciones y zonas</p>
+          <button class="btn btn-outline btn-sm">Administrar</button>
+        </div>
+        
+        <div class="maintenance-card">
+          ${this.getIcon('settings')}
+          <h3>Características</h3>
+          <p>Administrar características de propiedades</p>
+          <button class="btn btn-outline btn-sm">Administrar</button>
+        </div>
+        
+        <div class="maintenance-card">
+          ${this.getIcon('users')}
+          <h3>Perfiles</h3>
+          <p>Configurar perfiles y permisos</p>
+          <button class="btn btn-outline btn-sm">Administrar</button>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * ✅ Vista de Aprobaciones (Admin)
+   */
+  getAprobacionesContent() {
+    return `
+      <div class="tab-header">
+        <h2>Aprobaciones Pendientes</h2>
+        <p class="tab-subtitle">Revisa y aprueba solicitudes de suscripciones y propiedades</p>
+      </div>
+
+      <div class="approvals-section">
+        <div class="approvals-stats">
+          <div class="stat-card">
+            <div class="stat-icon">${this.getIcon('clock')}</div>
+            <div class="stat-info">
+              <span class="stat-value">12</span>
+              <span class="stat-label">Pendientes</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">${this.getIcon('check-circle')}</div>
+            <div class="stat-info">
+              <span class="stat-value">45</span>
+              <span class="stat-label">Aprobadas Hoy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state">
+          ${this.getIcon('check-circle')}
+          <h3>No hay aprobaciones pendientes</h3>
+          <p>Todas las solicitudes han sido procesadas</p>
+        </div>
+      </div>
+    `;
+  }
+
   getIcon(type) {
     const icons = {
       'dashboard': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>',
@@ -1682,7 +1766,8 @@ class Dashboard {
       'file': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>',
       'search': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>',
       'bookmark': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>',
-      'map': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>'
+      'map': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+      'check-circle': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
     };
     return icons[type] || '';
   }

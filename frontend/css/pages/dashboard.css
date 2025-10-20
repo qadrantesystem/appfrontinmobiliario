@@ -97,110 +97,6 @@
   gap: var(--spacing-md);
 }
 
-/* ========================================
-   BOTÓN HAMBURGUESA (MÓVIL)
-   ======================================== */
-
-.hamburger-btn {
-  display: none; /* Oculto por defecto en desktop */
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-  width: 32px;
-  height: 32px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-}
-
-.hamburger-btn span {
-  display: block;
-  width: 20px;
-  height: 2px;
-  background: var(--azul-corporativo);
-  border-radius: 2px;
-  transition: all var(--transition-fast);
-}
-
-.hamburger-btn:hover {
-  background: rgba(0, 102, 204, 0.08);
-}
-
-/* Animación del hamburguesa cuando está activo */
-.hamburger-btn.active span:nth-child(1) {
-  transform: translateY(6px) rotate(45deg);
-}
-
-.hamburger-btn.active span:nth-child(2) {
-  opacity: 0;
-}
-
-.hamburger-btn.active span:nth-child(3) {
-  transform: translateY(-6px) rotate(-45deg);
-}
-
-/* ========================================
-   MENÚ MÓVIL ACORDEÓN DASHBOARD
-   ======================================== */
-
-.dashboard-mobile-menu {
-  display: none; /* Oculto por defecto */
-  position: fixed;
-  top: 81px; /* Justo debajo del header */
-  left: 0;
-  right: 0;
-  background: var(--azul-medio);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  z-index: 99;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height var(--transition-normal);
-}
-
-.dashboard-mobile-menu.active {
-  display: block;
-  max-height: 500px;
-}
-
-.dashboard-mobile-menu .mobile-menu-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  color: var(--blanco);
-  font-size: 0.95rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all var(--transition-fast);
-  border-left: 4px solid transparent;
-}
-
-.dashboard-mobile-menu .mobile-menu-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-left-color: var(--dorado);
-}
-
-.dashboard-mobile-menu .mobile-menu-link.active {
-  background: rgba(255, 255, 255, 0.15);
-  border-left-color: var(--blanco);
-  font-weight: 600;
-}
-
-.dashboard-mobile-menu .mobile-menu-link svg {
-  flex-shrink: 0;
-  opacity: 0.9;
-}
-
-.dashboard-mobile-menu .mobile-menu-divider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.2);
-  margin: 8px 0;
-}
-
 /* Botón de Notificaciones */
 .icon-btn {
   position: relative;
@@ -239,6 +135,7 @@
 /* Menú de Usuario */
 .user-menu {
   position: relative;
+  z-index: 250; /* 🔥 Asegurar que esté por encima de todo */
 }
 
 .user-avatar-btn {
@@ -313,7 +210,7 @@
   visibility: hidden;
   transform: translateY(-10px);
   transition: all var(--transition-fast);
-  z-index: 200;
+  z-index: 300; /* 🔥 Z-index más alto para estar por encima de todo */
 }
 
 .user-menu.active .dropdown-menu {
@@ -770,6 +667,56 @@
   border-color: var(--dorado);
 }
 
+/* ========================================
+   CONTACTO DEL PROPIETARIO
+   ======================================== */
+
+.property-contact {
+  background: rgba(0, 102, 204, 0.03);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0.75rem 0;
+  border-left: 3px solid var(--azul-corporativo);
+}
+
+.contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.contact-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+}
+
+.contact-btn:active {
+  transform: translateY(0);
+}
+
+/* Badge de Estado CRM */
+.property-crm-badge {
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 20;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(4px);
+}
+
 .property-info {
   flex: 1;
   padding: 1.5rem;
@@ -876,16 +823,6 @@
     gap: 8px; /* 🔥 Reducir gap */
   }
 
-  /* 🔥 Mostrar botón hamburguesa en móvil */
-  .hamburger-btn {
-    display: flex;
-  }
-
-  /* 🔥 Ajustar posición del menú móvil según altura del header */
-  .dashboard-mobile-menu {
-    top: 62px;
-  }
-
   .user-info {
     display: none; /* 🔥 Ocultar nombre/rol en móvil */
   }
@@ -899,7 +836,29 @@
   .dropdown-menu {
     right: 0;
     left: auto;
-    min-width: 200px;
+    min-width: 220px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); /* Sombra más fuerte en móvil */
+  }
+
+  .dropdown-item {
+    padding: 14px 18px; /* 🔥 Más padding para táctil */
+    font-size: 1rem; /* 🔥 Texto más grande */
+  }
+
+  .dropdown-item svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* 🔥 Destacar botón de cerrar sesión */
+  #logoutBtn {
+    background: rgba(239, 68, 68, 0.05);
+    color: #dc2626;
+    font-weight: 600;
+  }
+
+  #logoutBtn:hover {
+    background: rgba(239, 68, 68, 0.1);
   }
 
   .user-avatar {
@@ -1006,6 +965,31 @@
 }
 
 @media (max-width: 480px) {
+  /* 🔥 Badges de CRM más compactos en móvil */
+  .property-crm-badge {
+    font-size: 0.65rem;
+    padding: 3px 6px;
+    top: 50px;
+    right: 8px;
+  }
+
+  .property-badge {
+    font-size: 0.65rem;
+    padding: 3px 6px;
+    top: 50px;
+    left: 8px;
+  }
+
+  /* 🔥 Botones de contacto responsive */
+  .contact-btn {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+
+  .property-contact {
+    padding: 8px 10px;
+  }
+
   /* 🔥 MÓVIL: KPIs en 1 columna */
   .admin-dashboard .kpis-grid {
     grid-template-columns: 1fr !important;
@@ -1207,25 +1191,20 @@
     height: 45px; /* 🔥 Logo aún más pequeño */
   }
 
-  /* 🔥 Ajustar posición del menú móvil */
-  .dashboard-mobile-menu {
-    top: 53px;
+  /* 🔥 Dropdown de usuario en móvil pequeño */
+  .dropdown-menu {
+    min-width: 200px;
+    right: -8px; /* 🔥 Ajustar para que no se salga de la pantalla */
   }
 
-  .dashboard-mobile-menu .mobile-menu-link {
-    padding: 12px 16px;
-    font-size: 0.9rem;
-    gap: 10px;
+  .dropdown-item {
+    padding: 16px 20px; /* 🔥 Aún más espacio para dedos */
   }
 
-  /* 🔥 Botón hamburguesa más pequeño */
-  .hamburger-btn {
-    width: 28px;
-    height: 28px;
-  }
-
-  .hamburger-btn span {
-    width: 18px;
+  /* 🔥 Botón de cerrar sesión más visible */
+  #logoutBtn {
+    margin-top: 4px;
+    border-top: 2px solid rgba(239, 68, 68, 0.1);
   }
 
   .user-avatar {

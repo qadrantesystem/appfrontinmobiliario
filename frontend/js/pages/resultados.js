@@ -80,20 +80,20 @@ class ResultadosPage {
       btnLimpiar.style.display = 'none';
     }
 
-    const open = () => { 
-      if (drawer) { 
-        drawer.classList.add('open'); 
-        drawer.setAttribute('aria-hidden','false'); 
+    const open = () => {
+      if (drawer) {
+        drawer.classList.add('open');
+        drawer.setAttribute('aria-hidden', 'false');
       }
       if (backdrop) {
         backdrop.classList.add('active');
       }
     };
-    
-    const close = () => { 
-      if (drawer) { 
-        drawer.classList.remove('open'); 
-        drawer.setAttribute('aria-hidden','true'); 
+
+    const close = () => {
+      if (drawer) {
+        drawer.classList.remove('open');
+        drawer.setAttribute('aria-hidden', 'true');
       }
       if (backdrop) {
         backdrop.classList.remove('active');
@@ -136,12 +136,12 @@ class ResultadosPage {
           this.attachAvanzadoInlineListeners();
         }
       }, 250);
-      
+
       // Agregar listeners para habilitar botones cuando se abran filtros básicos o avanzados
       setTimeout(() => {
         const headerBasico = document.querySelector('.drawer-body .accordion-header[data-accordion="basico"]');
         const headerAvanzado = document.querySelector('.drawer-body .accordion-header[data-accordion="avanzado"]');
-        
+
         if (headerBasico) {
           headerBasico.addEventListener('click', () => {
             setTimeout(mostrarBotones, 100);
@@ -200,38 +200,27 @@ class ResultadosPage {
 
     // 7. En móvil, forzar mostrar mapa y resultados
     if (window.innerWidth <= 1024) {
-      console.log('🔧 Modo móvil detectado, configurando vista...');
-      
-      // Ocultar imagenReferencial y mostrar mainContainer
       const imagenRef = document.getElementById('imagenReferencial');
       const mainContainer = document.getElementById('mainContainer');
       const mapPlaceholder = document.getElementById('mapPlaceholder');
       const mapCanvas = document.getElementById('map');
       const propertiesList = document.getElementById('propertiesList');
       const placeholderResultados = document.getElementById('placeholderResultados');
-      
+
       if (imagenRef) imagenRef.style.display = 'none';
       if (mainContainer) mainContainer.style.display = 'grid';
-      
-      // Ocultar placeholders y mostrar contenido real
+
       if (mapPlaceholder) mapPlaceholder.style.display = 'none';
       if (placeholderResultados) placeholderResultados.style.display = 'none';
       if (mapCanvas) mapCanvas.style.display = 'block';
       if (propertiesList) propertiesList.style.display = 'flex';
-      
-      console.log('📍 Renderizando resultados y mapa...');
-      
-      // Renderizar contenido
+
       this.renderResultados();
-      
-      // Esperar un momento antes de inicializar el mapa
+
       setTimeout(() => {
         this.renderMapa();
-        
-        // Forzar invalidateSize del mapa después de inicializar
         setTimeout(() => {
           if (this.map) {
-            console.log('🗺️ Ajustando tamaño del mapa...');
             this.map.invalidateSize();
           }
         }, 200);
@@ -271,14 +260,20 @@ class ResultadosPage {
 
   async cargarDatos() {
     try {
-      console.log('📡 Cargando datos del backend...');
+      const API_BASE = 'https://appbackimmobiliaria-production.up.railway.app/api/v1';
+      const tipoInmuebleId = this.filtrosSimplificados?.tipo_inmueble_id || 1;
+
       const [propiedadesRes, caracteristicasRes, tiposRes, distritosRes, configFiltrosRes] = await Promise.all([
-        fetch('data/propiedades.json'),
-        fetch('data/caracteristicas.json'),
-        fetch('data/tipos-inmuebles.json'),
-        fetch('data/distritos.json'),
-        fetch('data/caracteristicas_x_filtro.json')
+        fetch(`${API_BASE}/propiedades?limit=100`),
+        fetch(`${API_BASE}/caracteristicas`),
+        fetch(`${API_BASE}/tipos-inmueble`),
+        fetch(`${API_BASE}/distritos`),
+        fetch(`${API_BASE}/caracteristicas-x-inmueble/tipo-inmueble/${tipoInmuebleId}/agrupadas`)
       ]);
+
+      if (!propiedadesRes.ok || !caracteristicasRes.ok || !tiposRes.ok || !distritosRes.ok || !configFiltrosRes.ok) {
+        throw new Error('Error en alguna respuesta de la API');
+      }
 
       const propiedadesData = await propiedadesRes.json();
       const caracteristicasData = await caracteristicasRes.json();
@@ -286,21 +281,68 @@ class ResultadosPage {
       const distritosData = await distritosRes.json();
       const configFiltrosData = await configFiltrosRes.json();
 
-      this.propiedades = propiedadesData.propiedades;
-      this.caracteristicas = caracteristicasData.caracteristicas;
-      this.tiposInmuebles = tiposData.tipos;
-      this.distritos = distritosData.distritos;
-      this.configFiltros = configFiltrosData;
+      // Mapear respuesta de propiedades
+      this.propiedades = propiedadesData.data || propiedadesData;
 
-      console.log('✅ Datos cargados:');
-      console.log('   - Propiedades:', this.propiedades.length);
-      console.log('   - Características:', this.caracteristicas.length);
-      console.log('   - Tipos Inmuebles:', this.tiposInmuebles.length);
-      console.log('   - Distritos:', this.distritos.length);
-      console.log('   - Config Filtros:', this.configFiltros ? 'OK' : 'ERROR');
+      // Mapear características
+      this.caracteristicas = caracteristicasData.map(c => ({
+        id: c.caracteristica_id,
+        nombre: c.nombre,
+        descripcion: c.descripcion,
+        tipo_input: c.tipo_input,
+        unidad: c.unidad,
+        categoria: c.categoria
+      }));
+
+      // Mapear tipos de inmueble
+      this.tiposInmuebles = tiposData.map(t => ({
+        id: t.tipo_inmueble_id,
+        nombre: t.nombre,
+        icono: t.icono || '🏠',
+        descripcion: t.descripcion
+      }));
+
+      // Mapear distritos
+      this.distritos = distritosData.map(d => ({
+        id: d.distrito_id,
+        nombre: d.nombre,
+        ciudad: d.ciudad,
+        provincia: d.provincia
+      }));
+
+      this.configFiltros = this.convertirConfigFiltros(configFiltrosData);
     } catch (error) {
-      console.error('❌ Error cargando datos:', error);
+      console.error('Error cargando datos:', error);
+      alert('Error al cargar los datos. Por favor recarga la página.');
     }
+  }
+
+  convertirConfigFiltros(apiData) {
+    // Convertir el formato de la API al formato esperado por el código existente
+    const filtrosAvanzados = apiData.categorias.map((cat, index) => ({
+      tipo_inmueble_id: apiData.tipo_inmueble_id,
+      tipo_inmueble_nombre: apiData.tipo_inmueble_nombre,
+      categorias: [{
+        codigo: cat.nombre.toUpperCase().replace(/ /g, '_'),
+        nombre: cat.nombre,
+        orden: cat.orden,
+        caracteristicas_ids: cat.caracteristicas.map(c => c.caracteristica_id)
+      }]
+    }));
+
+    return {
+      filtros_basicos: [], // Se puede agregar si es necesario
+      filtros_avanzados_por_tipo: [{
+        tipo_inmueble_id: apiData.tipo_inmueble_id,
+        tipo_inmueble_nombre: apiData.tipo_inmueble_nombre,
+        categorias: apiData.categorias.map(cat => ({
+          codigo: cat.nombre.toUpperCase().replace(/ /g, '_'),
+          nombre: cat.nombre,
+          orden: cat.orden,
+          caracteristicas_ids: cat.caracteristicas.map(c => c.caracteristica_id)
+        }))
+      }]
+    };
   }
 
   cargarFiltrosSimplificados() {
@@ -335,30 +377,31 @@ class ResultadosPage {
     }
 
     this.propiedadesFiltradas = this.propiedades.filter(prop => {
-      // Filtro por distritos múltiples
+      // Filtro por distritos múltiples - Comparar por NOMBRE
       if (Array.isArray(this.filtrosSimplificados.distritos_ids) && this.filtrosSimplificados.distritos_ids.length > 0) {
-        if (!this.filtrosSimplificados.distritos_ids.includes(prop.distrito_id)) {
-          return false;
-        }
-      } else if (this.filtrosSimplificados.distrito_id) {
-        // Compatibilidad hacia atrás por si viene un solo distrito_id
-        if (prop.distrito_id !== this.filtrosSimplificados.distrito_id) {
+        const nombresDistritos = this.filtrosSimplificados.distritos_ids
+          .map(id => this.distritos.find(d => d.id === id)?.nombre)
+          .filter(Boolean);
+
+        if (!nombresDistritos.includes(prop.distrito)) {
           return false;
         }
       }
 
-      // Filtro por tipo de inmueble
+      // Filtro por tipo de inmueble - Comparar por NOMBRE
       if (this.filtrosSimplificados.tipo_inmueble_id) {
-        if (prop.tipo_inmueble_id !== this.filtrosSimplificados.tipo_inmueble_id) {
+        const tipoNombre = this.tiposInmuebles.find(t => t.id === this.filtrosSimplificados.tipo_inmueble_id)?.nombre;
+        if (tipoNombre && prop.tipo_inmueble !== tipoNombre) {
           return false;
         }
       }
 
-      // Filtro por metraje (±15%)
-      if (this.filtrosSimplificados.metraje) {
-        const margen = this.filtrosSimplificados.metraje * 0.15;
-        if (prop.area < (this.filtrosSimplificados.metraje - margen) ||
-            prop.area > (this.filtrosSimplificados.metraje + margen)) {
+      // Filtro por área (±15%) - Convertir string a número
+      if (this.filtrosSimplificados.area) {
+        const areaPropiedad = parseFloat(prop.area);
+        const margen = this.filtrosSimplificados.area * 0.15;
+        if (areaPropiedad < (this.filtrosSimplificados.area - margen) ||
+          areaPropiedad > (this.filtrosSimplificados.area + margen)) {
           return false;
         }
       }
@@ -369,12 +412,12 @@ class ResultadosPage {
 
         if (this.filtrosSimplificados.transaccion === 'compra' && prop.precio_venta) {
           if (prop.precio_venta < (this.filtrosSimplificados.presupuesto - margen) ||
-              prop.precio_venta > (this.filtrosSimplificados.presupuesto + margen)) {
+            prop.precio_venta > (this.filtrosSimplificados.presupuesto + margen)) {
             return false;
           }
         } else if (this.filtrosSimplificados.transaccion === 'alquiler' && prop.precio_alquiler) {
           if (prop.precio_alquiler < (this.filtrosSimplificados.presupuesto - margen) ||
-              prop.precio_alquiler > (this.filtrosSimplificados.presupuesto + margen)) {
+            prop.precio_alquiler > (this.filtrosSimplificados.presupuesto + margen)) {
             return false;
           }
         }
@@ -411,7 +454,7 @@ class ResultadosPage {
     if (this.filtrosSimplificados?.tipo_inmueble_id) {
       const tipoInmueble = this.tiposInmuebles.find(t => t.id === this.filtrosSimplificados.tipo_inmueble_id);
       const imagenBg = document.querySelector('.imagen-referencial-bg');
-      
+
       if (tipoInmueble) {
         const nombreLower = tipoInmueble.nombre.toLowerCase();
         let imagenUrl = '';
@@ -566,14 +609,14 @@ class ResultadosPage {
       'contenedorBasicoMobile',
       'filtrosInline'
     ];
-    
+
     contenedores.forEach(id => {
       const container = document.getElementById(id);
       if (container) {
         container.innerHTML = this.generarHTMLFiltroBasico();
       }
     });
-    
+
     // Re-attach listeners
     this.attachBasicoInlineListeners();
   }
@@ -839,31 +882,20 @@ class ResultadosPage {
 
     // Cargar resumen de genéricos y filtros en acordeón
     this.renderResumenGenericos();
-    
+
     const contBasico = document.getElementById('contenedorBasico');
     const contAvanzado = document.getElementById('contenedorAvanzado');
-    
-    console.log('📦 Contenedores encontrados:');
-    console.log('   contenedorBasico:', contBasico ? 'SÍ' : 'NO');
-    console.log('   contenedorAvanzado:', contAvanzado ? 'SÍ' : 'NO');
-    
+
     if (contBasico) contBasico.innerHTML = this.generarHTMLFiltroBasico();
-    if (contAvanzado) {
-      const htmlAvanzado = this.generarHTMLFiltroAvanzado();
-      console.log('   HTML avanzado generado:', htmlAvanzado.length, 'chars');
-      contAvanzado.innerHTML = htmlAvanzado;
-      console.log('   HTML insertado en DOM');
-    }
-    
+    if (contAvanzado) contAvanzado.innerHTML = this.generarHTMLFiltroAvanzado();
+
     this.attachBasicoInlineListeners();
-    
+
     // Adjuntar listeners de acordeón avanzado DESPUÉS de que el DOM esté listo
-    console.log('⏰ Programando attachAvanzadoInlineListeners en 100ms...');
     setTimeout(() => {
-      console.log('⏰ ¡Ejecutando setTimeout ahora!');
       this.attachAvanzadoInlineListeners();
     }, 100);
-    
+
     this.setupAccordion();
     this.renderChipsActivos();
 
@@ -878,7 +910,7 @@ class ResultadosPage {
     if (contBasMob) contBasMob.innerHTML = this.generarHTMLFiltroBasico();
     if (contAvzMob) contAvzMob.innerHTML = this.generarHTMLFiltroAvanzado();
     this.attachBasicoInlineListeners();
-    
+
     // Adjuntar listeners con delay
     setTimeout(() => {
       this.attachAvanzadoInlineListeners();
@@ -891,12 +923,6 @@ class ResultadosPage {
     if (!box) return;
     const fs = this.filtrosSimplificados || {};
 
-    console.log('🎨 Renderizando resumen genéricos...');
-    console.log('   distritos disponibles:', this.distritos.length);
-    console.log('   tipos inmuebles disponibles:', this.tiposInmuebles.length);
-    console.log('   distritos_ids en filtros:', fs.distritos_ids);
-    console.log('   tipo_inmueble_id en filtros:', fs.tipo_inmueble_id);
-
     // Distritos
     const distritos = Array.isArray(fs.distritos_ids) && fs.distritos_ids.length > 0
       ? fs.distritos_ids.map(id => this.distritos.find(d => d.id === id)?.nombre).filter(Boolean).join(', ')
@@ -906,9 +932,6 @@ class ResultadosPage {
     const tipoInmueble = fs.tipo_inmueble_id
       ? (this.tiposInmuebles.find(t => t.id === fs.tipo_inmueble_id)?.nombre || '—')
       : '—';
-
-    console.log('   distritos calculados:', distritos);
-    console.log('   tipo inmueble calculado:', tipoInmueble);
 
     // Área/metraje
     const metragem = fs.area ? `${fs.area} m²` : '—';
@@ -942,7 +965,7 @@ class ResultadosPage {
       if (oldListener) {
         header.removeEventListener('click', oldListener);
       }
-      
+
       // Crear nuevo listener
       const newListener = (e) => {
         const acordeonId = e.currentTarget.getAttribute('data-accordion');
@@ -972,11 +995,11 @@ class ResultadosPage {
 
         // Verificar si debe mostrar resultados
         this.verificarMostrarResultadosPorAcordeon();
-        
+
         // Actualizar estado de botones
         this.actualizarEstadoBotones();
       };
-      
+
       // Guardar referencia y agregar listener
       header._accordionListener = newListener;
       header.addEventListener('click', newListener);
@@ -1018,7 +1041,7 @@ class ResultadosPage {
   actualizarEstadoBotones() {
     const basicoAbierto = document.querySelector('.accordion-header[data-accordion="basico"][aria-expanded="true"]') !== null;
     const avanzadoAbierto = document.querySelector('.accordion-header[data-accordion="avanzado"][aria-expanded="true"]') !== null;
-    
+
     const mostrarBotones = basicoAbierto || avanzadoAbierto;
 
     // Botones de la columna desktop
@@ -1051,11 +1074,11 @@ class ResultadosPage {
       if (propertiesList) propertiesList.style.display = 'flex';
       if (mapPlaceholder) mapPlaceholder.style.display = 'none';
       if (mapCanvas) mapCanvas.style.display = 'block';
-      
+
       // Renderizar resultados y mapa
       this.renderResultados();
       this.renderMapa();
-      
+
       // Forzar que el mapa se redibuje correctamente
       if (this.map) {
         setTimeout(() => {
@@ -1224,22 +1247,73 @@ class ResultadosPage {
   }
 
   generarHTMLFiltroBasico() {
-    if (!this.configFiltros || !this.configFiltros.filtros_basicos) {
-      return '<p class="mensaje-info">⚠️ Error cargando configuración de filtros</p>';
-    }
+    // Los filtros básicos no vienen del JSON, se generan dinámicamente
+    const filtros = [
+      {
+        id: 'transaccion',
+        nombre: 'Transacción',
+        tipo_input: 'pills',
+        opciones: [
+          { value: 'compra', label: 'Compra' },
+          { value: 'alquiler', label: 'Alquiler' }
+        ]
+      },
+      {
+        id: 'precio_compra',
+        nombre: 'Precio Compra (USD)',
+        tipo_input: 'number',
+        placeholder: 'Ej: 500000',
+        visible_cuando: 'transaccion=compra'
+      },
+      {
+        id: 'precio_alquiler',
+        nombre: 'Precio Alquiler (USD/mes)',
+        tipo_input: 'number',
+        placeholder: 'Ej: 5000',
+        visible_cuando: 'transaccion=alquiler'
+      },
+      {
+        id: 'area',
+        nombre: 'Área Requerida (m²)',
+        tipo_input: 'number',
+        placeholder: 'Ej: 300'
+      },
+      {
+        id: 'parqueos',
+        nombre: 'Parqueos Requeridos',
+        tipo_input: 'number',
+        placeholder: 'Ej: 5'
+      },
+      {
+        id: 'antiguedad',
+        nombre: 'Antigüedad (No mayor a años)',
+        tipo_input: 'number',
+        placeholder: 'Ej: 15'
+      },
+      {
+        id: 'implementacion',
+        nombre: 'Nivel de Implementación',
+        tipo_input: 'select',
+        opciones: [
+          { value: '', label: 'Todas' },
+          { value: 'Amoblado FULL', label: 'Amoblado FULL' },
+          { value: 'Implementada', label: 'Implementada' },
+          { value: 'Semi Implementada', label: 'Semi Implementada' },
+          { value: 'Por Implementar', label: 'Por Implementar' }
+        ]
+      }
+    ];
 
-    const filtros = this.configFiltros.filtros_basicos;
-    
     // Inicializar transacción desde filtros simplificados si existe
     if (this.filtrosSimplificados?.transaccion && !this.filtrosAdicionales.basico.transaccion) {
       this.filtrosAdicionales.basico.transaccion = this.filtrosSimplificados.transaccion;
     }
-    
+
     // Inicializar área desde filtros simplificados si existe
     if (this.filtrosSimplificados?.area && !this.filtrosAdicionales.basico.area) {
       this.filtrosAdicionales.basico.area = this.filtrosSimplificados.area;
     }
-    
+
     // Inicializar presupuesto desde filtros simplificados si existe
     if (this.filtrosSimplificados?.presupuesto_compra && !this.filtrosAdicionales.basico.precio_compra) {
       this.filtrosAdicionales.basico.precio_compra = this.filtrosSimplificados.presupuesto_compra;
@@ -1247,7 +1321,7 @@ class ResultadosPage {
     if (this.filtrosSimplificados?.presupuesto_alquiler && !this.filtrosAdicionales.basico.precio_alquiler) {
       this.filtrosAdicionales.basico.precio_alquiler = this.filtrosSimplificados.presupuesto_alquiler;
     }
-    
+
     return `
       <div class="filtro-section">
         ${filtros.map(filtro => this.renderFiltroBasicoItem(filtro)).join('')}
@@ -1258,7 +1332,7 @@ class ResultadosPage {
   renderFiltroBasicoItem(filtro) {
     const value = this.filtrosAdicionales.basico[filtro.id] || '';
     const transaccionActual = this.filtrosAdicionales.basico.transaccion || '';
-    
+
     // Verificar visibilidad condicional
     if (filtro.visible_cuando) {
       const [campo, valorRequerido] = filtro.visible_cuando.split('=');
@@ -1266,7 +1340,7 @@ class ResultadosPage {
         return ''; // No mostrar este campo
       }
     }
-    
+
     if (filtro.tipo_input === 'pills') {
       return `
         <div class="form-group">
@@ -1287,7 +1361,7 @@ class ResultadosPage {
         </div>
       `;
     }
-    
+
     if (filtro.tipo_input === 'number') {
       return `
         <div class="form-group" data-filtro-group="${filtro.id}">
@@ -1303,7 +1377,7 @@ class ResultadosPage {
         </div>
       `;
     }
-    
+
     if (filtro.tipo_input === 'select') {
       return `
         <div class="form-group">
@@ -1322,7 +1396,7 @@ class ResultadosPage {
         </div>
       `;
     }
-    
+
     return '';
   }
 
@@ -1342,19 +1416,19 @@ class ResultadosPage {
     const contenido = document.getElementById('contenidoFiltros');
 
     titulo.textContent = '⚙️ Filtro Avanzado';
-    
+
     if (!this.filtrosSimplificados?.tipo_inmueble_id) {
       contenido.innerHTML = '<p class="mensaje-info">⚠️ Debes seleccionar un tipo de inmueble primero</p>';
     } else {
       contenido.innerHTML = this.generarHTMLFiltroAvanzado();
-      
+
       // Adjuntar listeners DESPUÉS de insertar el HTML
       setTimeout(() => {
         console.log('🔧 Adjuntando listeners desde mostrarFiltroAvanzado...');
         this.attachAvanzadoInlineListeners();
       }, 100);
     }
-    
+
     panel.style.display = 'block';
   }
 
@@ -1629,7 +1703,7 @@ class ResultadosPage {
   aplicarFiltrosCompletos() {
     // Los valores ya están en this.filtrosAdicionales.basico gracias a los listeners
     // Solo necesitamos aplicar los filtros
-    
+
     // Aplicar filtros
     this.aplicarFiltrosIniciales();
     this.aplicarFiltrosBasicos();
@@ -1644,7 +1718,7 @@ class ResultadosPage {
 
   aplicarFiltrosBasicos() {
     const filtros = this.filtrosAdicionales.basico;
-    
+
     // Si no hay filtros básicos, salir
     if (Object.keys(filtros).length === 0) {
       return;
@@ -1657,7 +1731,7 @@ class ResultadosPage {
         if (!prop.precio_venta) {
           return false;
         }
-        
+
         // Filtro por precio de compra
         if (filtros.precio_compra) {
           const precioMax = parseFloat(filtros.precio_compra);
@@ -1666,13 +1740,13 @@ class ResultadosPage {
           }
         }
       }
-      
+
       if (filtros.transaccion === 'alquiler') {
         // Si busca alquiler, la propiedad debe tener precio de alquiler
         if (!prop.precio_alquiler) {
           return false;
         }
-        
+
         // Filtro por precio de alquiler
         if (filtros.precio_alquiler) {
           const precioMax = parseFloat(filtros.precio_alquiler);
@@ -1763,7 +1837,7 @@ class ResultadosPage {
       basico: {},
       avanzado: {}
     };
-    
+
     // Recargar el panel actual
     const titulo = document.getElementById('tituloFiltro').textContent;
     if (titulo.includes('Básico')) {
@@ -1791,10 +1865,11 @@ class ResultadosPage {
       container.innerHTML = `
         <div style="text-align: center; padding: 40px;">
           <h2>No se encontraron propiedades</h2>
-          <p>Intenta ajustar tus filtros de búsqueda</p>
-          <a href="busqueda.html" class="btn btn-primary">Volver a Buscar</a>
+          <p>Intenta ajustar tus filtros de búsqueda.</p>
         </div>
       `;
+      const paginador = document.getElementById('paginadorContainer');
+      if (paginador) paginador.style.display = 'none';
       return;
     }
 
@@ -1814,19 +1889,20 @@ class ResultadosPage {
     // Obtener propiedades de la página actual
     const propiedadesPagina = this.propiedadesFiltradas.slice(startIndex, endIndex);
 
-    const html = propiedadesPagina.map((prop, index) => `
-      <div class="property-card" data-property-id="${prop.id}">
+    const html = propiedadesPagina.map((prop, index) => {
+      const propId = prop.registro_cab_id || prop.id;
+      return `
+      <div class="property-card" data-property-id="${propId}">
         <div class="property-number">${startIndex + index + 1}</div>
-        <button class="favorite-btn" data-property-id="${prop.id}" aria-label="Marcar favorito">${this.favoritos.includes(prop.id) ? '❤' : '♡'}</button>
         <div class="property-image-carousel">
           <div class="carousel-images" data-current="0">
             ${prop.imagenes.map((img, i) => `
-              <img src="${img}" alt="${prop.titulo} - imagen ${i+1}" class="carousel-image ${i === 0 ? 'active' : ''}" data-index="${i}">
+              <img src="${img}" alt="${prop.titulo} - imagen ${i + 1}" class="carousel-image ${i === 0 ? 'active' : ''}" data-index="${i}">
             `).join('')}
           </div>
           ${prop.imagenes.length > 1 ? `
-            <button class="carousel-prev" data-property-id="${prop.id}">‹</button>
-            <button class="carousel-next" data-property-id="${prop.id}">›</button>
+            <button class="carousel-prev" data-property-id="${propId}">‹</button>
+            <button class="carousel-next" data-property-id="${propId}">›</button>
             <div class="carousel-indicators">
               ${prop.imagenes.map((_, i) => `
                 <span class="indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
@@ -1837,7 +1913,12 @@ class ResultadosPage {
         <div class="property-info">
           <h3 class="property-title">${prop.titulo}</h3>
           <div class="property-location">📍 ${prop.direccion}</div>
-          <div class="property-price">${this.renderPrecio(prop)}</div>
+          <div class="property-price-row">
+            <div class="property-price">${this.renderPrecio(prop)}</div>
+            <button class="favorite-btn" data-property-id="${propId}" aria-label="Marcar favorito" title="Agregar a favoritos">
+              ${this.favoritos.includes(propId) ? '❤' : '♡'}
+            </button>
+          </div>
           <div class="property-features">
             <span class="feature">📐 ${prop.area} m²</span>
             <span class="feature">🚗 ${prop.parqueos} parqueos</span>
@@ -1857,7 +1938,8 @@ class ResultadosPage {
           `}
         </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     container.innerHTML = html;
     this.setupCardListeners();
@@ -1949,10 +2031,10 @@ class ResultadosPage {
 
         <div class="paginador-numbers">
           ${pageNumbers.map(page => {
-            if (page === '...') {
-              return '<span class="paginador-ellipsis">...</span>';
-            }
-            return `
+      if (page === '...') {
+        return '<span class="paginador-ellipsis">...</span>';
+      }
+      return `
               <button
                 class="paginador-btn paginador-page ${page === this.currentPage ? 'active' : ''}"
                 data-page="${page}"
@@ -1962,7 +2044,7 @@ class ResultadosPage {
                 ${page}
               </button>
             `;
-          }).join('')}
+    }).join('')}
         </div>
 
         <button
@@ -2038,12 +2120,21 @@ class ResultadosPage {
     document.querySelectorAll('.favorite-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
+        
+        // Verificar si el usuario está logueado
+        if (!this.usuarioLogueado) {
+          this.showToast('Esta función está permitida solo si te registras. Por favor inicia sesión.', 'warning');
+          return;
+        }
+        
         const propId = parseInt(e.currentTarget.dataset.propertyId);
         const idx = this.favoritos.indexOf(propId);
         if (idx >= 0) {
           this.favoritos.splice(idx, 1);
+          this.showToast('Propiedad eliminada de favoritos', 'info');
         } else {
           this.favoritos.push(propId);
+          this.showToast('Propiedad agregada a favoritos', 'success');
         }
         this.guardarFavoritos();
         // Actualizar icono en botón
@@ -2099,12 +2190,12 @@ class ResultadosPage {
 
   renderMapa() {
     const mapCanvas = document.getElementById('map');
-    
+
     // Forzar que el mapa sea visible antes de inicializar
     if (mapCanvas) {
       mapCanvas.style.display = 'block';
     }
-    
+
     // Inicializar mapa si no existe
     if (!this.map && mapCanvas) {
       try {
@@ -2113,7 +2204,7 @@ class ResultadosPage {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19
         }).addTo(this.map);
-        
+
         // Forzar redimensionamiento
         setTimeout(() => {
           if (this.map) {
@@ -2134,14 +2225,25 @@ class ResultadosPage {
 
     // Crear marcadores
     this.propiedadesFiltradas.forEach((prop, index) => {
+      // Obtener coordenadas del API (latitud y longitud como strings, convertir a number)
+      let lat = parseFloat(prop.latitud) || -12.0464;
+      let lng = parseFloat(prop.longitud) || -77.0428;
+
+      // Agregar pequeño offset aleatorio para evitar superposición de marcadores
+      // (±0.002 grados ≈ ±200 metros aprox)
+      const offsetLat = (Math.random() - 0.5) * 0.004;
+      const offsetLng = (Math.random() - 0.5) * 0.004;
+      lat += offsetLat;
+      lng += offsetLng;
+
       const customIcon = L.divIcon({
         className: 'custom-marker',
-        html: `<div class="marker-number" data-marker-id="${prop.id}">${index + 1}</div>`,
+        html: `<div class="marker-number" data-marker-id="${prop.registro_cab_id || prop.id}">${index + 1}</div>`,
         iconSize: [40, 40],
         iconAnchor: [20, 20]
       });
 
-      const marker = L.marker([prop.lat, prop.lng], { icon: customIcon })
+      const marker = L.marker([lat, lng], { icon: customIcon })
         .addTo(this.map)
         .bindPopup(`
           <div class="marker-popup">
@@ -2151,15 +2253,17 @@ class ResultadosPage {
           </div>
         `);
 
+      const propId = prop.registro_cab_id || prop.id;
+      
       marker.on('click', () => {
-        this.activarPropiedad(prop.id);
-        this.scrollToCard(prop.id);
+        this.activarPropiedad(propId);
+        this.scrollToCard(propId);
       });
 
-      marker.on('mouseover', () => this.activarPropiedad(prop.id));
+      marker.on('mouseover', () => this.activarPropiedad(propId));
       marker.on('mouseout', () => this.desactivarTodo());
 
-      marker.propertyId = prop.id;
+      marker.propertyId = propId;
       this.markers.push(marker);
     });
 
@@ -2207,6 +2311,45 @@ class ResultadosPage {
     indicadores.forEach((ind, i) => ind.classList.toggle('active', i === currentIndex));
 
     carousel.dataset.current = currentIndex;
+  }
+
+  showToast(mensaje, tipo = 'info') {
+    // Crear o reutilizar contenedor de toast
+    let toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.id = 'toastContainer';
+      toastContainer.className = 'toast-container';
+      document.body.appendChild(toastContainer);
+    }
+
+    // Crear toast
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${tipo}`;
+    
+    // Icono según tipo
+    const iconos = {
+      'info': 'ℹ️',
+      'warning': '⚠️',
+      'success': '✅',
+      'error': '❌'
+    };
+    
+    toast.innerHTML = `
+      <span class="toast-icon">${iconos[tipo] || iconos.info}</span>
+      <span class="toast-message">${mensaje}</span>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    // Mostrar con animación
+    setTimeout(() => toast.classList.add('show'), 10);
+
+    // Ocultar después de 3 segundos
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
   }
 }
 
