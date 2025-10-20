@@ -4,7 +4,7 @@
  */
 
 const API_CONFIG = {
-    BASE_URL: 'https://appbackimmobiliaria-production.up.railway.app/api/v1',
+    BASE_URL: 'https://appbackimmobiliaria-production.up.railway.app/api/v1', // ✅ HTTPS (ya corregido)
     TIMEOUT: 30000, // 30 segundos
     
     // Endpoints de Autenticación
