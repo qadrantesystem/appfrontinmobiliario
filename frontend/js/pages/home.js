@@ -202,7 +202,11 @@ class HomePage {
 
   async cargarDatosModal() {
     try {
-      const API_BASE = 'https://appbackimmobiliaria-production.up.railway.app/api/v1';
+      // ✅ Usar el mismo protocolo que la página actual (fuerza HTTPS)
+      const protocol = window.location.protocol; // https:
+      const API_BASE = `${protocol}//appbackimmobiliaria-production.up.railway.app/api/v1`;
+      
+      console.log('🔧 API_BASE:', API_BASE); // Debug
       
       const [distritosRes, tiposRes] = await Promise.all([
         fetch(`${API_BASE}/distritos`),

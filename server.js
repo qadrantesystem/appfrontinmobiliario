@@ -49,9 +49,21 @@ app.get('/sobre-nosotros', (req, res) => {
   res.redirect('/#sobre-nosotros');
 });
 
-// Servir archivos estáticos (CSS, JS, imágenes) DESPUÉS de las rutas HTML
+// ✅ Servir JS sin cache (para desarrollo/debugging)
+app.use('/js', express.static(path.join(__dirname, 'frontend', 'js'), {
+  maxAge: 0, // Sin cache
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+}));
+
+// Servir otros archivos estáticos (CSS, imágenes) con cache
 app.use(express.static(path.join(__dirname, 'frontend'), {
-  maxAge: '1d', // Cache por 1 día
+  maxAge: '1d',
   etag: true,
   lastModified: true
 }));
