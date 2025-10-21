@@ -35,30 +35,33 @@ class Dashboard {
     this.tabsConfig = {
       1: [ // Demandante
         { id: 'dashboard', name: 'Dashboard', icon: this.getIcon('dashboard') },
+        { id: 'busquedas', name: 'Búsquedas', icon: this.getIcon('search') },
         { id: 'favoritos', name: 'Favoritos', icon: this.getIcon('heart') },
-        { id: 'historial', name: 'Historial', icon: this.getIcon('clock') }
+        { id: 'subscripciones', name: 'Subscripciones', icon: this.getIcon('bell') }
       ],
       2: [ // Ofertante
         { id: 'dashboard', name: 'Dashboard', icon: this.getIcon('dashboard') },
-        { id: 'propiedades', name: 'Mis Propiedades', icon: this.getIcon('building') },
+        { id: 'propiedades', name: 'Propiedades', icon: this.getIcon('building') },
+        { id: 'busquedas', name: 'Búsquedas', icon: this.getIcon('search') },
         { id: 'favoritos', name: 'Favoritos', icon: this.getIcon('heart') },
-        { id: 'perfil', name: 'Mi Perfil', icon: this.getIcon('user') }
+        { id: 'subscripciones', name: 'Subscripciones', icon: this.getIcon('bell') }
       ],
-      3: [ // Corredor - Placeholder
-        { id: 'pipeline', name: 'Pipeline CRM', icon: this.getIcon('briefcase') },
-        { id: 'leads', name: 'Mis Leads', icon: this.getIcon('users') },
-        { id: 'cola', name: 'Cola de Atención', icon: this.getIcon('inbox') },
-        { id: 'metricas', name: 'Métricas', icon: this.getIcon('chart') },
-        { id: 'calendario', name: 'Calendario', icon: this.getIcon('calendar') }
+      3: [ // Corredor
+        { id: 'dashboard', name: 'Dashboard', icon: this.getIcon('dashboard') },
+        { id: 'propiedades', name: 'Propiedades', icon: this.getIcon('building') },
+        { id: 'busquedas', name: 'Búsquedas', icon: this.getIcon('search') },
+        { id: 'favoritos', name: 'Favoritos', icon: this.getIcon('heart') },
+        { id: 'subscripciones', name: 'Subscripciones', icon: this.getIcon('bell') }
       ],
       4: [ // Admin
         { id: 'dashboard', name: 'Dashboard', icon: this.getIcon('dashboard') },
         { id: 'propiedades', name: 'Propiedades', icon: this.getIcon('building') },
+        { id: 'busquedas', name: 'Búsquedas', icon: this.getIcon('search') },
         { id: 'favoritos', name: 'Favoritos', icon: this.getIcon('heart') },
-        { id: 'historial', name: 'Búsquedas', icon: this.getIcon('search') },
-        { id: 'usuarios', name: 'Usuarios', icon: this.getIcon('users') },
+        { id: 'aprobaciones', name: 'Aprobaciones', icon: this.getIcon('check-circle') },
         { id: 'mantenimientos', name: 'Mantenimientos', icon: this.getIcon('settings') },
-        { id: 'aprobaciones', name: 'Aprobaciones', icon: this.getIcon('check-circle') }
+        { id: 'usuarios', name: 'Usuarios', icon: this.getIcon('users') },
+        { id: 'reportes', name: 'Reportes', icon: this.getIcon('file-text') }
       ]
     };
 
@@ -231,6 +234,19 @@ class Dashboard {
         this.switchTab(tab.id, perfilIdNum);
       });
 
+      // 📱 Touch event para mostrar tooltip en móvil
+      let touchTimeout;
+      tabBtn.addEventListener('touchstart', (e) => {
+        // Mostrar tooltip brevemente al tocar (sin interferir con el click)
+        if (window.innerWidth <= 768) {
+          tabBtn.style.setProperty('--show-tooltip', '1');
+          clearTimeout(touchTimeout);
+          touchTimeout = setTimeout(() => {
+            tabBtn.style.removeProperty('--show-tooltip');
+          }, 1500);
+        }
+      });
+
       this.tabsList.appendChild(tabBtn);
     });
   }
@@ -271,18 +287,22 @@ class Dashboard {
         content = await this.getFavoritosContent();
       } else if (tabId === 'busquedas') {
         content = await this.getBusquedasContent();
-      } else if (tabId === 'historial') {
-        content = await this.getHistorialContent();
       } else if (tabId === 'propiedades') {
         content = await this.getPropiedadesContent();
-      } else if (tabId === 'perfil') {
-        content = this.getPerfilContent();
-      } else if (tabId === 'mantenimientos') {
-        content = this.getMantenimientosContent();
+      } else if (tabId === 'subscripciones') {
+        content = this.getSubscripcionesContent();
       } else if (tabId === 'aprobaciones') {
         content = this.getAprobacionesContent();
+      } else if (tabId === 'mantenimientos') {
+        content = this.getMantenimientosContent();
+      } else if (tabId === 'usuarios') {
+        content = this.getUsuariosContent();
+      } else if (tabId === 'reportes') {
+        content = this.getReportesContent();
+      } else if (tabId === 'perfil') {
+        content = this.getPerfilContent();
       } else {
-        // Tabs no implementados (Corredor)
+        // Tabs no implementados
         content = this.getPlaceholderContent(tabId);
       }
 
@@ -1184,31 +1204,30 @@ class Dashboard {
 
       // 🎯 Nuevo: Badge de Estado CRM
       const estadoCRMBadge = {
-        'lead': { color: '#6b7280', text: '🔍 Lead' },
-        'contactado': { color: '#3b82f6', text: '📞 Contactado' },
-        'visita_programada': { color: '#eab308', text: '📅 Visita Programada' },
-        'negociacion': { color: '#f97316', text: '💼 En Negociación' },
-        'cerrado_ganado': { color: '#22c55e', text: '✅ Cerrado - Ganado' },
-        'cerrado_perdido': { color: '#ef4444', text: '❌ Cerrado - Perdido' }
-      }[prop.estado_crm] || { color: '#6b7280', text: '⚪ Sin Estado' };
+        'lead': { bg: 'transparent', border: 'transparent', color: '#6b7280', text: '🔍 Lead', noBorder: true },
+        'contactado': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '📞 Contactado' },
+        'visita_programada': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '📅 Visita' },
+        'negociacion': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '💼 Negociación' },
+        'cerrado_ganado': { bg: 'white', border: '#22c55e', color: '#22c55e', text: '✅ Ganado' },
+        'cerrado_perdido': { bg: 'white', border: '#ef4444', color: '#ef4444', text: '❌ Perdido' }
+      }[prop.estado_crm] || { bg: 'transparent', border: 'transparent', color: '#6b7280', text: '', noBorder: true };
 
       return `
         <div class="property-card" data-property-id="${prop.registro_cab_id}">
           <div class="property-number">${pageData.startIndex + index + 1}</div>
           
-          <!-- ❤️ Botón de Favorito -->
-          <button class="favorite-btn" data-favorite-property="${prop.registro_cab_id}" title="Agregar a favoritos" style="position: absolute; top: 10px; right: 10px; background: white; border: 2px solid #333; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; z-index: 30; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-            ♡
+          <!-- ❤️ Botón de Favorito MEJORADO -->
+          <button class="favorite-btn-beautiful ${prop.es_favorito ? 'is-favorite' : ''}" 
+                  data-favorite-property="${prop.registro_cab_id}" 
+                  title="${prop.es_favorito ? 'Quitar de favoritos' : 'Agregar a favoritos'}">
+            <svg class="heart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
           </button>
           
           <!-- Badge de Estado de Propiedad -->
           <div class="property-badge" style="position: absolute; top: 50px; left: 10px; background: ${estadoBadge.color}; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; z-index: 20;">
             ${estadoBadge.text}
-          </div>
-          
-          <!-- 🎯 Nuevo: Badge de Estado CRM -->
-          <div class="property-crm-badge" style="position: absolute; top: 50px; right: 10px; background: ${estadoCRMBadge.color}; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">
-            ${estadoCRMBadge.text}
           </div>
           <div class="property-image-carousel">
             <div class="carousel-images" data-current="0">
@@ -1238,24 +1257,41 @@ class Dashboard {
               ${prop.parqueos ? `<span class="feature">🚗 ${prop.parqueos} parqueos</span>` : ''}
               ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
             </div>
-            <div class="property-stats" style="display: flex; gap: 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--gris-medio);">
+            <div class="property-stats" style="display: flex; gap: 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--gris-medio); align-items: center; flex-wrap: wrap;">
               <span>👁️ ${prop.vistas || 0} vistas</span>
               <span>📞 ${prop.contactos || 0} contactos</span>
+              
+              <!-- 🎯 Badge de Estado CRM -->
+              ${estadoCRMBadge.noBorder ? `
+                <span style="color: ${estadoCRMBadge.color}; font-size: 0.75rem; font-weight: 500;">
+                  ${estadoCRMBadge.text}
+                </span>
+              ` : `
+                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: ${estadoCRMBadge.bg}; color: ${estadoCRMBadge.color}; border: 2px solid ${estadoCRMBadge.border}; border-radius: 6px; font-size: 0.7rem; font-weight: 600;">
+                  ${estadoCRMBadge.text}
+                </span>
+              `}
             </div>
             
-            <!-- 🎯 Nuevo: Información de Contacto del Propietario -->
-            ${(prop.telefono || prop.email) ? `
-              <div class="property-contact" style="background: rgba(0, 102, 204, 0.03); border-radius: 8px; padding: 10px 12px; margin: 0.75rem 0; border-left: 3px solid var(--azul-corporativo);">
-                <div style="font-size: 0.8rem; color: var(--gris-medio); margin-bottom: 6px; font-weight: 600;">👤 Contacto del Propietario</div>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                  ${prop.telefono ? `
-                    <a href="tel:${prop.telefono}" class="contact-btn" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #22c55e; color: white; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
-                      📱 ${prop.telefono}
+            <!-- 🎯 Información de Contacto del Propietario -->
+            ${(prop.telefono || prop.email || prop.propietario_real_telefono || prop.propietario_real_email) ? `
+              <div class="property-contact" style="background: white; border-left: 3px solid #0066CC; border-radius: 6px; padding: 6px 8px; margin: 0.4rem 0;">
+                <div style="font-size: 0.7rem; color: var(--gris-medio); margin-bottom: 3px; font-weight: 600;">👤 Contacto</div>
+                
+                <div style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
+                  ${this.currentUser?.perfil_id === 4 && (prop.propietario_real_nombre || prop.propietario_nombre) ? `
+                    <span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: #0066CC; border: 2px solid #0066CC; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
+                      👤 ${prop.propietario_real_nombre || prop.propietario_nombre}
+                    </span>
+                  ` : ''}
+                  ${(prop.telefono || prop.propietario_real_telefono) ? `
+                    <a href="tel:${prop.telefono || prop.propietario_real_telefono}" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: #0066CC; border: 2px solid #0066CC; border-radius: 4px; text-decoration: none; font-size: 0.7rem; font-weight: 600; transition: all 0.2s;">
+                      📱 ${prop.telefono || prop.propietario_real_telefono}
                     </a>
                   ` : ''}
-                  ${prop.email ? `
-                    <a href="mailto:${prop.email}" class="contact-btn" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #3b82f6; color: white; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 500; transition: all 0.2s;">
-                      📧 ${prop.email}
+                  ${(prop.email || prop.propietario_real_email) ? `
+                    <a href="mailto:${prop.email || prop.propietario_real_email}" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: #0066CC; border: 2px solid #0066CC; border-radius: 4px; text-decoration: none; font-size: 0.7rem; font-weight: 600; transition: all 0.2s;">
+                      📧 ${prop.email || prop.propietario_real_email}
                     </a>
                   ` : ''}
                 </div>
@@ -1323,6 +1359,60 @@ class Dashboard {
     `;
   }
 
+  getSubscripcionesContent() {
+    return `
+      <h2 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-xl);">
+        📬 Subscripciones
+      </h2>
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <h3>Subscripciones y Alertas</h3>
+        <p>Configura alertas para recibir notificaciones de nuevas propiedades.</p>
+        <p style="color: var(--gris); font-size: 0.9rem; margin-top: var(--spacing-sm);">Próximamente disponible</p>
+      </div>
+    `;
+  }
+
+  getReportesContent() {
+    return `
+      <h2 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-xl);">
+        📊 Reportes
+      </h2>
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="14"></line>
+        </svg>
+        <h3>Reportes y Estadísticas</h3>
+        <p>Genera reportes detallados de propiedades, usuarios y transacciones.</p>
+        <p style="color: var(--gris); font-size: 0.9rem; margin-top: var(--spacing-sm);">Próximamente disponible</p>
+      </div>
+    `;
+  }
+
+  getUsuariosContent() {
+    return `
+      <h2 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-xl);">
+        👥 Gestión de Usuarios
+      </h2>
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <h3>Administración de Usuarios</h3>
+        <p>Gestiona usuarios, perfiles y permisos del sistema.</p>
+        <p style="color: var(--gris); font-size: 0.9rem; margin-top: var(--spacing-sm);">Próximamente disponible</p>
+      </div>
+    `;
+  }
+
   getPlaceholderContent(tabId) {
     const titles = {
       'pipeline': 'Pipeline CRM',
@@ -1331,9 +1421,7 @@ class Dashboard {
       'metricas': 'Métricas',
       'calendario': 'Calendario',
       'super-dashboard': 'Super Dashboard',
-      'usuarios': 'Gestión de Usuarios',
-      'configuracion': 'Configuración',
-      'reportes': 'Reportes'
+      'configuracion': 'Configuración'
     };
 
     return `
@@ -1510,36 +1598,87 @@ class Dashboard {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         e.preventDefault();
-        const propId = parseInt(e.currentTarget.dataset.favoriteProperty);
         
-        // Verificar si es favorito por el emoji
-        const isFavorito = e.currentTarget.textContent.trim() === '❤️';
+        // 🔥 GUARDAR REFERENCIA AL BOTÓN ANTES DE LAS LLAMADAS ASYNC
+        const button = e.currentTarget;
+        const propId = parseInt(button.dataset.favoriteProperty);
+        const favoritoId = button.dataset.favoritoId;
         
-        console.log(`❤️ Click favorito - ID: ${propId}, es favorito: ${isFavorito}`);
+        // ✅ Verificar si es favorito por la clase
+        const isFavorito = button.classList.contains('is-favorite');
         
-        // Toggle favorito en API
-        const success = await favoritesActionService.toggleFavorito(propId, isFavorito);
+        console.log(`❤️ Click favorito - PropID: ${propId}, FavID: ${favoritoId}, es favorito: ${isFavorito}`);
+        
+        let success;
+        let newFavoritoId;
+        
+        if (isFavorito) {
+          // 💔 Quitar favorito - SIEMPRE buscar el favorito_id actualizado
+          const token = authService.getToken();
+          console.log('🔍 Buscando favorito_id para eliminar... PropID:', propId);
+          const response = await fetch(`${API_CONFIG.BASE_URL}/favoritos/`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            console.log('📋 Lista de favoritos completa:', data);
+            
+            // 🔥 El API puede devolver data.data o directamente data como array
+            const favoritos = Array.isArray(data) ? data : (data.data || []);
+            console.log('🔎 Buscando registro_cab_id:', propId, 'en:', favoritos.map(f => ({ id: f.favorito_id, reg: f.registro_cab_id })));
+            
+            const favorito = favoritos.find(f => parseInt(f.registro_cab_id) === parseInt(propId));
+            console.log('📦 Favorito encontrado:', favorito);
+            
+            if (favorito) {
+              success = await favoritesActionService.quitarFavorito(favorito.favorito_id);
+            } else {
+              console.error('❌ No se encontró el favorito. PropID buscado:', propId, 'Tipo:', typeof propId);
+              showNotification('❌ No se pudo quitar de favoritos', 'error');
+              success = false;
+            }
+          }
+        } else {
+          // ❤️ Agregar favorito
+          const result = await favoritesActionService.agregarFavorito(propId);
+          console.log('📦 Resultado de agregarFavorito:', result);
+          success = result !== null;
+          if (result) {
+            // Puede venir en result.data o directamente en result
+            newFavoritoId = result.data?.favorito_id || result.favorito_id;
+            console.log('🆔 Nuevo favorito_id:', newFavoritoId);
+          }
+        }
+        
+        console.log('✅ Success:', success);
         
         if (success) {
+          console.log('🎨 Cambiando visual del corazón...');
+          
+          // ✅ Toggle de clase para nuevo diseño
+          button.classList.toggle('is-favorite');
+          console.log('💖 Clase is-favorite después del toggle:', button.classList.contains('is-favorite'));
+          
+          // Actualizar favorito_id
           if (isFavorito) {
-            // Está rojo → quitarlo → blanco con borde
-            e.currentTarget.textContent = '♡';
-            e.currentTarget.style.border = '2px solid #333';
-            e.currentTarget.style.background = 'white';
-            e.currentTarget.title = 'Agregar a favoritos';
+            delete button.dataset.favoritoId;
+            button.title = 'Agregar a favoritos';
+            console.log('⚪ Corazón cambiado a gris');
           } else {
-            // Está blanco → agregarlo → rojo
-            e.currentTarget.textContent = '❤️';
-            e.currentTarget.style.border = 'none';
-            e.currentTarget.style.background = 'white';
-            e.currentTarget.title = 'Quitar de favoritos';
+            if (newFavoritoId) {
+              button.dataset.favoritoId = newFavoritoId;
+            }
+            button.title = 'Quitar de favoritos';
+            console.log('❤️ Corazón cambiado a rojo');
           }
           
-          // Animación
-          e.currentTarget.style.transform = 'scale(1.3)';
+          // ✅ Animación de pulso mejorada
+          button.classList.add('favorite-pulse');
           setTimeout(() => {
-            e.currentTarget.style.transform = 'scale(1)';
-          }, 200);
+            button.classList.remove('favorite-pulse');
+          }, 600);
+        } else {
+          console.error('❌ Success es false, no se cambia el visual');
         }
       });
     });
@@ -1919,17 +2058,17 @@ class Dashboard {
       if (!response.ok) return;
 
       const data = await response.json();
-      const favoritos = data.data || [];
+      const favoritos = Array.isArray(data) ? data : (data.data || []);
       
       console.log(`✅ ${favoritos.length} favoritos cargados`);
 
-      // Marcar corazones rojos para favoritos
+      // ✅ Marcar corazones con clase is-favorite y guardar favorito_id
       favoritos.forEach(fav => {
         const propId = fav.registro_cab_id || fav.propiedad_id;
         const btn = document.querySelector(`[data-favorite-property="${propId}"]`);
         if (btn) {
-          btn.textContent = '❤️'; // Corazón rojo relleno
-          btn.style.border = 'none';
+          btn.classList.add('is-favorite');
+          btn.dataset.favoritoId = fav.favorito_id; // 🔥 Guardar el ID del favorito
           btn.title = 'Quitar de favoritos';
         }
       });

@@ -1511,7 +1511,7 @@ class PropertyForm {
         latitud: this.formData.latitud ? parseFloat(this.formData.latitud) : null,
         longitud: this.formData.longitud ? parseFloat(this.formData.longitud) : null,
         
-        area: parseFloat(this.formData.area),
+        area: this.formData.area ? parseFloat(this.formData.area) : 0,
         habitaciones: this.formData.habitaciones ? parseInt(this.formData.habitaciones) : 0,
         banos: this.formData.banos ? parseInt(this.formData.banos) : 1,
         parqueos: this.formData.parqueos ? parseInt(this.formData.parqueos) : 0,

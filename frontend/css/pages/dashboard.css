@@ -510,14 +510,14 @@
 .properties-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--spacing-lg);
-  margin-top: var(--spacing-lg);
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .property-card {
   background: var(--blanco);
   border: 2px solid var(--borde);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 0;
   display: flex;
   cursor: pointer;
@@ -639,6 +639,87 @@
   right: clamp(8px, 2vw, 12px);
 }
 
+/* ========================================
+   💖 BOTÓN DE FAVORITO BONITO
+   ======================================== */
+
+.favorite-btn-beautiful {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 42px;
+  height: 42px;
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.favorite-btn-beautiful:hover {
+  transform: scale(1.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 1);
+}
+
+.favorite-btn-beautiful .heart-icon {
+  width: 22px;
+  height: 22px;
+  color: #cbd5e1;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* 💖 Estado FAVORITO (rojo) */
+.favorite-btn-beautiful.is-favorite .heart-icon {
+  color: #ef4444;
+  animation: heartBeat 0.6s ease;
+}
+
+.favorite-btn-beautiful.is-favorite {
+  background: rgba(255, 245, 245, 0.95);
+}
+
+.favorite-btn-beautiful.is-favorite:hover .heart-icon {
+  color: #dc2626;
+  transform: scale(1.1);
+}
+
+/* 🌟 Animación al hacer clic */
+@keyframes heartBeat {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(1.1); }
+  75% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.favorite-btn-beautiful.favorite-pulse {
+  animation: favoritePulse 0.6s ease;
+}
+
+@keyframes favoritePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* 🎨 Efecto hover para no favoritos */
+.favorite-btn-beautiful:not(.is-favorite):hover .heart-icon {
+  color: #f87171;
+  transform: scale(1.1);
+}
+
+/* ========================================
+   CAROUSEL
+   ======================================== */
+
 .carousel-indicators {
   position: absolute;
   bottom: clamp(8px, 2vw, 12px);
@@ -727,14 +808,14 @@
 
 .property-info {
   flex: 1;
-  padding: 1.5rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .property-title {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--azul-corporativo);
   margin: 0;
@@ -1050,23 +1131,124 @@
   /* 🔥 Tabs solo con iconos en tablet/móvil */
   .tab-btn {
     padding: var(--spacing-sm) var(--spacing-md);
+    position: relative;
   }
   
   .tab-btn-text {
     display: none; /* 🔥 Ocultar texto */
   }
   
-  .tab-btn:hover::before {
-    opacity: 1; /* 🔥 Mostrar tooltip */
+  /* 🔥 Tooltip en móvil: se muestra al hacer tap/touch */
+  .tab-btn:hover::before,
+  .tab-btn:active::before,
+  .tab-btn:focus::before {
+    opacity: 1;
+  }
+  
+  /* 🔥 Alternativa: tooltip siempre visible pero más sutil */
+  .tab-btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    margin-top: 4px;
+    z-index: 1000;
+  }
+  
+  .tab-btn:active::after,
+  .tab-btn[style*="--show-tooltip"]::after {
+    opacity: 1;
+    animation: tooltipPulse 0.3s ease;
+  }
+  
+  @keyframes tooltipPulse {
+    0% { transform: translateX(-50%) scale(0.8); opacity: 0; }
+    50% { transform: translateX(-50%) scale(1.05); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  }
+  
+  /* 🔥 Tooltip persistente al mantener presionado */
+  .tab-btn:active {
+    background: rgba(0, 102, 204, 0.08);
   }
   
   .tabs-list {
     justify-content: space-around; /* 🔥 Distribuir uniformemente */
   }
   
-  /* 🔥 Property cards responsive */
+  /* 🔥 Property cards responsive - MÁS COMPACTAS */
   .property-card {
     flex-direction: column;
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .property-title {
+    font-size: 0.95rem !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .property-location {
+    font-size: 0.8rem !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .property-price {
+    font-size: 1rem !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .property-features {
+    gap: 6px !important;
+    margin: 8px 0 !important;
+  }
+  
+  .property-features .feature {
+    font-size: 0.75rem !important;
+    padding: 3px 6px !important;
+  }
+  
+  .property-stats {
+    font-size: 0.75rem !important;
+    gap: 0.5rem !important;
+    margin: 8px 0 !important;
+  }
+  
+  .property-stats span {
+    padding: 2px 6px;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 4px;
+  }
+  
+  .property-contact {
+    padding: 8px !important;
+    margin: 8px 0 !important;
+  }
+  
+  .property-description {
+    font-size: 0.8rem !important;
+    margin: 8px 0 !important;
+    line-height: 1.3 !important;
+  }
+  
+  .admin-actions-simple {
+    gap: 6px !important;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
+  }
+  
+  .btn-admin {
+    font-size: 0.75rem !important;
+    padding: 6px 8px !important;
   }
   
   .property-image-carousel {
