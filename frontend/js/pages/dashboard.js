@@ -1813,30 +1813,29 @@ class Dashboard {
   async showPropertyDetailPopup(propId) {
     console.log(`📄 showPropertyDetailPopup llamado con propId: ${propId}`);
     try {
-      // ✅ WORKAROUND CORS: Buscar en memoria primero
-      let prop = this.allProperties.find(p => p.registro_cab_id == propId);
-      
-      if (!prop) {
-        // Si no está en memoria, intentar fetch
-        const token = authService.getToken();
-        console.log(`🔑 Token obtenido: ${token ? 'OK' : 'FALTA'}`);
+      // 🔥 SIEMPRE hacer fetch para obtener características completas
+      const token = authService.getToken();
+      console.log(`🔑 Token obtenido: ${token ? 'OK' : 'FALTA'}`);
 
-        const url = `${API_CONFIG.BASE_URL}/propiedades/${propId}`;
-        console.log(`📡 Fetching: ${url}`);
+      const url = `${API_CONFIG.BASE_URL}/propiedades/${propId}`;
+      console.log(`📡 Fetching: ${url}`);
 
-        const response = await fetch(url, {
-          headers: { 'Authorization': `Bearer ${token}` },
-          mode: 'cors'
-        });
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        mode: 'cors'
+      });
 
-        console.log(`📡 Response status: ${response.status}`);
+      console.log(`📡 Response status: ${response.status}`);
 
-        const data = await response.json();
-        console.log(`📦 Data recibida:`, data);
-        prop = data.data;
-      } else {
-        console.log(`✅ Propiedad encontrada en memoria`);
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
       }
+
+      const data = await response.json();
+      console.log(`📦 Data completa recibida:`, data);
+      const prop = data.data || data;
+      
+      console.log('🔍 DEBUG Características:', prop.caracteristicas);
 
       const modalHtml = `
         <div class="modal-overlay" id="detailModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.2s ease;">
@@ -1865,9 +1864,24 @@ class Dashboard {
                 <strong>Descripción:</strong>
                 <p style="margin-top: 8px; line-height: 1.6;">${prop.descripcion || 'Sin descripción'}</p>
               </div>
+              
+              ${prop.caracteristicas && prop.caracteristicas.length > 0 ? `
+                <div style="margin-bottom: var(--spacing-md);">
+                  <strong>Características:</strong>
+                  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                    ${prop.caracteristicas.map(car => `
+                      <span style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(0, 102, 204, 0.1); color: var(--azul-corporativo); border-radius: 6px; font-size: 0.9rem; font-weight: 500;">
+                        ✓ ${car.nombre || car}
+                      </span>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+              
               <div style="display: flex; gap: var(--spacing-sm); justify-content: flex-end;">
-                <button onclick="window.location.href='propiedad.html?id=${propId}'" class="btn btn-secondary">Ver Completo</button>
-                <button onclick="window.location.href='registro-propiedad.html?id=${propId}'" class="btn btn-primary">Editar</button>
+                <button id="editPropertyBtn" data-prop-id="${propId}" class="btn btn-primary" style="background: var(--azul-corporativo); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                  ✏️ Editar
+                </button>
               </div>
             </div>
           </div>
@@ -1880,6 +1894,19 @@ class Dashboard {
         if (e.target.id === 'detailModal') e.target.remove();
       });
       console.log('✅ Listener de cierre agregado al modal');
+      
+      // Listener para botón Editar
+      const editBtn = document.getElementById('editPropertyBtn');
+      if (editBtn) {
+        editBtn.addEventListener('click', async () => {
+          const propId = editBtn.dataset.propId;
+          console.log(`✏️ Abriendo formulario de edición para propiedad ${propId}`);
+          document.getElementById('detailModal').remove();
+          const form = new PropertyForm(this, propId);
+          await form.init();
+        });
+        console.log('✅ Listener de edición agregado');
+      }
     } catch (error) {
       console.error('❌ Error en showPropertyDetailPopup:', error);
       showNotification('Error al cargar detalles', 'error');
