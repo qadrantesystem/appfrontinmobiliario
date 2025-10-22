@@ -6,16 +6,24 @@
     <!-- ⚠️ CRITICAL: Force all HTTP requests to upgrade to HTTPS automatically -->
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>Dashboard - Quadrante</title>
-    <link rel="stylesheet" href="css/variables.css?v=14">
-    <link rel="stylesheet" href="css/global.css?v=14">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/components/header.css?v=14">
-    <link rel="stylesheet" href="css/pages/dashboard.css?v=14">
+    <link rel="stylesheet" href="css/pages/dashboard.css?v=15">
+    <link rel="stylesheet" href="css/pages/dashboard-search.css?v=1">
     <link rel="stylesheet" href="css/pages/dashboard-admin.css?v=1">
+    <link rel="stylesheet" href="css/pages/resultados.css">
+    <link rel="stylesheet" href="css/components/modal-busqueda.css?v=12">
+    <link rel="stylesheet" href="css/pages/busqueda.css?v=12">
     <link rel="stylesheet" href="css/components/inactivity-modal.css?v=1">
     <link rel="stylesheet" href="css/components/notifications.css?v=14">
     <link rel="stylesheet" href="css/components/charts.css?v=17">
     <link rel="stylesheet" href="css/components/property-form.css?v=1">
-    
+    <link rel="stylesheet" href="css/pages/dashboard-maintenance.css?v=5">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <!-- Leaflet para mapas -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -127,15 +135,28 @@
 
     <!-- Utilities -->
     <script src="js/utils/inactivity-manager.js?v=1"></script>
-    
+
     <!-- Header Component -->
     <script src="js/components/header.js?v=1"></script>
-    
+
     <!-- Scripts de páginas (Dashboard) -->
     <script src="js/pages/dashboard/filters.js?v=3"></script>
     <script src="js/pages/dashboard/pagination.js?v=1"></script>
     <script src="js/pages/dashboard/carousel.js?v=1"></script>
     <script src="js/pages/dashboard/property-form.js?v=40"></script>
-    <script src="js/pages/dashboard.js?v=59"></script>
+    <script src="js/pages/dashboard/search.js?v=6"></script>
+    <script src="js/pages/dashboard/search-admin.js?v=3"></script>
+
+    <!-- Maintenance Module -->
+    <script src="js/services/maintenance.service.js?v=2"></script>
+    <script src="js/pages/dashboard/maintenance/maintenance-main.js?v=4"></script>
+    <script src="js/pages/dashboard/maintenance/property-types.js?v=3"></script>
+    <script src="js/pages/dashboard/maintenance/districts.js?v=3"></script>
+    <script src="js/pages/dashboard/maintenance/characteristics.js?v=3"></script>
+    <script src="js/pages/dashboard/maintenance/characteristics-by-type.js?v=6"></script>
+    <script src="js/pages/dashboard/maintenance/profiles.js?v=5"></script>
+    <script src="js/pages/dashboard/maintenance/plans.js?v=5"></script>
+
+    <script src="js/pages/dashboard.js?v=70"></script>
 </body>
 </html>

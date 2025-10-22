@@ -30,6 +30,8 @@ class Dashboard {
     this.filters = new DashboardFilters(this);
     this.pagination = new DashboardPagination(this);
     this.carousel = new DashboardCarousel(this);
+    this.searchModule = null; // Se inicializa async (usuario normal)
+    this.searchAdminModule = null; // Se inicializa async (admin)
 
     // Configuración de tabs por perfil
     this.tabsConfig = {
@@ -79,6 +81,22 @@ class Dashboard {
     // Obtener usuario actual
     await this.loadCurrentUser();
 
+    // Inicializar SearchModule (SIEMPRE para hacer búsquedas)
+    if (window.SearchModule) {
+      this.searchModule = new SearchModule(this);
+      await this.searchModule.init();
+      window.searchModule = this.searchModule;
+      console.log('✅ SearchModule inicializado');
+    }
+    
+    // Si es admin, TAMBIÉN inicializar SearchAdminModule (para ver todas las búsquedas)
+    if (this.currentUser.perfil_id === 4 && window.SearchAdminModule) {
+      this.searchAdminModule = new SearchAdminModule(this);
+      await this.searchAdminModule.init();
+      window.searchAdminModule = this.searchAdminModule;
+      console.log('✅ SearchAdminModule inicializado (Admin)');
+    }
+
     // Setup UI
     this.setupUserMenu();
     this.setupLogout();
@@ -94,18 +112,26 @@ class Dashboard {
     try {
       // Obtener usuario del storage primero (para mostrar rápido)
       const storedUser = authService.getCurrentUser();
-      if (storedUser) {
+      console.log('👤 Usuario del storage:', storedUser);
+      
+      if (storedUser && storedUser.perfil_id) {
+        this.currentUser = storedUser;
         this.displayUserInfo(storedUser);
         this.loadTabs(storedUser.perfil_id);
       }
 
       // Luego obtener datos frescos del backend
       const freshUser = await authService.getMyProfile();
-      this.currentUser = freshUser;
-
-      // Actualizar UI con datos frescos
-      this.displayUserInfo(freshUser);
-      this.loadTabs(freshUser.perfil_id);
+      console.log('👤 Usuario del backend:', freshUser);
+      
+      if (freshUser && freshUser.perfil_id) {
+        this.currentUser = freshUser;
+        // Actualizar UI con datos frescos
+        this.displayUserInfo(freshUser);
+        this.loadTabs(freshUser.perfil_id);
+      } else {
+        console.warn('⚠️ Usuario del backend sin perfil_id, usando storage');
+      }
 
     } catch (error) {
       console.error('❌ Error cargando usuario:', error);
@@ -113,10 +139,12 @@ class Dashboard {
 
       // Si falla, intentar con datos del storage
       const storedUser = authService.getCurrentUser();
-      if (storedUser) {
+      if (storedUser && storedUser.perfil_id) {
+        this.currentUser = storedUser;
         this.displayUserInfo(storedUser);
         this.loadTabs(storedUser.perfil_id);
       } else {
+        console.error('❌ No hay usuario válido en storage');
         // Si no hay nada, volver al login
         setTimeout(() => {
           window.location.href = 'login.html';
@@ -202,14 +230,24 @@ class Dashboard {
   }
 
   loadTabs(perfilId) {
-    // Asegurar que sea número
-    const perfilIdNum = parseInt(perfilId);
+    // Asegurar que sea número válido
+    let perfilIdNum = parseInt(perfilId);
+    
+    // Si no es válido, usar perfil 1 por defecto
+    if (isNaN(perfilIdNum) || !perfilIdNum) {
+      console.warn('⚠️ Perfil inválido, usando perfil 1 (Demandante) por defecto');
+      perfilIdNum = 1;
+    }
+    
     const tabs = this.tabsConfig[perfilIdNum];
 
     if (!tabs) {
       console.error('❌ No hay configuración de tabs para perfil:', perfilIdNum);
+      console.log('📋 Perfiles disponibles:', Object.keys(this.tabsConfig));
       return;
     }
+    
+    console.log(`✅ Cargando tabs para perfil ${perfilIdNum}:`, tabs.map(t => t.name));
 
     // Limpiar tabs anteriores
     this.tabsList.innerHTML = '';
@@ -515,7 +553,8 @@ class Dashboard {
   async getAdminDashboard() {
     try {
       const currentYear = new Date().getFullYear();
-      const stats = await this.getDashboardStats(currentYear);
+      // Enviar perfil_id=4 explícitamente (admin)
+      const stats = await this.getDashboardStats(currentYear, null, null, 4);
 
       return `
         <div class="admin-dashboard">
@@ -681,7 +720,22 @@ class Dashboard {
       `;
     } catch (error) {
       console.error('❌ Error cargando dashboard admin:', error);
-      throw error;
+      // Fallback UI para no romper el tab si el endpoint devuelve 500
+      return `
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <h3>No se pudieron cargar las estadísticas</h3>
+          <p>El servicio respondió 500. Puedes intentar nuevamente más tarde.</p>
+          <div style="margin-top: 12px; display:flex; gap:8px; justify-content:center;">
+            <button class="btn btn-primary" onclick="window.dashboard?.switchTab('dashboard', 4)">Reintentar</button>
+            <button class="btn btn-secondary" onclick="window.dashboard?.switchTab('busquedas', 4)">Ir a Búsquedas</button>
+          </div>
+        </div>
+      `;
     }
   }
 
@@ -846,12 +900,24 @@ class Dashboard {
 
   async getFavoritosContent() {
     try {
-      const favoriteStats = await favoritesService.getFavoriteStats();
-      const favoritesList = favoriteStats.favoritesList || [];
+      console.log('❤️ Cargando contenido de FAVORITOS...');
+      
+      // Obtener favoritos del usuario
+      const token = authService.getToken();
+      const response = await fetch(`${API_CONFIG.BASE_URL}/favoritos/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
 
-      console.log('📋 DEBUG getFavoritosContent - favoritesList:', favoritesList);
+      if (!response.ok) {
+        throw new Error('Error al obtener favoritos');
+      }
 
-      if (!favoritesList || favoritesList.length === 0) {
+      const data = await response.json();
+      const favoritos = Array.isArray(data) ? data : (data.data || []);
+      
+      console.log(`✅ ${favoritos.length} favoritos obtenidos`);
+
+      if (favoritos.length === 0) {
         return `
           <h2 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-xl);">
             Mis Favoritos
@@ -862,57 +928,82 @@ class Dashboard {
             </svg>
             <h3>No tienes favoritos aún</h3>
             <p>Las propiedades que marques como favoritas aparecerán aquí.</p>
-            <a href="busqueda.html" class="btn btn-primary" style="margin-top: var(--spacing-lg);">
-              Buscar Propiedades
-            </a>
           </div>
         `;
       }
 
-      // 🔥 Cards hermosas como en resultados.html
-      const favoritesCards = favoritesList.map((fav, index) => {
-        const prop = fav.propiedad || {};
-        
-        // Construir URLs completas para imagenes (igual que en Propiedades)
-        const baseUrl = 'https://ik.imagekit.io/quadrante/';
-        let imagenes = [];
-        
-        if (prop.imagenes && prop.imagenes.length > 0) {
-          imagenes = prop.imagenes.map(img => {
-            if (img.startsWith('http://') || img.startsWith('https://')) {
-              return img;
-            }
-            return baseUrl + img;
+      // 🔥 Obtener detalles completos de cada propiedad favorita
+      const propiedadesPromises = favoritos.map(async (fav) => {
+        try {
+          const propResponse = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${fav.registro_cab_id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
           });
-        } else if (prop.imagenes_galeria && prop.imagenes_galeria.length > 0) {
-          imagenes = prop.imagenes_galeria;
-        } else if (prop.imagen_principal) {
-          imagenes = [prop.imagen_principal];
-        } else {
-          imagenes = ['https://via.placeholder.com/400x300?text=Sin+Imagen'];
+          if (propResponse.ok) {
+            const propData = await propResponse.json();
+            return {
+              ...propData.data || propData,
+              favorito_id: fav.favorito_id,
+              es_favorito: true
+            };
+          }
+        } catch (error) {
+          console.error(`Error cargando propiedad ${fav.registro_cab_id}:`, error);
         }
-        
-        const precio = prop.precio_alquiler ? 
-          `S/ ${parseFloat(prop.precio_alquiler).toLocaleString('es-PE')}/mes` : 
-          prop.precio_venta ? 
-          `S/ ${parseFloat(prop.precio_venta).toLocaleString('es-PE')}` : 
+        return null;
+      });
+
+      const propiedades = (await Promise.all(propiedadesPromises)).filter(p => p !== null);
+      console.log(`✅ ${propiedades.length} propiedades favoritas cargadas`);
+
+      // 🎨 Renderizar usando el mismo estilo que en Propiedades (SIN BOTONES)
+      const favoritesCards = propiedades.map((prop, index) => {
+        const imagenPrincipal = prop.imagen_principal || 'https://via.placeholder.com/400x300?text=Sin+Imagen';
+        const imagenes = prop.imagenes_galeria && prop.imagenes_galeria.length > 0 ? 
+          [imagenPrincipal, ...prop.imagenes_galeria] : 
+          [imagenPrincipal];
+
+        const precio = prop.transaccion === 'alquiler' && prop.precio_alquiler ?
+          `S/ ${parseFloat(prop.precio_alquiler).toLocaleString('es-PE')}/mes` :
+          prop.transaccion === 'venta' && prop.precio_venta ?
+          `S/ ${parseFloat(prop.precio_venta).toLocaleString('es-PE')}` :
           'Precio no disponible';
 
+        const estadoCRMBadge = {
+          'lead': { bg: 'transparent', border: 'transparent', color: '#6b7280', text: '🔍 Lead', noBorder: true },
+          'contactado': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '📞 Contactado' },
+          'visita_programada': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '📅 Visita' },
+          'negociacion': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '💼 Negociación' },
+          'cerrado_ganado': { bg: 'white', border: '#22c55e', color: '#22c55e', text: '✅ Ganado' },
+          'cerrado_perdido': { bg: 'white', border: '#ef4444', color: '#ef4444', text: '❌ Perdido' }
+        }[prop.estado_crm] || { bg: 'transparent', border: 'transparent', color: '#6b7280', text: '', noBorder: true };
+
         return `
-          <div class="property-card" data-property-id="${prop.id || prop.registro_cab_id}">
+          <div class="property-card" data-property-id="${prop.registro_cab_id}" data-favorito-id="${prop.favorito_id}">
             <div class="property-number">${index + 1}</div>
-            <button class="favorite-btn active" data-favorite-id="${fav.id}" title="Quitar de favoritos">❤</button>
+            
+            <!-- ❤️ Botón de Favorito -->
+            <button class="favorite-btn-beautiful is-favorite" 
+                    data-favorite-property="${prop.registro_cab_id}" 
+                    data-favorito-id="${prop.favorito_id}"
+                    title="Quitar de favoritos">
+              <svg class="heart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </button>
+
+            <!-- 🖼️ Carousel de Imágenes -->
             <div class="property-image-carousel">
               <div class="carousel-images" data-current="0">
                 ${imagenes.map((img, i) => `
-                  <img src="${img}" alt="${prop.titulo} - imagen ${i+1}" 
-                       class="carousel-image ${i === 0 ? 'active' : ''}" data-index="${i}"
+                  <img src="${img}" alt="${prop.titulo}" 
+                       class="carousel-image ${i === 0 ? 'active' : ''}" 
+                       data-index="${i}"
                        onerror="this.src='https://via.placeholder.com/400x300?text=Sin+Imagen'">
                 `).join('')}
               </div>
               ${imagenes.length > 1 ? `
-                <button class="carousel-prev" data-property-id="${prop.id || prop.registro_cab_id}">‹</button>
-                <button class="carousel-next" data-property-id="${prop.id || prop.registro_cab_id}">›</button>
+                <button class="carousel-prev" data-property-id="${prop.registro_cab_id}">‹</button>
+                <button class="carousel-next" data-property-id="${prop.registro_cab_id}">›</button>
                 <div class="carousel-indicators">
                   ${imagenes.map((_, i) => `
                     <span class="indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
@@ -920,9 +1011,10 @@ class Dashboard {
                 </div>
               ` : ''}
             </div>
+
             <div class="property-info">
-              <h3 class="property-title">${prop.titulo || 'Sin título'}</h3>
-              <div class="property-location">📍 ${prop.direccion || 'Ubicación no disponible'}</div>
+              <h3 class="property-title">${prop.titulo}</h3>
+              <p class="property-location">📍 ${prop.direccion}</p>
               <div class="property-price">${precio}</div>
               <div class="property-features">
                 <span class="feature">📐 ${prop.area || 0} m²</span>
@@ -930,28 +1022,46 @@ class Dashboard {
                 ${prop.parqueos ? `<span class="feature">🚗 ${prop.parqueos} parqueos</span>` : ''}
                 ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
               </div>
-              <p class="property-description">${(prop.descripcion || '').substring(0, 150)}...</p>
-              <div class="property-actions">
-                <button class="btn btn-primary" data-view-property="${prop.id || prop.registro_cab_id}">
-                  Ver Detalle
-                </button>
-                <button class="btn btn-secondary" data-contact-property="${prop.id || prop.registro_cab_id}">
-                  Contactar
-                </button>
+              <div class="property-stats" style="display: flex; gap: 1rem; margin: 0.5rem 0; font-size: 0.85rem; color: var(--gris-medio); align-items: center; flex-wrap: wrap;">
+                <span>👁️ ${prop.vistas || 0} vistas</span>
+                <span>📞 ${prop.contactos || 0} contactos</span>
+                
+                <!-- 🎯 Badge de Estado CRM -->
+                ${estadoCRMBadge.noBorder ? `
+                  <span style="color: ${estadoCRMBadge.color}; font-size: 0.75rem; font-weight: 500;">
+                    ${estadoCRMBadge.text}
+                  </span>
+                ` : `
+                  <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: ${estadoCRMBadge.bg}; color: ${estadoCRMBadge.color}; border: 2px solid ${estadoCRMBadge.border}; border-radius: 6px; font-size: 0.7rem; font-weight: 600;">
+                    ${estadoCRMBadge.text}
+                  </span>
+                `}
               </div>
+              
+              ${prop.caracteristicas && prop.caracteristicas.length > 0 ? `
+                <div style="margin: 0.5rem 0;">
+                  <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                    ${prop.caracteristicas.slice(0, 5).map(car => `
+                      <span style="font-size: 0.7rem; padding: 2px 6px; background: rgba(0, 102, 204, 0.1); color: var(--azul-corporativo); border-radius: 4px;">
+                        ${car.nombre || car}
+                      </span>
+                    `).join('')}
+                    ${prop.caracteristicas.length > 5 ? `<span style="font-size: 0.7rem; color: var(--gris-medio);">+${prop.caracteristicas.length - 5} más</span>` : ''}
+                  </div>
+                </div>
+              ` : ''}
+              
+              <p class="property-description">${(prop.descripcion || '').substring(0, 120)}...</p>
             </div>
           </div>
         `;
       }).join('');
 
       return `
-        <div class="favoritos-header" style="margin-bottom: var(--spacing-xl);">
+        <div class="favoritos-header" style="margin-bottom: var(--spacing-lg);">
           <h2 style="color: var(--azul-corporativo); margin: 0;">
-            Mis Favoritos (${favoritesList.length})
+            ❤️ Mis Favoritos (${propiedades.length})
           </h2>
-          <p style="color: var(--gris-medio); margin-top: var(--spacing-sm);">
-            Precio promedio: S/ ${favoriteStats.avgPrice.toLocaleString('es-PE')}
-          </p>
         </div>
         <div class="properties-grid">
           ${favoritesCards}
@@ -959,8 +1069,47 @@ class Dashboard {
       `;
     } catch (error) {
       console.error('❌ Error cargando favoritos:', error);
-      throw error;
+      return `
+        <div class="empty-state">
+          <h3>Error al cargar favoritos</h3>
+          <p>${error.message}</p>
+        </div>
+      `;
     }
+  }
+
+  async getBusquedasContent() {
+    // Si es admin (perfil 4), usar módulo admin
+    if (this.currentUser.perfil_id === 4 && this.searchAdminModule) {
+      return await this.searchAdminModule.renderContent();
+    }
+    
+    // Usuario normal: delegar a SearchModule
+    if (this.searchModule) {
+      return await this.searchModule.renderHistorialContent();
+    }
+    
+    // FALLBACK: Si no está inicializado, mostrar botón básico
+    return `
+      <div style="margin-bottom: var(--spacing-xl); text-align: center;">
+        <h2 style="color: var(--azul-corporativo); margin: 0 0 var(--spacing-md) 0;">
+          🔍 Búsquedas de Propiedades
+        </h2>
+        <button onclick="if(window.searchModule){window.searchModule.renderSearchModal()}else{location.reload()}" 
+                class="btn btn-primary" 
+                style="padding: var(--spacing-md) var(--spacing-xl); border-radius: var(--radius-md); font-weight: 600; background: var(--azul-corporativo); color: white; border: none; cursor: pointer; font-size: 1rem; box-shadow: var(--shadow-sm);">
+          🔍 Nueva Búsqueda
+        </button>
+      </div>
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 60px; height: 60px; opacity: 0.2;">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <h3>Cargando módulo de búsquedas...</h3>
+        <p>Si no carga, haz clic en "Nueva Búsqueda".</p>
+      </div>
+    `;
   }
 
   async getHistorialContent() {
@@ -1655,28 +1804,51 @@ class Dashboard {
         if (success) {
           console.log('🎨 Cambiando visual del corazón...');
           
-          // ✅ Toggle de clase para nuevo diseño
-          button.classList.toggle('is-favorite');
-          console.log('💖 Clase is-favorite después del toggle:', button.classList.contains('is-favorite'));
-          
-          // Actualizar favorito_id
-          if (isFavorito) {
-            delete button.dataset.favoritoId;
-            button.title = 'Agregar a favoritos';
-            console.log('⚪ Corazón cambiado a gris');
-          } else {
-            if (newFavoritoId) {
-              button.dataset.favoritoId = newFavoritoId;
+          // 🔥 Si estamos en tab FAVORITOS y se quitó, eliminar de la vista
+          if (isFavorito && this.currentTab === 'favoritos') {
+            console.log('🗑️ Eliminando tarjeta de favoritos...');
+            const card = button.closest('.property-card');
+            if (card) {
+              card.style.animation = 'fadeOut 0.3s ease';
+              setTimeout(() => {
+                card.remove();
+                // Actualizar contador
+                const header = document.querySelector('.favoritos-header h2');
+                if (header) {
+                  const remaining = document.querySelectorAll('.property-card').length;
+                  header.textContent = `❤️ Mis Favoritos (${remaining})`;
+                  
+                  // Si no quedan favoritos, mostrar empty state
+                  if (remaining === 0) {
+                    this.loadTabContent('favoritos', this.currentUser.perfil_id);
+                  }
+                }
+              }, 300);
             }
-            button.title = 'Quitar de favoritos';
-            console.log('❤️ Corazón cambiado a rojo');
+          } else {
+            // ✅ En otros tabs, solo cambiar visual
+            button.classList.toggle('is-favorite');
+            console.log('💖 Clase is-favorite después del toggle:', button.classList.contains('is-favorite'));
+            
+            // Actualizar favorito_id
+            if (isFavorito) {
+              delete button.dataset.favoritoId;
+              button.title = 'Agregar a favoritos';
+              console.log('⚪ Corazón cambiado a gris');
+            } else {
+              if (newFavoritoId) {
+                button.dataset.favoritoId = newFavoritoId;
+              }
+              button.title = 'Quitar de favoritos';
+              console.log('❤️ Corazón cambiado a rojo');
+            }
+            
+            // ✅ Animación de pulso mejorada
+            button.classList.add('favorite-pulse');
+            setTimeout(() => {
+              button.classList.remove('favorite-pulse');
+            }, 600);
           }
-          
-          // ✅ Animación de pulso mejorada
-          button.classList.add('favorite-pulse');
-          setTimeout(() => {
-            button.classList.remove('favorite-pulse');
-          }, 600);
         } else {
           console.error('❌ Success es false, no se cambia el visual');
         }
@@ -2169,42 +2341,13 @@ class Dashboard {
    * 🔧 Vista de Mantenimientos (Admin)
    */
   getMantenimientosContent() {
-    return `
-      <div class="tab-header">
-        <h2>Mantenimientos del Sistema</h2>
-        <p class="tab-subtitle">Gestiona las configuraciones y catálogos del sistema</p>
-      </div>
+    // Inicializar controlador de mantenimientos
+    if (!window.maintenanceController) {
+      window.maintenanceController = new MaintenanceController(this);
+    }
 
-      <div class="maintenance-grid">
-        <div class="maintenance-card">
-          ${this.getIcon('building')}
-          <h3>Tipos de Inmuebles</h3>
-          <p>Gestionar catálogo de tipos de propiedades</p>
-          <button class="btn btn-outline btn-sm">Administrar</button>
-        </div>
-        
-        <div class="maintenance-card">
-          ${this.getIcon('map')}
-          <h3>Distritos</h3>
-          <p>Gestionar ubicaciones y zonas</p>
-          <button class="btn btn-outline btn-sm">Administrar</button>
-        </div>
-        
-        <div class="maintenance-card">
-          ${this.getIcon('settings')}
-          <h3>Características</h3>
-          <p>Administrar características de propiedades</p>
-          <button class="btn btn-outline btn-sm">Administrar</button>
-        </div>
-        
-        <div class="maintenance-card">
-          ${this.getIcon('users')}
-          <h3>Perfiles</h3>
-          <p>Configurar perfiles y permisos</p>
-          <button class="btn btn-outline btn-sm">Administrar</button>
-        </div>
-      </div>
-    `;
+    // Renderizar módulo principal
+    return window.maintenanceController.render();
   }
 
   /**
