@@ -15,22 +15,26 @@ class HeaderComponent {
    */
   async init() {
     try {
+      console.log('🚀 HeaderComponent.init() - Iniciando...');
+
       // ✅ FIX: Si el header ya existe en el DOM (hardcoded), no intentar cargarlo
       const existingHeader = document.querySelector('.dashboard-header');
       if (!existingHeader) {
-        // Cargar el HTML del header solo si no existe
+        console.log('📥 Header no existe, cargando HTML...');
         await this.loadHeaderHTML();
       } else {
-        console.log('✅ Header ya existe en el DOM, omitiendo carga');
+        console.log('✅ Header ya existe en el DOM (hardcoded), omitiendo carga');
       }
 
       // Verificar si hay sesión
       if (authService && authService.isAuthenticated()) {
+        console.log('👤 Usuario autenticado, configurando header...');
         await this.loadUserData();
         this.setupEventListeners();
         this.highlightCurrentPage();
+        console.log('✅ Header configurado completamente');
       } else {
-        // Si no hay sesión, mostrar header simplificado o redirigir
+        console.log('⚠️ Usuario no autenticado, mostrando header público');
         this.showPublicHeader();
       }
 
@@ -169,23 +173,39 @@ class HeaderComponent {
    * 🔗 Configurar event listeners
    */
   setupEventListeners() {
-    // Toggle del menú de usuario
-    const userMenuBtn = document.getElementById('userMenuBtn');
-    const userMenu = document.querySelector('.user-menu');
+    console.log('🔧 Configurando event listeners del header...');
 
-    if (userMenuBtn) {
-      userMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        userMenu.classList.toggle('active');
-      });
-    }
-
-    // Cerrar menú al hacer click fuera
+    // ✅ NUEVO: Event delegation desde document para evitar conflictos
     document.addEventListener('click', (e) => {
-      if (userMenu && !userMenu.contains(e.target)) {
-        userMenu.classList.remove('active');
+      // Toggle del menú de usuario
+      const userMenuBtn = e.target.closest('#userMenuBtn');
+      if (userMenuBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('👆 Click en userMenuBtn detectado');
+
+        const userMenu = document.querySelector('.user-menu');
+        if (userMenu) {
+          const isActive = userMenu.classList.contains('active');
+          console.log(`📍 Estado actual: ${isActive ? 'ACTIVO' : 'INACTIVO'}`);
+          userMenu.classList.toggle('active');
+          console.log(`📍 Estado nuevo: ${userMenu.classList.contains('active') ? 'ACTIVO' : 'INACTIVO'}`);
+        }
+        return;
+      }
+
+      // Cerrar menú al hacer click fuera
+      const userMenu = document.querySelector('.user-menu');
+      if (userMenu && userMenu.classList.contains('active')) {
+        const clickedInsideMenu = e.target.closest('.user-menu');
+        if (!clickedInsideMenu) {
+          console.log('🔒 Cerrando menú (click fuera)');
+          userMenu.classList.remove('active');
+        }
       }
     });
+
+    console.log('✅ Event delegation configurado para userMenuBtn');
 
     // 🔥 Toggle del menú móvil acordeón
     const hamburgerBtn = document.getElementById('hamburgerBtn');
@@ -219,27 +239,24 @@ class HeaderComponent {
       this.highlightMobileMenu();
     }
 
-    // Logout (desktop)
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', (e) => {
+    // ✅ Logout con event delegation (funciona para desktop y móvil)
+    document.addEventListener('click', (e) => {
+      const logoutBtn = e.target.closest('#logoutBtn, #logoutBtnMobile');
+      if (logoutBtn) {
         e.preventDefault();
-        if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
-          authService.logout();
-        }
-      });
-    }
+        e.stopPropagation();
+        console.log('🚪 Click en Cerrar Sesión detectado');
 
-    // Logout (móvil)
-    const logoutBtnMobile = document.getElementById('logoutBtnMobile');
-    if (logoutBtnMobile) {
-      logoutBtnMobile.addEventListener('click', (e) => {
-        e.preventDefault();
         if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+          console.log('✅ Confirmado, cerrando sesión...');
           authService.logout();
+        } else {
+          console.log('❌ Cancelado por el usuario');
         }
-      });
-    }
+      }
+    });
+
+    console.log('✅ Event delegation configurado para logout (desktop + móvil)');
 
     // Notificaciones (placeholder)
     const notificationsBtn = document.getElementById('notificationsBtn');
@@ -305,16 +322,21 @@ class HeaderComponent {
   }
 }
 
+// ✅ Crear instancia global del header
+window.headerComponent = null;
+
 // Auto-inicializar el header cuando el DOM esté listo
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', async () => {
-    const header = new HeaderComponent();
-    await header.init();
+    console.log('🎯 Inicializando HeaderComponent (DOMContentLoaded)...');
+    window.headerComponent = new HeaderComponent();
+    await window.headerComponent.init();
   });
 } else {
   // DOM ya está listo
   (async () => {
-    const header = new HeaderComponent();
-    await header.init();
+    console.log('🎯 Inicializando HeaderComponent (DOM ready)...');
+    window.headerComponent = new HeaderComponent();
+    await window.headerComponent.init();
   })();
 }

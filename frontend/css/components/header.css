@@ -145,13 +145,16 @@
 .user-avatar-btn {
   display: flex;
   align-items: center;
-  gap: 4px; /* 🔥 Gap ultra pegado */
-  padding: 2px 4px; /* 🔥 Padding ultra pegado */
+  gap: 4px;
+  padding: 2px 4px;
   border: none;
   background: transparent;
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: all var(--transition-fast);
+  position: relative;
+  z-index: 100; /* ✅ Asegurar que esté clickeable */
+  pointer-events: auto !important; /* ✅ Forzar que reciba clicks */
 }
 
 .user-avatar-btn:hover {
@@ -206,24 +209,28 @@
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 6px); /* 🔥 Reducido */
+  top: calc(100% + 8px);
   right: 0;
   background: var(--blanco);
   border-radius: var(--radius-lg);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--borde);
-  min-width: 200px; /* 🔥 Reducido */
+  min-width: 200px;
+  padding: 8px 0;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
   transition: all var(--transition-fast);
-  z-index: 200;
+  z-index: 9999; /* ✅ AUMENTADO para que esté sobre todo */
+  pointer-events: none; /* ✅ No recibe clicks cuando está oculto */
 }
 
 .user-menu.active .dropdown-menu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important; /* ✅ Recibe clicks cuando está visible */
+  display: block !important; /* ✅ Forzar display */
 }
 
 .dropdown-item {

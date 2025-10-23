@@ -191,31 +191,42 @@ class FavoritesHandler {
 
   /**
    * 🎨 Actualizar estado visual del botón
+   * ✅ FIX: Actualiza TODOS los botones con el mismo propId (móvil + desktop)
    */
   updateButtonState(propId, isFavorite) {
-    const button = document.querySelector(`[data-favorite-property="${propId}"]`);
-    if (!button) return;
+    const buttons = document.querySelectorAll(`[data-favorite-property="${propId}"]`);
 
-    if (isFavorite) {
-      button.classList.add('is-favorite');
-      button.title = 'Quitar de favoritos';
-    } else {
-      button.classList.remove('is-favorite');
-      button.title = 'Agregar a favoritos';
+    if (buttons.length === 0) {
+      console.warn(`⚠️ No se encontró ningún botón con propId: ${propId}`);
+      return;
     }
 
-    console.log(`🎨 Botón actualizado - PropID: ${propId}, es favorito: ${isFavorite}`);
+    buttons.forEach(button => {
+      if (isFavorite) {
+        button.classList.add('is-favorite');
+        button.title = 'Quitar de favoritos';
+      } else {
+        button.classList.remove('is-favorite');
+        button.title = 'Agregar a favoritos';
+      }
+    });
+
+    console.log(`🎨 ${buttons.length} botón(es) actualizado(s) - PropID: ${propId}, es favorito: ${isFavorite}`);
   }
 
   /**
    * ✨ Animar botón
+   * ✅ FIX: Anima TODOS los botones con el mismo propId
    */
   animateButton(propId) {
-    const button = document.querySelector(`[data-favorite-property="${propId}"]`);
-    if (!button) return;
+    const buttons = document.querySelectorAll(`[data-favorite-property="${propId}"]`);
 
-    button.classList.add('favorite-pulse');
-    setTimeout(() => button.classList.remove('favorite-pulse'), 600);
+    if (buttons.length === 0) return;
+
+    buttons.forEach(button => {
+      button.classList.add('favorite-pulse');
+      setTimeout(() => button.classList.remove('favorite-pulse'), 600);
+    });
   }
 
   /**
