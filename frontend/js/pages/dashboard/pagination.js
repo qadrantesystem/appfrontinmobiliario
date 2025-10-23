@@ -5,8 +5,17 @@
   class DashboardPagination {
     constructor(dashboard) {
       this.dashboard = dashboard;
+      this.activeTab = null; // ✅ Referencia al tab activo (PropiedadesTab)
       this.currentPage = 1;
       this.itemsPerPage = 10;
+    }
+
+    /**
+     * ✅ NUEVO: Setear el tab activo que usará el paginador
+     */
+    setActiveTab(tab) {
+      this.activeTab = tab;
+      console.log('✅ Pagination - Tab activo configurado:', tab.constructor.name);
     }
 
     updateItemsPerPage() {
@@ -85,8 +94,17 @@
     }
 
     goToPage(page) {
+      console.log(`📄 Paginador - Ir a página ${page}`);
       this.currentPage = page;
-      this.dashboard.renderPropertiesPage();
+
+      // ✅ FIX: Usar activeTab (PropiedadesTab) en lugar de dashboard
+      if (this.activeTab && typeof this.activeTab.renderPropertiesPage === 'function') {
+        this.activeTab.renderPropertiesPage();
+        console.log('✅ Página cambiada exitosamente');
+      } else {
+        console.warn('⚠️ No hay tab activo para cambiar de página');
+      }
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 

@@ -15,8 +15,14 @@ class HeaderComponent {
    */
   async init() {
     try {
-      // Cargar el HTML del header
-      await this.loadHeaderHTML();
+      // ✅ FIX: Si el header ya existe en el DOM (hardcoded), no intentar cargarlo
+      const existingHeader = document.querySelector('.dashboard-header');
+      if (!existingHeader) {
+        // Cargar el HTML del header solo si no existe
+        await this.loadHeaderHTML();
+      } else {
+        console.log('✅ Header ya existe en el DOM, omitiendo carga');
+      }
 
       // Verificar si hay sesión
       if (authService && authService.isAuthenticated()) {

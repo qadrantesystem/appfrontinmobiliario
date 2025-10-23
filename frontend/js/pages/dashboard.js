@@ -81,12 +81,15 @@ class Dashboard {
     // Obtener usuario actual
     await this.loadCurrentUser();
 
-    // Inicializar SearchModule (SIEMPRE para hacer búsquedas)
-    if (window.SearchModule) {
-      this.searchModule = new SearchModule(this);
-      await this.searchModule.init();
-      window.searchModule = this.searchModule;
-      console.log('✅ SearchModule inicializado');
+    // Inicializar Search Module (técnica simple como mantenimiento)
+    if (window.SearchSimpleModule) {
+      console.log('🔍 Inicializando SearchSimpleModule (técnica de mantenimiento)...');
+      this.searchSimpleModule = new SearchSimpleModule(this);
+      await this.searchSimpleModule.init();
+      window.searchSimpleModule = this.searchSimpleModule;
+      console.log('✅ SearchSimpleModule inicializado');
+    } else {
+      console.error('❌ SearchSimpleModule no encontrado');
     }
     
     // Si es admin, TAMBIÉN inicializar SearchAdminModule (para ver todas las búsquedas)
@@ -1083,20 +1086,20 @@ class Dashboard {
     if (this.currentUser.perfil_id === 4 && this.searchAdminModule) {
       return await this.searchAdminModule.renderContent();
     }
-    
-    // Usuario normal: delegar a SearchModule
-    if (this.searchModule) {
-      return await this.searchModule.renderHistorialContent();
+
+    // Usuario normal: usar SearchSimpleModule (técnica de mantenimiento)
+    if (this.searchSimpleModule) {
+      return await this.searchSimpleModule.render();
     }
-    
+
     // FALLBACK: Si no está inicializado, mostrar botón básico
     return `
       <div style="margin-bottom: var(--spacing-xl); text-align: center;">
         <h2 style="color: var(--azul-corporativo); margin: 0 0 var(--spacing-md) 0;">
           🔍 Búsquedas de Propiedades
         </h2>
-        <button onclick="if(window.searchModule){window.searchModule.renderSearchModal()}else{location.reload()}" 
-                class="btn btn-primary" 
+        <button onclick="if(window.searchSimpleModule){window.searchSimpleModule.openSearchModal()}else{location.reload()}"
+                class="btn btn-primary"
                 style="padding: var(--spacing-md) var(--spacing-xl); border-radius: var(--radius-md); font-weight: 600; background: var(--azul-corporativo); color: white; border: none; cursor: pointer; font-size: 1rem; box-shadow: var(--shadow-sm);">
           🔍 Nueva Búsqueda
         </button>
@@ -1671,6 +1674,15 @@ class Dashboard {
         await this.filters.setup();
         this.renderPropertiesPage();
       }, 100);
+    }
+
+    if (tabId === 'busquedas') {
+      // Setup event listeners para SearchSimpleModule
+      if (this.searchSimpleModule) {
+        this.searchSimpleModule.setupEventListeners();
+      }
+      // También configurar listeners para tarjetas de propiedades (favoritos, etc)
+      this.setupPropertyListeners();
     }
   }
 

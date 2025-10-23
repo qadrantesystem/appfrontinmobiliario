@@ -298,6 +298,13 @@ class SearchAdminModule {
     `;
   }
 
+  /**
+   * Alias para compatibilidad con DashboardRouter
+   */
+  async render() {
+    return await this.renderContent();
+  }
+
   async renderContent() {
     try {
       await this.loadAllSearches();
@@ -404,11 +411,55 @@ class SearchAdminModule {
   async refreshContent() {
     const contentArea = document.getElementById('tabContent');
     if (!contentArea) return;
-    
+
     contentArea.innerHTML = '<div style="text-align: center; padding: var(--spacing-xxl);"><p>Cargando...</p></div>';
-    
+
     const content = await this.renderContent();
     contentArea.innerHTML = content;
+
+    // Reconectar listeners después de refrescar
+    this.setupEventListeners();
+  }
+
+  /**
+   * Setup event listeners (compatible con DashboardRouter)
+   */
+  async afterRender() {
+    this.setupEventListeners();
+  }
+
+  setupEventListeners() {
+    // Botón aplicar filtros
+    const applyBtn = document.getElementById('applyFiltersBtn');
+    if (applyBtn) {
+      applyBtn.addEventListener('click', () => this.handleApplyFilters());
+    }
+
+    // Botón limpiar filtros
+    const clearBtn = document.getElementById('clearFiltersBtn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => this.handleClearFilters());
+    }
+
+    // Botones de paginación
+    const prevBtn = document.getElementById('prevPageBtn');
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => this.goToPage(this.currentPage - 1));
+    }
+
+    const nextBtn = document.getElementById('nextPageBtn');
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => this.goToPage(this.currentPage + 1));
+    }
+
+    console.log('✅ SearchAdminModule listeners configurados');
+  }
+
+  /**
+   * Cleanup (compatible con DashboardRouter)
+   */
+  async destroy() {
+    console.log('🗑️ Destruyendo SearchAdminModule...');
   }
 }
 

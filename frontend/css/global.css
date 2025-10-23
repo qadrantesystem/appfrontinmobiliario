@@ -107,7 +107,7 @@ a:hover {
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #003366 0%, #1a4d7a 50%, #2d5f8f 100%);
+  background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-medio) 50%, var(--azul-claro) 100%);
   color: var(--blanco);
   border: 3px solid rgba(255, 255, 255, 0.2);
 }
@@ -119,7 +119,7 @@ a:hover {
   left: -3px;
   right: -3px;
   bottom: -3px;
-  background: linear-gradient(135deg, #2d5f8f, #5B9BD5);
+  background: linear-gradient(135deg, var(--azul-claro), #5B9BD5);
   border-radius: 50px;
   z-index: -1;
   opacity: 0;
@@ -128,7 +128,7 @@ a:hover {
 
 .btn-secondary:hover {
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 10px 25px rgba(0, 51, 102, 0.4);
+  box-shadow: 0 10px 25px rgba(44, 82, 130, 0.4);
   border-color: rgba(255, 255, 255, 0.4);
 }
 

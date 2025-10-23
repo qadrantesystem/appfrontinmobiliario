@@ -541,9 +541,15 @@ class PropertyForm {
     console.log('Paso:', this.currentStep);
     console.log('Modo:', this.propId ? 'EDITAR (ID: ' + this.propId + ')' : 'NUEVO');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
-    const container = this.dashboard.tabContent;
-    
+
+    // ✅ FIX: Usar document.getElementById en lugar de this.dashboard.tabContent
+    const container = document.getElementById('tabContent');
+
+    if (!container) {
+      console.error('❌ No se encontró el contenedor #tabContent');
+      return;
+    }
+
     container.innerHTML = `
       <div class="property-form-container" style="max-width: 900px; margin: 0 auto;">
         ${this.renderHeader()}
@@ -1166,8 +1172,13 @@ class PropertyForm {
     if (btnVolver) {
       btnVolver.addEventListener('click', async () => {
         console.log('🔙 Click en Volver a Lista');
-        // Recargar la pestaña completa de propiedades
-        await this.dashboard.loadTabContent('propiedades', this.dashboard.currentUser.perfil_id);
+        // ✅ FIX: Usar router.navigate en lugar de loadTabContent
+        if (this.dashboard.router) {
+          this.dashboard.router.navigate('propiedades');
+          console.log('✅ Navegando a tab propiedades');
+        } else {
+          console.error('❌ Router no disponible');
+        }
       });
       console.log('✅ Botón "Volver a Lista" conectado');
     } else {

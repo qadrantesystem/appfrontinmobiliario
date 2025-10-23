@@ -5,10 +5,19 @@
   class DashboardFilters {
     constructor(dashboard) {
       this.dashboard = dashboard;
+      this.activeTab = null; // ✅ Referencia al tab activo (PropiedadesTab)
       this.selectedTipos = [];
       this.selectedDistritos = [];
       this.selectedTransaccion = '';
       this.searchPropietario = '';
+    }
+
+    /**
+     * ✅ NUEVO: Setear el tab activo que usará los filtros
+     */
+    setActiveTab(tab) {
+      this.activeTab = tab;
+      console.log('✅ Filters - Tab activo configurado:', tab.constructor.name);
     }
 
     render() {
@@ -268,8 +277,16 @@
     }
 
     apply() {
-      this.dashboard.currentPage = 1;
-      this.dashboard.renderPropertiesPage();
+      console.log('🔄 Aplicando filtros...');
+
+      // ✅ FIX: Usar activeTab (PropiedadesTab) en lugar de dashboard
+      if (this.activeTab && typeof this.activeTab.renderPropertiesPage === 'function') {
+        this.dashboard.pagination.currentPage = 1; // Reset página
+        this.activeTab.renderPropertiesPage();
+        console.log('✅ Filtros aplicados');
+      } else {
+        console.warn('⚠️ No hay tab activo para aplicar filtros');
+      }
     }
 
     clearAll() {
