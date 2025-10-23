@@ -227,7 +227,8 @@ class DashboardApp {
    */
   setupUI() {
     this.setupUserMenu();
-    this.setupLogout();
+    // ❌ REMOVIDO: setupLogout() - Ahora lo maneja header.js
+    // this.setupLogout();
   }
 
   /**

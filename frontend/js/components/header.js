@@ -240,15 +240,48 @@ class HeaderComponent {
     }
 
     // ✅ Logout con event delegation (funciona para desktop y móvil)
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', async (e) => {
       const logoutBtn = e.target.closest('#logoutBtn, #logoutBtnMobile');
       if (logoutBtn) {
         e.preventDefault();
         e.stopPropagation();
         console.log('🚪 Click en Cerrar Sesión detectado');
 
-        if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+        // ✅ SweetAlert2 con diseño corporativo
+        const result = await Swal.fire({
+          title: '¿Cerrar Sesión?',
+          text: '¿Estás seguro que deseas salir del sistema?',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#2C5282', // azul corporativo
+          cancelButtonColor: '#718096', // gris
+          confirmButtonText: 'Sí, cerrar sesión',
+          cancelButtonText: 'Cancelar',
+          reverseButtons: true,
+          customClass: {
+            popup: 'swal-logout-popup',
+            confirmButton: 'swal-logout-confirm',
+            cancelButton: 'swal-logout-cancel'
+          }
+        });
+
+        if (result.isConfirmed) {
           console.log('✅ Confirmado, cerrando sesión...');
+
+          // Mostrar loading mientras cierra sesión
+          Swal.fire({
+            title: 'Cerrando sesión...',
+            text: 'Por favor espera',
+            icon: 'info',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+
+          // Cerrar sesión
           authService.logout();
         } else {
           console.log('❌ Cancelado por el usuario');
