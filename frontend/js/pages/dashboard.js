@@ -2424,5 +2424,5 @@ class Dashboard {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-  new Dashboard();
+  window.dashboard = new Dashboard();
 });

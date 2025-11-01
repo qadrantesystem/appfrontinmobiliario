@@ -186,14 +186,11 @@ class DashboardRouter {
    * Cargar tab Búsquedas (usa módulos existentes)
    */
   async loadBusquedasTab() {
-    // Si es admin, usar SearchAdminModule
-    if (this.app.currentUser.perfil_id === 4 && this.app.searchAdminModule) {
-      return await this.app.searchAdminModule.render();
-    }
-
-    // Usuarios normales usan SearchSimpleModule
-    if (this.app.searchSimpleModule) {
-      return await this.app.searchSimpleModule.render();
+    // Usar el nuevo BusquedasTab para todos los perfiles
+    if (typeof BusquedasTab !== 'undefined') {
+      const module = new BusquedasTab(this.app);
+      this.currentModule = module;
+      return await module.render();
     }
 
     return '<p>Módulo de búsquedas no disponible</p>';

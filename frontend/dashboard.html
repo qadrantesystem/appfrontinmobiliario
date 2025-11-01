@@ -20,6 +20,8 @@
     <link rel="stylesheet" href="css/components/charts.css?v=17">
     <link rel="stylesheet" href="css/components/property-form.css?v=1">
     <link rel="stylesheet" href="css/pages/dashboard-maintenance.css?v=5">
+    <!-- 🔍 Búsquedas Tab - CSS Separado (Arquitectura Limpia) -->
+    <link rel="stylesheet" href="css/pages/dashboard/busquedas.css?v=5">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,6 +32,10 @@
     <!-- Leaflet para mapas -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- jsPDF y html2canvas para generación de PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <!-- Scripts de configuración (DEBEN CARGARSE EN ORDEN) -->
     <script src="js/config/api.js?v=7"></script>
@@ -194,6 +200,16 @@
     <script src="js/pages/dashboard/tabs/propiedades/propiedades.js?v=11"></script>
     <script src="js/pages/dashboard/tabs/favoritos/favoritos.js?v=2"></script>
     <script src="js/pages/dashboard/tabs/subscripciones/subscripciones.js?v=1"></script>
+
+    <!-- 🔍 Búsquedas Tab - Arquitectura Modular (Separado en componentes) -->
+    <script src="js/pages/dashboard/tabs/busquedas/busquedas-form.js?v=5"></script>
+    <script src="js/pages/dashboard/tabs/busquedas/busquedas-cards.js?v=11"></script>
+    <script src="js/pages/dashboard/tabs/busquedas/busquedas-map.js?v=1"></script>
+    <script src="js/pages/dashboard/tabs/busquedas/busquedas-actions.js?v=5"></script>
+    <script src="js/pages/dashboard/tabs/busquedas/busquedas-lista.js?v=8"></script>
+    <script src="js/pages/dashboard/tabs/busquedas/busquedas.NEW.js?v=18"></script>
+    <!-- ⚠️ MONOLITO ORIGINAL (backup - 3,628 líneas) -->
+    <!-- <script src="js/pages/dashboard/tabs/busquedas/busquedas.js?v=1"></script> -->
 
     <!-- 4️⃣ Admin Tabs (solo para perfil_id = 4) -->
     <script src="js/pages/dashboard/tabs/aprobaciones/aprobaciones.js?v=1"></script>
