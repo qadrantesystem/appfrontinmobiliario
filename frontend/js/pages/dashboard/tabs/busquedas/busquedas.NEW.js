@@ -270,6 +270,11 @@ class BusquedasTab {
       return;
     }
 
+    // ❤️ Inicializar handler de favoritos
+    if (window.favoritesHandler && !window.favoritesHandler.initialized) {
+      await window.favoritesHandler.init();
+    }
+
     // Inicializar componentes
     this.formHandler = new BusquedasForm(this);
     this.cardsHandler = new BusquedasCards(this);
