@@ -233,13 +233,13 @@ class DashboardRouter {
   }
 
   /**
-   * Cargar tab Mantenimientos (usa MaintenanceController existente)
+   * Cargar tab Mantenimientos (delega al módulo)
    */
   async loadMantenimientosTab() {
-    if (window.MaintenanceController) {
-      const controller = new MaintenanceController();
-      this.currentModule = controller;
-      return controller.render();
+    if (window.MantenimientosTab) {
+      const module = new MantenimientosTab(this.app);
+      this.currentModule = module;
+      return await module.render();
     }
     return '<p>Módulo Mantenimientos no disponible</p>';
   }
