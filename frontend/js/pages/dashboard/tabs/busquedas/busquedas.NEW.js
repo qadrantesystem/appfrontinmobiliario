@@ -39,27 +39,29 @@ class BusquedasTab {
     return `
       <div class="busquedas-tab">
         <!-- Header -->
-        <div class="busquedas-header">
-          <div>
-            <h2>Búsqueda de Propiedades</h2>
-            <p id="resultsCounter" class="results-counter">
-              Inicia una búsqueda para ver resultados
-            </p>
-          </div>
-          <div class="header-actions" style="display: flex; gap: 12px; align-items: center;">
-            <button class="btn btn-secondary" data-nueva-busqueda style="display: inline-flex; align-items: center; gap: 6px;">
-              <i class="fas fa-plus"></i> Nueva Búsqueda
-            </button>
-            <!-- Botones de acciones (ocultos inicialmente) -->
-            <button id="btnGuardarBusqueda" class="btn btn-primary" style="display: none; align-items: center; gap: 6px;">
-              <i class="fas fa-save"></i> Guardar
-            </button>
-            <button id="btnCompartirBusqueda" class="btn btn-primary" style="display: none; align-items: center; gap: 6px;">
-              <i class="fas fa-share-alt"></i> Compartir
-            </button>
-            <button id="btnVolverLista" class="btn btn-outline" style="display: none; align-items: center; gap: 6px;">
-              <i class="fas fa-arrow-left"></i> Volver a Lista
-            </button>
+        <div class="busquedas-header" style="margin-bottom: var(--spacing-xl);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); flex-wrap: wrap; gap: var(--spacing-md);">
+            <div>
+              <h2 style="color: var(--azul-corporativo); margin: 0;">Búsqueda de Propiedades</h2>
+              <p id="resultsCounter" style="margin: 0; color: var(--gris-medio); font-size: 0.9rem;">
+                Inicia una búsqueda para ver resultados
+              </p>
+            </div>
+            <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+              <button class="btn btn-golden" data-nueva-busqueda>
+                <i class="fas fa-plus"></i> Nueva Búsqueda
+              </button>
+              <!-- Botones de acciones (ocultos inicialmente) -->
+              <button id="btnGuardarBusqueda" class="btn btn-primary" style="display: none;">
+                <i class="fas fa-save"></i> Guardar
+              </button>
+              <button id="btnCompartirBusqueda" class="btn btn-primary" style="display: none;">
+                <i class="fas fa-share-alt"></i> Compartir
+              </button>
+              <button id="btnVolverLista" class="btn btn-outline" style="display: none;">
+                <i class="fas fa-arrow-left"></i> Volver a Lista
+              </button>
+            </div>
           </div>
         </div>
 

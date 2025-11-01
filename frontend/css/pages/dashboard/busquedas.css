@@ -5,6 +5,63 @@
  */
 
 /* ========================================
+   HEADER DE BÚSQUEDAS
+   ======================================== */
+
+/* Forzar que en desktop NO haga wrap - botón a la derecha */
+.busquedas-tab .busquedas-header > div {
+  flex-wrap: nowrap !important;
+}
+
+.busquedas-tab .busquedas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-md);
+}
+
+.busquedas-tab .header-title h2 {
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--azul-corporativo);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.busquedas-tab .results-counter {
+  margin: 0;
+  color: var(--gris-medio);
+  font-size: 0.9rem;
+}
+
+.busquedas-tab .header-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Botón Dorado - Nueva Búsqueda (igual que btn-primary pero dorado) */
+.busquedas-tab .btn.btn-golden {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  padding: 14px 32px;
+  font-size: 0.9rem;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.busquedas-tab .btn.btn-golden:hover {
+  background: linear-gradient(135deg, #e89e1c 0%, #c77206 100%);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
+}
+
+.busquedas-tab .btn.btn-golden:active {
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* ========================================
    FILTROS DE BÚSQUEDA
    ======================================== */
 
@@ -1415,6 +1472,31 @@
    ======================================== */
 
 @media (max-width: 768px) {
+  /* Header responsive - permitir wrap en móvil */
+  .busquedas-tab .busquedas-header > div {
+    flex-wrap: wrap !important;
+  }
+
+  .busquedas-tab .busquedas-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+
+  .busquedas-tab .header-title {
+    width: 100%;
+  }
+
+  .busquedas-tab .header-actions {
+    width: 100%;
+    gap: var(--spacing-sm);
+  }
+
+  .busquedas-tab .header-actions .btn {
+    flex: 1;
+    min-width: 0;
+  }
+
   .busquedas-tab .filtros-busqueda-container {
     padding: var(--spacing-md);
   }
