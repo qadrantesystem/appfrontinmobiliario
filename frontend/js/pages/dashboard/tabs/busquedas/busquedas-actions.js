@@ -71,9 +71,10 @@ class BusquedasActions {
           'Authorization': `Bearer ${authService.getToken()}`
         },
         body: JSON.stringify({
-          nombre: nombre,
-          filtros: this.tab.currentFilters,
-          total_resultados: this.tab.currentResults.length
+          nombre_busqueda: nombre,
+          criterios_json: this.tab.currentFilters,
+          frecuencia_alerta: 'inmediata',  // Por defecto alertas inmediatas
+          alerta_activa: true
         })
       });
 
