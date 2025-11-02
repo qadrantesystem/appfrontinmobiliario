@@ -12,6 +12,7 @@ class MaintenanceController {
     this.modules = {
       'property-types': null,
       'districts': null,
+      'categories': null,
       'characteristics': null,
       'characteristics-by-type': null,
       'profiles': null,
@@ -60,6 +61,34 @@ class MaintenanceController {
             <h3>Distritos</h3>
             <p>Gestionar ubicaciones y zonas</p>
             <button class="btn btn-maintenance" onclick="window.maintenanceController.openModule('districts')">
+              Administrar
+            </button>
+          </div>
+
+          <!-- Categorías -->
+          <div class="maintenance-card" data-module="categories">
+            <div class="maintenance-card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            <h3>Categorías</h3>
+            <p>Gestionar categorías de características</p>
+            <button class="btn btn-maintenance" onclick="window.maintenanceController.openModule('categories')">
+              Administrar
+            </button>
+          </div>
+
+          <!-- Categorías -->
+          <div class="maintenance-card" data-module="categories">
+            <div class="maintenance-card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            <h3>Categorías</h3>
+            <p>Gestionar categorías de características</p>
+            <button class="btn btn-maintenance" onclick="window.maintenanceController.openModule('categories')">
               Administrar
             </button>
           </div>
@@ -175,6 +204,13 @@ class MaintenanceController {
             this.modules['districts'] = new DistrictsModule(this);
           }
           moduleContent = await this.modules['districts'].render();
+          break;
+
+        case 'categories':
+          if (!this.modules['categories']) {
+            this.modules['categories'] = new CategoriesModule(this);
+          }
+          moduleContent = await this.modules['categories'].render();
           break;
 
         case 'characteristics':

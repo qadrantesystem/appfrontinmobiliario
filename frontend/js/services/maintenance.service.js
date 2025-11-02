@@ -122,6 +122,38 @@ class MaintenanceService {
   }
 
   // ==========================================
+  // 📁 CATEGORÍAS
+  // ==========================================
+
+  /**
+   * Listar todas las categorías
+   */
+  async getCategorias() {
+    return await this.request('/categorias', 'GET', null, false);
+  }
+
+  /**
+   * Crear categoría
+   */
+  async createCategoria(data) {
+    return await this.request('/categorias', 'POST', data, true);
+  }
+
+  /**
+   * Actualizar categoría
+   */
+  async updateCategoria(id, data) {
+    return await this.request(`/categorias/${id}`, 'PUT', data, true);
+  }
+
+  /**
+   * Eliminar categoría (soft delete)
+   */
+  async deleteCategoria(id) {
+    return await this.request(`/categorias/${id}`, 'DELETE', null, true);
+  }
+
+  // ==========================================
   // ⚙️ CARACTERÍSTICAS
   // ==========================================
 
