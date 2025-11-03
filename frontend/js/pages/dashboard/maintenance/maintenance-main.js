@@ -50,35 +50,6 @@ class MaintenanceController {
             </button>
           </div>
 
-          <!-- Distritos -->
-          <div class="maintenance-card" data-module="districts">
-            <div class="maintenance-card-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-              </svg>
-            </div>
-            <h3>Distritos</h3>
-            <p>Gestionar ubicaciones y zonas</p>
-            <button class="btn btn-maintenance" onclick="window.maintenanceController.openModule('districts')">
-              Administrar
-            </button>
-          </div>
-
-          <!-- Categorías -->
-          <div class="maintenance-card" data-module="categories">
-            <div class="maintenance-card-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-              </svg>
-            </div>
-            <h3>Categorías</h3>
-            <p>Gestionar categorías de características</p>
-            <button class="btn btn-maintenance" onclick="window.maintenanceController.openModule('categories')">
-              Administrar
-            </button>
-          </div>
-
           <!-- Categorías -->
           <div class="maintenance-card" data-module="categories">
             <div class="maintenance-card-icon">
@@ -119,6 +90,21 @@ class MaintenanceController {
             <h3>Características por Tipo</h3>
             <p>Configurar características dinámicas por tipo de inmueble</p>
             <button class="btn btn-maintenance" onclick="window.maintenanceController.openModule('characteristics-by-type')">
+              Administrar
+            </button>
+          </div>
+
+          <!-- Distritos -->
+          <div class="maintenance-card" data-module="districts">
+            <div class="maintenance-card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </div>
+            <h3>Distritos</h3>
+            <p>Gestionar ubicaciones y zonas</p>
+            <button class="btn btn-maintenance" onclick="window.maintenanceController.openModule('districts')">
               Administrar
             </button>
           </div>
