@@ -870,16 +870,6 @@
   margin: 0.25rem 0;
 }
 
-@media (max-width: 768px) {
-  .tree-children {
-    padding-left: 1rem;
-  }
-  
-  .tree-badge {
-    font-size: 0.625rem;
-    padding: 0.125rem 0.5rem;
-  }
-}
 
 /* Iconos monocromáticos corporativos para tree view */
 .tree-node .tree-icon {
@@ -904,4 +894,149 @@
 
 .caracteristica-node .tree-icon-small {
   color: #6b7280 !important; /* Gris elegante */
+}
+
+/* ==========================================
+   MOBILE ACCORDION DESIGN (Touch-Friendly)
+   ========================================== */
+@media (max-width: 768px) {
+  .tree-view-container {
+    padding: 0.75rem;
+    padding-bottom: 80px;
+  }
+
+  .tree-view {
+    padding: 0.5rem;
+    background: transparent;
+  }
+
+  .tree-node {
+    margin: 0.75rem 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .tree-node-header {
+    min-height: 48px;
+    padding: 1rem;
+    touch-action: manipulation;
+  }
+
+  .tipo-node > .tree-node-header {
+    background: linear-gradient(135deg, #2c5282 0%, #3d6ba3 100%);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+  }
+
+  .tipo-node > .tree-node-header:active {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+  }
+
+  .tipo-node > .tree-node-header .tree-icon {
+    color: white !important;
+    font-size: 1.5rem;
+  }
+
+  .tipo-node > .tree-node-header .tree-label {
+    color: white;
+  }
+
+  .tipo-node > .tree-node-header .tree-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    font-weight: 600;
+  }
+
+  .categoria-node {
+    margin: 0.5rem 0;
+    background: #f8fafc;
+    border-radius: 8px;
+  }
+
+  .categoria-node > .tree-node-header {
+    background: #f1f5f9;
+    min-height: 44px;
+    padding: 0.875rem;
+    border-radius: 8px;
+  }
+
+  .categoria-node > .tree-node-header:active {
+    background: #e2e8f0;
+  }
+
+  .tree-toggle {
+    font-size: 1.25rem;
+    width: 24px;
+    min-width: 24px;
+  }
+
+  .tree-children {
+    padding: 0.5rem 0.75rem;
+    margin-top: 0;
+  }
+
+  .tipo-node > .tree-children {
+    padding: 0.75rem;
+    background: #fafbfc;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .tree-checkbox {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+    margin: 0.25rem 0;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+  }
+
+  .tree-checkbox:active {
+    background: #f0f9ff;
+    border-color: #3b82f6;
+  }
+
+  .tree-checkbox input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    margin-right: 1rem;
+  }
+
+  .tree-label {
+    font-size: 0.938rem;
+    line-height: 1.4;
+  }
+
+  .tree-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.625rem;
+  }
+
+  .tree-badge-small {
+    font-size: 0.688rem;
+    padding: 0.125rem 0.5rem;
+  }
+
+  #saveButtonContainer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    background: white;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+  }
+
+  #saveButtonContainer .btn {
+    width: 100%;
+    min-height: 48px;
+    font-size: 1rem;
+    font-weight: 600;
+    justify-content: center;
+  }
 }
