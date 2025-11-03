@@ -61,8 +61,12 @@ class CharacteristicsByTypeModule {
       return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M14 6l-3.75 5 2.85 3.8-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22L14 6z"/></svg>';
     if(n.includes('local') || n.includes('comercial'))
       return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>';
-    if(n.includes('bodega') || n.includes('warehouse'))
+    if(n.includes('almac') || n.includes('bodega') || n.includes('warehouse'))
       return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M22 21V7L12 3 2 7v14h5v-9h10v9h5zm-11-2H9v2h2v-2zm2-3h-2v2h2v-2zm2 3h-2v2h2v-2z"/></svg>';
+    if(n.includes('cochera') || n.includes('garaje') || n.includes('garage') || n.includes('parking') || n.includes('estacionamiento'))
+      return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M19 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 16H5V4h14v14zM17.99 9c0-1.66-1.34-3-3-3h-6v2h6c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1h-1v-2h-2v4h3c1.66 0 3-1.34 3-3V9z"/></svg>';
+    if(n.includes('habitaci') || n.includes('cuarto') || n.includes('room'))
+      return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V6H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>';
     return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M17 11V3H7v4H3v14h8v-4h2v4h8V11h-4zM7 19H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm4 4H9v-2h2v2zm0-4H9V9h2v2zm0-4H9V5h2v2zm4 8h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm4 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>';
   }
 
