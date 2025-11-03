@@ -59,7 +59,14 @@ class CharacteristicsModule {
   }
 
   async loadCategories() {
-    try { const r = await maintenanceService.getCategorias(); this.categories = r.data; } catch(e) { this.categories = []; }
+    try {
+      const r = await maintenanceService.getCategorias();
+      this.categories = r.data;
+      console.log('✅ Categorías cargadas:', this.categories.length);
+    } catch(e) {
+      console.error('❌ Error cargando categorías:', e);
+      this.categories = [];
+    }
   }
 
   async refreshTable() {
@@ -77,11 +84,25 @@ class CharacteristicsModule {
   async previousPage() { if (this.pagination.currentPage > 1) { this.pagination.currentPage--; await this.refreshTable(); } }
   async nextPage() { if (this.pagination.currentPage < this.pagination.totalPages) { this.pagination.currentPage++; await this.refreshTable(); } }
 
-  openModal() {
+  async openModal() {
     this.isEditing = false;
     this.editingId = null;
+
+    // Recargar categorías para asegurar que estén disponibles
+    await this.loadCategories();
+
     const m = document.getElementById('characteristicModal');
     const f = document.getElementById('characteristicForm');
+    const categoriaSelect = document.getElementById('categoria_id');
+
+    // Re-renderizar el select de categorías
+    if (categoriaSelect) {
+      categoriaSelect.innerHTML = `
+        <option value="">Seleccionar</option>
+        ${(this.categories || []).map(c => `<option value="${c.categoria_id}">${c.nombre}</option>`).join('')}
+      `;
+    }
+
     if (f) { f.reset(); document.getElementById('activo').checked = true; }
     if (m) m.style.display = 'flex';
   }
@@ -96,8 +117,21 @@ class CharacteristicsModule {
   async editItem(id) {
     this.isEditing = true;
     this.editingId = id;
+
+    // Recargar categorías antes de editar
+    await this.loadCategories();
+
     const i = this.data.find(x => x.caracteristica_id === id);
     if (!i) return;
+
+    const categoriaSelect = document.getElementById('categoria_id');
+    if (categoriaSelect) {
+      categoriaSelect.innerHTML = `
+        <option value="">Seleccionar</option>
+        ${(this.categories || []).map(c => `<option value="${c.categoria_id}">${c.nombre}</option>`).join('')}
+      `;
+    }
+
     document.getElementById('nombre').value = i.nombre;
     document.getElementById('categoria_id').value = i.categoria_id||'';
     document.getElementById('icono').value = i.icono||'';
