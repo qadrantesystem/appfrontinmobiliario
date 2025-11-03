@@ -50,20 +50,27 @@ class CharacteristicsByTypeModule {
 
   getIconoTipo(nombre) {
     const n = nombre.toLowerCase();
-    if(n.includes('casa') || n.includes('house')) return '🏠';
-    if(n.includes('depart') || n.includes('apart')) return '🏢';
-    if(n.includes('oficina') || n.includes('office')) return '💼';
-    if(n.includes('terreno') || n.includes('lote') || n.includes('land')) return '🌳';
-    if(n.includes('local') || n.includes('comercial')) return '🏪';
-    if(n.includes('bodega') || n.includes('warehouse')) return '🏭';
-    return '🏘️';
+    const svgStyle = 'width:20px;height:20px;fill:currentColor;vertical-align:middle;';
+    if(n.includes('casa') || n.includes('house'))
+      return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 10h3v10z"/></svg>';
+    if(n.includes('depart') || n.includes('apart'))
+      return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>';
+    if(n.includes('oficina') || n.includes('office'))
+      return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>';
+    if(n.includes('terreno') || n.includes('lote') || n.includes('land'))
+      return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M14 6l-3.75 5 2.85 3.8-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22L14 6z"/></svg>';
+    if(n.includes('local') || n.includes('comercial'))
+      return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>';
+    if(n.includes('bodega') || n.includes('warehouse'))
+      return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M22 21V7L12 3 2 7v14h5v-9h10v9h5zm-11-2H9v2h2v-2zm2-3h-2v2h2v-2zm2 3h-2v2h2v-2z"/></svg>';
+    return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M17 11V3H7v4H3v14h8v-4h2v4h8V11h-4zM7 19H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm4 4H9v-2h2v2zm0-4H9V9h2v2zm0-4H9V5h2v2zm4 8h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm4 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>';
   }
 
   renderTipoNode(t) {
     const exp=this.expandedTypes.has(t.tipo_inmueble_id);
     const categorias=this.categoriasPorTipo[t.tipo_inmueble_id]||[];
     const total=categorias.reduce((sum,c)=>(c.caracteristicas||[]).filter(car=>this.isChecked(t.tipo_inmueble_id, car.caracteristica_id)).length+sum,0);
-    return '<div class="tree-node tipo-node"><div class="tree-node-header" onclick="window.characteristicsByTypeModule.toggleTipo('+t.tipo_inmueble_id+')"><span class="tree-toggle">'+(exp?'▼':'▶')+'</span><span class="tree-icon">🏢</span><span class="tree-label">'+t.nombre+'</span><span class="tree-badge">'+total+' asignadas</span></div>'+(exp?'<div class="tree-children">'+(categorias.length?categorias.map(c=>this.renderCategoriaNode(t.tipo_inmueble_id,c)).join(''):'<p class="loading">Cargando...</p>')+'</div>':'')+'</div>';
+    return '<div class="tree-node tipo-node"><div class="tree-node-header" onclick="window.characteristicsByTypeModule.toggleTipo('+t.tipo_inmueble_id+')"><span class="tree-toggle">'+(exp?'▼':'▶')+'</span><span class="tree-icon">'+this.getIconoTipo(t.nombre)+'</span><span class="tree-label">'+t.nombre+'</span><span class="tree-badge">'+total+' asignadas</span></div>'+(exp?'<div class="tree-children">'+(categorias.length?categorias.map(c=>this.renderCategoriaNode(t.tipo_inmueble_id,c)).join(''):'<p class="loading">Cargando...</p>')+'</div>':'')+'</div>';
   }
 
   renderCategoriaNode(tid,cat) {
