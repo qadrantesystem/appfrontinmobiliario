@@ -62,7 +62,6 @@ class Dashboard {
         { id: 'favoritos', name: 'Favoritos', icon: this.getIcon('heart') },
         { id: 'aprobaciones', name: 'Aprobaciones', icon: this.getIcon('check-circle') },
         { id: 'mantenimientos', name: 'Mantenimientos', icon: this.getIcon('settings') },
-        { id: 'usuarios', name: 'Usuarios', icon: this.getIcon('users') },
         { id: 'reportes', name: 'Reportes', icon: this.getIcon('file-text') }
       ]
     };
