@@ -39,7 +39,7 @@ class PropertyTypesModule {
   }
 
   renderModal() {
-    return `<div class="modal" id="propertyTypeModal" style="display:none;"><div class="modal-content"><div class="modal-header"><h3>${this.isEditing?'Editar':'Nuevo'} Tipo de Inmueble</h3><button class="modal-close" onclick="window.propertyTypesModule.closeModal()">×</button></div><form id="propertyTypeForm" onsubmit="window.propertyTypesModule.saveItem(event)"><div class="form-group"><label>Nombre *</label><input type="text" id="nombre" required class="form-control"></div><div class="form-group"><label><input type="checkbox" id="activo" checked> Activo</label></div><div class="modal-actions"><button type="button" class="btn btn-outline" onclick="window.propertyTypesModule.closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">${this.isEditing?'Actualizar':'Crear'}</button></div></form></div></div>`;
+    return `<div class="modal" id="propertyTypeModal" style="display:none;"><div class="modal-content"><div class="modal-header"><h3>${this.isEditing?'Editar':'Nuevo'} Tipo de Inmueble</h3><button class="modal-close" onclick="window.propertyTypesModule.closeModal()">×</button></div><form id="propertyTypeForm" onsubmit="window.propertyTypesModule.saveItem(event)"><div class="form-group"><label>Nombre *</label><input type="text" id="nombre" required minlength="3" maxlength="100" class="form-control"></div><div class="form-group"><label><input type="checkbox" id="activo" checked> Activo</label></div><div class="modal-actions"><button type="button" class="btn btn-outline" onclick="window.propertyTypesModule.closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">${this.isEditing?'Actualizar':'Crear'}</button></div></form></div></div>`;
   }
 
   setupEventListeners() {
@@ -99,7 +99,14 @@ class PropertyTypesModule {
 
   async saveItem(e) {
     e.preventDefault();
-    const d = { nombre: document.getElementById('nombre').value, activo: document.getElementById('activo').checked };
+    const nombre = document.getElementById('nombre').value.trim();
+    
+    if (!nombre || nombre.length < 3) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'El nombre debe tener al menos 3 caracteres' });
+      return;
+    }
+    
+    const d = { nombre, activo: document.getElementById('activo').checked };
     try {
       if (this.isEditing) await maintenanceService.updateTipoInmueble(this.editingId, d); else await maintenanceService.createTipoInmueble(d);
       Swal.fire({ icon: 'success', title: this.isEditing?'Actualizado':'Creado', timer: 2000, showConfirmButton: false });

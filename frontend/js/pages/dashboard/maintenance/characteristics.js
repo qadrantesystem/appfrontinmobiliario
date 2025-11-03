@@ -41,7 +41,7 @@ class CharacteristicsModule {
   }
 
   renderModal() {
-    return `<div class="modal" id="characteristicModal" style="display:none;"><div class="modal-content"><div class="modal-header"><h3>${this.isEditing?'Editar':'Nueva'} Característica</h3><button class="modal-close" onclick="window.characteristicsModule.closeModal()">×</button></div><form id="characteristicForm" onsubmit="window.characteristicsModule.saveItem(event)"><div class="form-group"><label>Nombre *</label><input type="text" id="nombre" required class="form-control"></div><div class="form-group"><label>Categoría *</label><select id="categoria_id" required class="form-control"><option value="">Seleccionar</option>${(this.categories||[]).map(c=>`<option value="${c.categoria_id}">${c.nombre}</option>`).join('')}</select></div><div class="form-group"><label>Icono</label><input type="text" id="icono" class="form-control"></div><div class="form-group"><label><input type="checkbox" id="activo" checked> Activo</label></div><div class="modal-actions"><button type="button" class="btn btn-outline" onclick="window.characteristicsModule.closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">${this.isEditing?'Actualizar':'Crear'}</button></div></form></div></div>`;
+    return `<div class="modal" id="characteristicModal" style="display:none;"><div class="modal-content"><div class="modal-header"><h3>${this.isEditing?'Editar':'Nueva'} Característica</h3><button class="modal-close" onclick="window.characteristicsModule.closeModal()">×</button></div><form id="characteristicForm" onsubmit="window.characteristicsModule.saveItem(event)"><div class="form-group"><label>Nombre *</label><input type="text" id="nombre" required minlength="3" maxlength="100" class="form-control"></div><div class="form-group"><label>Categoría *</label><select id="categoria_id" required class="form-control"><option value="">Seleccionar</option>${(this.categories||[]).map(c=>`<option value="${c.categoria_id}">${c.nombre}</option>`).join('')}</select></div><div class="form-group"><label>Icono</label><input type="text" id="icono" class="form-control" maxlength="50"></div><div class="form-group"><label><input type="checkbox" id="activo" checked> Activo</label></div><div class="modal-actions"><button type="button" class="btn btn-outline" onclick="window.characteristicsModule.closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">${this.isEditing?'Actualizar':'Crear'}</button></div></form></div></div>`;
   }
 
   setupEventListeners() {
@@ -141,7 +141,21 @@ class CharacteristicsModule {
 
   async saveItem(e) {
     e.preventDefault();
-    const d = { nombre: document.getElementById('nombre').value, categoria_id: parseInt(document.getElementById('categoria_id').value), icono: document.getElementById('icono').value||null, activo: document.getElementById('activo').checked };
+    const nombre = document.getElementById('nombre').value.trim();
+    const categoria_id = parseInt(document.getElementById('categoria_id').value);
+    const icono = document.getElementById('icono').value.trim() || null;
+    
+    if (!nombre || nombre.length < 3) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'El nombre debe tener al menos 3 caracteres' });
+      return;
+    }
+    
+    if (isNaN(categoria_id)) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Debe seleccionar una categoria' });
+      return;
+    }
+    
+    const d = { nombre, categoria_id, icono, activo: document.getElementById('activo').checked };
     try {
       if (this.isEditing) await maintenanceService.updateCaracteristica(this.editingId, d); else await maintenanceService.createCaracteristica(d);
       Swal.fire({ icon: 'success', title: this.isEditing?'Actualizado':'Creado', timer: 2000, showConfirmButton: false });

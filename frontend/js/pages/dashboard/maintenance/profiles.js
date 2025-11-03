@@ -39,7 +39,7 @@ class ProfilesModule {
   }
 
   renderModal() {
-    return `<div class="modal" id="profileModal" style="display:none;"><div class="modal-content"><div class="modal-header"><h3>${this.isEditing?'Editar':'Nuevo'} Perfil</h3><button class="modal-close" onclick="window.profilesModule.closeModal()">×</button></div><form id="profileForm" onsubmit="window.profilesModule.saveItem(event)"><div class="form-group"><label>Nombre *</label><input type="text" id="nombre" required class="form-control"></div><div class="form-group"><label>Descripción</label><textarea id="descripcion" class="form-control" rows="4"></textarea></div><div class="modal-actions"><button type="button" class="btn btn-outline" onclick="window.profilesModule.closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">${this.isEditing?'Actualizar':'Crear'}</button></div></form></div></div>`;
+    return `<div class="modal" id="profileModal" style="display:none;"><div class="modal-content"><div class="modal-header"><h3>${this.isEditing?'Editar':'Nuevo'} Perfil</h3><button class="modal-close" onclick="window.profilesModule.closeModal()">×</button></div><form id="profileForm" onsubmit="window.profilesModule.saveItem(event)"><div class="form-group"><label>Nombre *</label><input type="text" id="nombre" required minlength="3" maxlength="100" class="form-control"></div><div class="form-group"><label>Descripción</label><textarea id="descripcion" class="form-control" rows="4" maxlength="500"></textarea></div><div class="modal-actions"><button type="button" class="btn btn-outline" onclick="window.profilesModule.closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">${this.isEditing?'Actualizar':'Crear'}</button></div></form></div></div>`;
   }
 
   setupEventListeners() {
@@ -99,7 +99,15 @@ class ProfilesModule {
 
   async saveItem(e) {
     e.preventDefault();
-    const d = { nombre: document.getElementById('nombre').value, descripcion: document.getElementById('descripcion').value||null };
+    const nombre = document.getElementById('nombre').value.trim();
+    const descripcion = document.getElementById('descripcion').value.trim() || null;
+    
+    if (!nombre || nombre.length < 3) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'El nombre debe tener al menos 3 caracteres' });
+      return;
+    }
+    
+    const d = { nombre, descripcion };
     try {
       if (this.isEditing) await maintenanceService.updatePerfil(this.editingId, d); else await maintenanceService.createPerfil(d);
       Swal.fire({ icon: 'success', title: this.isEditing?'Actualizado':'Creado', timer: 2000, showConfirmButton: false });
