@@ -1,5 +1,5 @@
 /**
- * 🔗 Characteristics By Type Module - Tree View v13 - Save Button Mode
+ * 🔗 Characteristics By Type Module - Tree View v14 - Mobile Optimized
  */
 class CharacteristicsByTypeModule {
   constructor(maintenanceController) {
@@ -13,7 +13,7 @@ class CharacteristicsByTypeModule {
     this.originalState = {}; // Format: "1_5": true/false
     this.isSaving = false;
     window.characteristicsByTypeModule = this;
-    console.log('🔧 CharacteristicsByTypeModule v13 constructor - Save Button Mode');
+    console.log('🔧 CharacteristicsByTypeModule v14 constructor - Mobile Optimized');
   }
 
   async render() {
@@ -31,11 +31,13 @@ class CharacteristicsByTypeModule {
 
   renderSaveButton() {
     if(this.pendingChanges.size === 0) return '';
+    const isMobile = window.innerWidth <= 768;
+    const text = this.isSaving ? 'Guardando...' : (isMobile ? 'Guardar ('+this.pendingChanges.size+')' : 'Guardar Cambios ('+this.pendingChanges.size+')');
     return '<button class="btn btn-primary" onclick="window.characteristicsByTypeModule.saveChanges()" '+(this.isSaving?'disabled':'')+'>'+
       '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+
       '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>'+
       '<polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> '+
-      (this.isSaving ? 'Guardando...' : 'Guardar Cambios ('+this.pendingChanges.size+')')+'</button>';
+      text+'</button>';
   }
 
   renderTreeView() {
@@ -44,6 +46,17 @@ class CharacteristicsByTypeModule {
       return '<div class="empty-state"><p>No hay tipos de inmueble disponibles</p></div>';
     }
     return '<div class="tree-view">'+(this.tiposInmueble||[]).map(t=>this.renderTipoNode(t)).join('')+'</div>';
+  }
+
+  getIconoTipo(nombre) {
+    const n = nombre.toLowerCase();
+    if(n.includes('casa') || n.includes('house')) return '🏠';
+    if(n.includes('depart') || n.includes('apart')) return '🏢';
+    if(n.includes('oficina') || n.includes('office')) return '💼';
+    if(n.includes('terreno') || n.includes('lote') || n.includes('land')) return '🌳';
+    if(n.includes('local') || n.includes('comercial')) return '🏪';
+    if(n.includes('bodega') || n.includes('warehouse')) return '🏭';
+    return '🏘️';
   }
 
   renderTipoNode(t) {

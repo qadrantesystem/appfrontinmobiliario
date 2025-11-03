@@ -826,7 +826,7 @@
 
 .tree-badge {
   background: #3b82f6;
-  color: white;
+  color: #2c5282;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -924,15 +924,15 @@
   }
 
   .tipo-node > .tree-node-header {
-    background: linear-gradient(135deg, #2c5282 0%, #3d6ba3 100%);
-    color: white;
+    background: white; border: 2px solid #2c5282;
+    color: #2c5282;
     font-size: 1rem;
     font-weight: 600;
     border-radius: 12px;
   }
 
   .tipo-node > .tree-node-header:active {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    background: #f0f9ff; border-color: #1e3a5f;
   }
 
   .tipo-node > .tree-node-header .tree-icon {
@@ -941,12 +941,12 @@
   }
 
   .tipo-node > .tree-node-header .tree-label {
-    color: white;
+    color: #2c5282;
   }
 
   .tipo-node > .tree-node-header .tree-badge {
-    background: rgba(255, 255, 255, 0.25);
-    color: white;
+    background: #e0f2fe;
+    color: #2c5282;
     font-weight: 600;
   }
 
