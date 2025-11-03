@@ -1,12 +1,19 @@
 /**
  * 📁 Categories Module
- * CRUD completo para Categorías de Características
+ * CRUD completo para Categorías de Características con búsqueda y paginación
  */
 
 class CategoriesModule {
   constructor(maintenanceController) {
     this.maintenanceController = maintenanceController;
     this.data = [];
+    this.pagination = {
+      currentPage: 1,
+      pageSize: 5,
+      totalPages: 1,
+      total: 0
+    };
+    this.searchTerm = '';
     this.isEditing = false;
     this.editingId = null;
 
@@ -41,6 +48,23 @@ class CategoriesModule {
             </button>
           </div>
 
+          <!-- Barra de búsqueda -->
+          <div class="search-bar">
+            <div class="search-input-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+              <input
+                type="text"
+                id="searchInput"
+                class="search-input"
+                placeholder="Buscar por nombre..."
+                value="${this.searchTerm}"
+              >
+            </div>
+          </div>
+
           <div class="module-content">
             <div class="table-responsive">
               <table class="data-table">
@@ -66,9 +90,37 @@ class CategoriesModule {
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                 </svg>
                 <h3>No hay categorías</h3>
-                <p>Comienza agregando tu primera categoría</p>
-                <button class="btn btn-primary" onclick="window.categoriesModule.openModal()">
-                  Crear Categoría
+                <p>${this.searchTerm ? 'No se encontraron resultados' : 'Comienza agregando tu primera categoría'}</p>
+                ${!this.searchTerm ? `
+                  <button class="btn btn-primary" onclick="window.categoriesModule.openModal()">
+                    Crear Categoría
+                  </button>
+                ` : ''}
+              </div>
+            ` : ''}
+
+            <!-- Paginación -->
+            ${this.pagination.totalPages > 1 ? `
+              <div class="pagination">
+                <button
+                  class="btn btn-outline btn-sm"
+                  onclick="window.categoriesModule.goToPage(${this.pagination.currentPage - 1})"
+                  ${this.pagination.currentPage === 1 ? 'disabled' : ''}
+                >
+                  Anterior
+                </button>
+
+                <span class="pagination-info">
+                  Página ${this.pagination.currentPage} de ${this.pagination.totalPages}
+                  (${this.pagination.total} registros)
+                </span>
+
+                <button
+                  class="btn btn-outline btn-sm"
+                  onclick="window.categoriesModule.goToPage(${this.pagination.currentPage + 1})"
+                  ${this.pagination.currentPage === this.pagination.totalPages ? 'disabled' : ''}
+                >
+                  Siguiente
                 </button>
               </div>
             ` : ''}
@@ -214,11 +266,38 @@ class CategoriesModule {
         if (e.target === modal) this.closeModal();
       });
     }
+
+    // Search input listener
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      let searchTimeout;
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          this.searchTerm = e.target.value;
+          this.pagination.currentPage = 1;
+          this.refreshTable();
+        }, 300);
+      });
+    }
   }
 
   async loadData() {
     try {
-      this.data = await maintenanceService.getCategorias();
+      const response = await maintenanceService.getCategoriasPaginado(
+        this.pagination.currentPage,
+        this.pagination.pageSize,
+        this.searchTerm
+      );
+
+      this.data = response.data;
+      this.pagination = {
+        currentPage: response.page,
+        pageSize: response.page_size,
+        totalPages: response.total_pages,
+        total: response.total
+      };
+
       console.log('✅ Categorías cargadas:', this.data);
     } catch (error) {
       console.error('❌ Error cargando datos:', error);
@@ -233,6 +312,65 @@ class CategoriesModule {
     if (tbody) {
       tbody.innerHTML = this.renderTableRows();
     }
+
+    // Actualizar paginación
+    const moduleContent = document.querySelector('.module-content');
+    if (moduleContent) {
+      const paginationHTML = this.pagination.totalPages > 1 ? `
+        <div class="pagination">
+          <button
+            class="btn btn-outline btn-sm"
+            onclick="window.categoriesModule.goToPage(${this.pagination.currentPage - 1})"
+            ${this.pagination.currentPage === 1 ? 'disabled' : ''}
+          >
+            Anterior
+          </button>
+
+          <span class="pagination-info">
+            Página ${this.pagination.currentPage} de ${this.pagination.totalPages}
+            (${this.pagination.total} registros)
+          </span>
+
+          <button
+            class="btn btn-outline btn-sm"
+            onclick="window.categoriesModule.goToPage(${this.pagination.currentPage + 1})"
+            ${this.pagination.currentPage === this.pagination.totalPages ? 'disabled' : ''}
+          >
+            Siguiente
+          </button>
+        </div>
+      ` : '';
+
+      const existingPagination = moduleContent.querySelector('.pagination');
+      if (existingPagination) {
+        existingPagination.outerHTML = paginationHTML;
+      }
+    }
+
+    // Actualizar empty state si no hay datos
+    const emptyState = document.querySelector('.empty-state');
+    if (this.data.length === 0 && !emptyState) {
+      const tableResponsive = document.querySelector('.table-responsive');
+      if (tableResponsive) {
+        tableResponsive.insertAdjacentHTML('afterend', `
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <h3>No hay categorías</h3>
+            <p>${this.searchTerm ? 'No se encontraron resultados' : 'Comienza agregando tu primera categoría'}</p>
+          </div>
+        `);
+      }
+    } else if (this.data.length > 0 && emptyState) {
+      emptyState.remove();
+    }
+  }
+
+  async goToPage(page) {
+    if (page < 1 || page > this.pagination.totalPages) return;
+    this.pagination.currentPage = page;
+    await this.refreshTable();
   }
 
   openModal(id = null) {

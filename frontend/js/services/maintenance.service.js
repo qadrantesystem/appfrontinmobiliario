@@ -69,6 +69,17 @@ class MaintenanceService {
   }
 
   /**
+   * Listar tipos de inmueble con paginación
+   */
+  async getTiposInmueblePaginado(page = 1, pageSize = 5, search = '') {
+    let url = `/tipos-inmueble/paginado?page=${page}&page_size=${pageSize}`;
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    return await this.request(url, 'GET', null, false);
+  }
+
+  /**
    * Crear tipo de inmueble
    */
   async createTipoInmueble(data) {
@@ -98,6 +109,17 @@ class MaintenanceService {
    */
   async getDistritos() {
     return await this.request('/distritos', 'GET', null, false);
+  }
+
+  /**
+   * Listar distritos con paginación
+   */
+  async getDistritosPaginado(page = 1, pageSize = 5, search = '') {
+    let url = `/distritos/paginado?page=${page}&page_size=${pageSize}`;
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    return await this.request(url, 'GET', null, false);
   }
 
   /**
@@ -133,6 +155,17 @@ class MaintenanceService {
   }
 
   /**
+   * Listar categorías con paginación
+   */
+  async getCategoriasPaginado(page = 1, pageSize = 5, search = '') {
+    let url = `/categorias/paginado?page=${page}&page_size=${pageSize}`;
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    return await this.request(url, 'GET', null, false);
+  }
+
+  /**
    * Crear categoría
    */
   async createCategoria(data) {
@@ -162,6 +195,17 @@ class MaintenanceService {
    */
   async getCaracteristicas() {
     return await this.request('/caracteristicas', 'GET', null, false);
+  }
+
+  /**
+   * Listar características con paginación
+   */
+  async getCaracteristicasPaginado(page = 1, pageSize = 5, search = '') {
+    let url = `/caracteristicas/paginado?page=${page}&page_size=${pageSize}`;
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    return await this.request(url, 'GET', null, false);
   }
 
   /**
@@ -218,28 +262,39 @@ class MaintenanceService {
    * Listar todos los perfiles
    */
   async getPerfiles() {
-    return await this.request('/perfiles', 'GET', null, true);
+    return await this.request('/perfiles-mae/mantenimiento', 'GET', null, true);
+  }
+
+  /**
+   * Listar perfiles con paginación
+   */
+  async getPerfilesPaginado(page = 1, pageSize = 5, search = '') {
+    let url = `/perfiles-mae/mantenimiento/paginado?page=${page}&page_size=${pageSize}`;
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    return await this.request(url, 'GET', null, true);
   }
 
   /**
    * Crear perfil
    */
   async createPerfil(data) {
-    return await this.request('/perfiles', 'POST', data, true);
+    return await this.request('/perfiles-mae/mantenimiento', 'POST', data, true);
   }
 
   /**
    * Actualizar perfil
    */
   async updatePerfil(id, data) {
-    return await this.request(`/perfiles/${id}`, 'PUT', data, true);
+    return await this.request(`/perfiles-mae/mantenimiento/${id}`, 'PUT', data, true);
   }
 
   /**
    * Eliminar perfil
    */
   async deletePerfil(id) {
-    return await this.request(`/perfiles/${id}`, 'DELETE', null, true);
+    return await this.request(`/perfiles-mae/mantenimiento/${id}`, 'DELETE', null, true);
   }
 
   // ==========================================
@@ -251,6 +306,17 @@ class MaintenanceService {
    */
   async getPlanes() {
     return await this.request('/planes', 'GET', null, false);
+  }
+
+  /**
+   * Listar planes con paginación
+   */
+  async getPlanesPaginado(page = 1, pageSize = 5, search = '') {
+    let url = `/planes/paginado?page=${page}&page_size=${pageSize}`;
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    return await this.request(url, 'GET', null, false);
   }
 
   /**
