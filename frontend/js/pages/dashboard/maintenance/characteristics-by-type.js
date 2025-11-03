@@ -50,7 +50,7 @@ class CharacteristicsByTypeModule {
 
   getIconoTipo(nombre) {
     const n = nombre.toLowerCase();
-    const svgStyle = 'width:20px;height:20px;fill:currentColor;vertical-align:middle;';
+    const svgStyle = 'width:20px;height:20px;fill:#2c5282;vertical-align:middle;';
     if(n.includes('casa') || n.includes('house'))
       return '<svg style="'+svgStyle+'" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 10h3v10z"/></svg>';
     if(n.includes('depart') || n.includes('apart'))
