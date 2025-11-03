@@ -158,10 +158,10 @@ class MaintenanceService {
    * Listar categorías con paginación
    */
   /**
-   * Listar categorías agrupadas con sus características
+   * Listar características agrupadas por tipo de inmueble
    */
-  async getCategoriasAgrupadas() {
-    return await this.request('/categorias/agrupadas', 'GET', null, false);
+  async getCaracteristicasPorTipoAgrupadas(tipoInmuebleId) {
+    return await this.request(`/caracteristicas-x-inmueble/tipo-inmueble/${tipoInmuebleId}/mantenimiento`, 'GET', null, false);
   }
 
   async getCategoriasPaginado(page = 1, pageSize = 5, search = '') {
