@@ -596,8 +596,12 @@
   }
 
   .maintenance-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem;
+  }
+  
+  .maintenance-card {
+    padding: 1.25rem;
   }
 
   .module-header {
