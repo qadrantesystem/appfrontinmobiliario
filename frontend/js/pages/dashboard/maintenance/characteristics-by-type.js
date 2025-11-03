@@ -19,20 +19,20 @@ class CharacteristicsByTypeModule {
   }
 
   renderTreeView() {
-    return '<div class="tree-view">'+this.tiposInmueble.map(t=>this.renderTipoNode(t)).join('')+'</div>';
+    return '<div class="tree-view">'+(this.tiposInmueble||[]).map(t=>this.renderTipoNode(t)).join('')+'</div>';
   }
 
   renderTipoNode(t) {
     const exp=this.expandedTypes.has(t.tipo_inmueble_id);
     const caracs=this.caracteristicasPorTipo[t.tipo_inmueble_id]||{};
     const total=Object.values(caracs).flat().length;
-    return '<div class="tree-node tipo-node"><div class="tree-node-header" onclick="window.characteristicsByTypeModule.toggleTipo('+t.tipo_inmueble_id+')"><span class="tree-toggle">'+(exp?'▼':'▶')+'</span><span class="tree-icon">🏢</span><span class="tree-label">'+t.nombre+'</span><span class="tree-badge">'+total+' características</span></div>'+(exp?'<div class="tree-children">'+this.categorias.map(c=>this.renderCategoriaNode(t.tipo_inmueble_id,c)).join('')+'</div>':'')+'</div>';
+    return '<div class="tree-node tipo-node"><div class="tree-node-header" onclick="window.characteristicsByTypeModule.toggleTipo('+t.tipo_inmueble_id+')"><span class="tree-toggle">'+(exp?'▼':'▶')+'</span><span class="tree-icon">🏢</span><span class="tree-label">'+t.nombre+'</span><span class="tree-badge">'+total+' características</span></div>'+(exp?'<div class="tree-children">'+(this.categorias||[]).map(c=>this.renderCategoriaNode(t.tipo_inmueble_id,c)).join('')+'</div>':'')+'</div>';
   }
 
   renderCategoriaNode(tid,cat) {
     const sel=(this.caracteristicasPorTipo[tid]||{})[cat.categoria_id]||[];
     const all=cat.caracteristicas||[];
-    return '<div class="tree-node categoria-node"><div class="tree-node-header"><span class="tree-icon">📁</span><span class="tree-label">'+cat.nombre+'</span><span class="tree-badge-small">'+sel.length+'/'+all.length+'</span></div><div class="tree-children">'+all.map(c=>this.renderCaracteristicaNode(tid,cat.categoria_id,c)).join('')+'</div></div>';
+    return '<div class="tree-node categoria-node"><div class="tree-node-header"><span class="tree-icon">📁</span><span class="tree-label">'+cat.nombre+'</span><span class="tree-badge-small">'+sel.length+'/'+all.length+'</span></div><div class="tree-children">'+(all||[]).map(c=>this.renderCaracteristicaNode(tid,cat.categoria_id,c)).join('')+'</div></div>';
   }
 
   renderCaracteristicaNode(tid,cid,carac) {
