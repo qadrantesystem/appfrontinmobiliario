@@ -34,7 +34,7 @@ class PropertyTypesModule {
   }
 
   renderPagination() {
-    if (this.pagination.totalPages <= 1) return '';
+    // Paginador siempre visible
     return `<div class="pagination"><button class="btn btn-outline" onclick="window.propertyTypesModule.previousPage()" ${this.pagination.currentPage===1?'disabled':''}>Anterior</button><span>Página ${this.pagination.currentPage} de ${this.pagination.totalPages}</span><button class="btn btn-outline" onclick="window.propertyTypesModule.nextPage()" ${this.pagination.currentPage===this.pagination.totalPages?'disabled':''}>Siguiente</button></div>`;
   }
 

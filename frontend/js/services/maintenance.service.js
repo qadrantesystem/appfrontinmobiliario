@@ -157,6 +157,13 @@ class MaintenanceService {
   /**
    * Listar categorías con paginación
    */
+  /**
+   * Listar categorías agrupadas con sus características
+   */
+  async getCategoriasAgrupadas() {
+    return await this.request('/categorias/agrupadas', 'GET', null, false);
+  }
+
   async getCategoriasPaginado(page = 1, pageSize = 5, search = '') {
     let url = `/categorias/paginado?page=${page}&page_size=${pageSize}`;
     if (search) {
