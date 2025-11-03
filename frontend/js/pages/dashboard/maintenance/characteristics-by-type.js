@@ -1,5 +1,5 @@
 /**
- * 🔗 Characteristics By Type Module - Tree View v11
+ * 🔗 Characteristics By Type Module - Tree View v12
  */
 class CharacteristicsByTypeModule {
   constructor(maintenanceController) {
@@ -7,8 +7,9 @@ class CharacteristicsByTypeModule {
     this.tiposInmueble = [];
     this.categoriasPorTipo = {};
     this.expandedTypes = new Set();
+    this.expandedCategories = new Set(); // Nuevo: controlar categorías
     window.characteristicsByTypeModule = this;
-    console.log('🔧 CharacteristicsByTypeModule constructor');
+    console.log('🔧 CharacteristicsByTypeModule v12 constructor');
   }
 
   async render() {
@@ -36,16 +37,18 @@ class CharacteristicsByTypeModule {
     const exp=this.expandedTypes.has(t.tipo_inmueble_id);
     const categorias=this.categoriasPorTipo[t.tipo_inmueble_id]||[];
     const total=categorias.reduce((sum,c)=>(c.caracteristicas||[]).filter(car=>car.asignado).length+sum,0);
-    return '<div class="tree-node tipo-node"><div class="tree-node-header" onclick="window.characteristicsByTypeModule.toggleTipo('+t.tipo_inmueble_id+')"><span class="tree-toggle">'+(exp?'▼':'▶')+'</span><span class="tree-icon">🏢</span><span class="tree-label">'+t.nombre+'</span><span class="tree-badge">'+total+' características</span></div>'+(exp?'<div class="tree-children">'+(categorias.length?categorias.map(c=>this.renderCategoriaNode(t.tipo_inmueble_id,c)).join(''):'<p class="loading">Cargando...</p>')+'</div>':'')+'</div>';
+    return '<div class="tree-node tipo-node"><div class="tree-node-header" onclick="window.characteristicsByTypeModule.toggleTipo('+t.tipo_inmueble_id+')"><span class="tree-toggle">'+(exp?'▼':'▶')+'</span><span class="tree-icon">🏢</span><span class="tree-label">'+t.nombre+'</span><span class="tree-badge">'+total+' asignadas</span></div>'+(exp?'<div class="tree-children">'+(categorias.length?categorias.map(c=>this.renderCategoriaNode(t.tipo_inmueble_id,c)).join(''):'<p class="loading">Cargando...</p>')+'</div>':'')+'</div>';
   }
 
   renderCategoriaNode(tid,cat) {
+    const catKey = tid+'_'+cat.categoria_id;
+    const exp=this.expandedCategories.has(catKey);
     const all=(cat.caracteristicas||[]);
     const sel=all.filter(c=>c.asignado).length;
-    return '<div class="tree-node categoria-node"><div class="tree-node-header"><span class="tree-icon">📁</span><span class="tree-label">'+cat.nombre+'</span><span class="tree-badge-small">'+sel+'/'+all.length+'</span></div><div class="tree-children">'+all.map(c=>this.renderCaracteristicaNode(tid,cat.categoria_id,c)).join('')+'</div></div>';
+    return '<div class="tree-node categoria-node"><div class="tree-node-header" onclick="window.characteristicsByTypeModule.toggleCategoria('+tid+','+cat.categoria_id+')"><span class="tree-toggle">'+(exp?'▼':'▶')+'</span><span class="tree-icon">📁</span><span class="tree-label">'+cat.nombre+'</span><span class="tree-badge-small">'+sel+'/'+all.length+'</span></div>'+(exp?'<div class="tree-children">'+all.map(c=>this.renderCaracteristicaNode(tid,c)).join('')+'</div>':'')+'</div>';
   }
 
-  renderCaracteristicaNode(tid,cid,carac) {
+  renderCaracteristicaNode(tid,carac) {
     return '<div class="tree-node caracteristica-node"><label class="tree-checkbox"><input type="checkbox" '+(carac.asignado?'checked':'')+' onchange="window.characteristicsByTypeModule.toggleCaracteristica('+tid+','+carac.caracteristica_id+',this.checked)"/><span class="tree-label">'+carac.nombre+'</span>'+(carac.icono?'<span class="tree-icon-small">'+carac.icono+'</span>':'')+''+'</label></div>';
   }
 
@@ -53,7 +56,6 @@ class CharacteristicsByTypeModule {
     console.log('🔄 Cargando tipos de inmueble...');
     const t=await maintenanceService.getTiposInmueble();
     console.log('📦 Respuesta tipos inmueble:', t);
-    // El endpoint puede retornar directamente array o wrapped en {data, success}
     this.tiposInmueble=(t.data||t||[]);
     console.log('✅ Tipos cargados:', this.tiposInmueble.length);
   }
@@ -85,19 +87,53 @@ class CharacteristicsByTypeModule {
     this.refreshView();
   }
 
+  toggleCategoria(tid,catId) {
+    console.log('🔀 Toggle categoria:', tid, catId);
+    const catKey = tid+'_'+catId;
+    if(this.expandedCategories.has(catKey)) {
+      this.expandedCategories.delete(catKey);
+    } else {
+      this.expandedCategories.add(catKey);
+    }
+    this.refreshView();
+  }
+
   async toggleCaracteristica(tid,caracId,checked) {
     try {
-      console.log('🔀 Toggle característica:', caracId, 'checked:', checked);
+      console.log('🔀 Toggle característica:', caracId, 'checked:', checked, 'tipo:', tid);
+      
       if(checked) {
-        await maintenanceService.createCaracteristicaPorTipo({tipo_inmueble_id:tid,caracteristica_id:caracId});
+        // Crear relación
+        await maintenanceService.request('/caracteristicas-x-inmueble', 'POST', {
+          tipo_inmueble_id: tid,
+          caracteristica_id: caracId,
+          requerido: false,
+          visible_en_filtro: true,
+          orden: 0
+        }, true);
+        console.log('✅ Característica asignada');
       } else {
-        await maintenanceService.deleteCaracteristicaPorTipo(tid,caracId);
+        // Buscar y eliminar relación
+        // Primero obtener todas las relaciones del tipo
+        const relaciones = await maintenanceService.request(`/caracteristicas-x-inmueble/tipo-inmueble/${tid}`, 'GET', null, false);
+        console.log('📦 Relaciones obtenidas:', relaciones);
+        
+        // Buscar la relación específica
+        const relacion = relaciones.find(r => r.caracteristica_id === caracId);
+        if(relacion) {
+          await maintenanceService.request(`/caracteristicas-x-inmueble/${relacion.id}`, 'DELETE', null, true);
+          console.log('✅ Característica desasignada');
+        }
       }
+      
+      // Recargar datos
       await this.loadCategoriasParaTipo(tid);
       this.refreshView();
+      
     } catch(e) {
       console.error('❌ Error toggle característica:', e);
-      Swal.fire({icon:'error',title:'Error',text:e.message});
+      Swal.fire({icon:'error',title:'Error',text:e.message||'Error al actualizar característica'});
+      // Recargar para revertir cambio visual
       await this.loadCategoriasParaTipo(tid);
       this.refreshView();
     }
