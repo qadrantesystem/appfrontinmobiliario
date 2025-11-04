@@ -303,7 +303,7 @@ class UsersModule {
   async loadPerfiles() {
     try {
       console.log('🔄 Cargando perfiles...');
-      const response = await maintenanceService.request('/perfiles', 'GET');
+      const response = await maintenanceService.request('/perfiles-mae', 'GET');
       this.perfiles = response.data || response || [];
       console.log('✅ Perfiles cargados:', this.perfiles.length);
     } catch(e) {

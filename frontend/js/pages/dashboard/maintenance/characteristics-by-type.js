@@ -160,9 +160,22 @@ class CharacteristicsByTypeModule {
 
           // Find the specific relation
           const relacion = relaciones.find(r => r.caracteristica_id === caracId);
+          console.log('🔍 Relación encontrada:', relacion);
+          
           if(relacion) {
-            await maintenanceService.request('/caracteristicas-x-inmueble/'+relacion.id, 'DELETE', null, true);
+            // Try different possible ID field names
+            const relationId = relacion.caracteristica_x_inmueble_id || relacion.id;
+            console.log('🆔 Using relation ID:', relationId);
+            
+            if(\!relationId) {
+              console.error('❌ No se encontró ID en la relación:', relacion);
+              throw new Error('No se pudo obtener el ID de la relación');
+            }
+            
+            await maintenanceService.request('/caracteristicas-x-inmueble/'+relationId, 'DELETE', null, true);
             this.originalState[tid+'_'+caracId] = false;
+          } else {
+            console.warn('⚠️ No se encontró relación para tid='+tid+', caracId='+caracId);
           }
         }
       }
