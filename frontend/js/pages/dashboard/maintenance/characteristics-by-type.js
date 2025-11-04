@@ -167,7 +167,7 @@ class CharacteristicsByTypeModule {
             const relationId = relacion.caracteristica_x_inmueble_id || relacion.id;
             console.log('🆔 Using relation ID:', relationId);
             
-            if(\!relationId) {
+            if(!relationId) {
               console.error('❌ No se encontró ID en la relación:', relacion);
               throw new Error('No se pudo obtener el ID de la relación');
             }
