@@ -49,41 +49,36 @@ app.get('/sobre-nosotros', (req, res) => {
   res.redirect('/#sobre-nosotros');
 });
 
-// ✅ Servir JS con cache agresiva para móvil
+// ✅ Servir JS con cache moderada (5 minutos para permitir actualizaciones)
 app.use('/js', express.static(path.join(__dirname, 'frontend', 'js'), {
-  maxAge: '1d', // 1 día para mejor rendimiento móvil
+  maxAge: '5m', // 5 minutos - balance entre performance y actualización
   etag: true,
   lastModified: true,
   setHeaders: (res, filePath) => {
-    // Solo desactivar cache para archivos que estamos modificando activamente
-    if (filePath.includes('profile-modal.js') || filePath.includes('dashboard-app.js')) {
-      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
-    } else {
-      res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 día
-    }
+    res.setHeader('Cache-Control', 'public, max-age=300'); // 5 minutos
   }
 }));
 
-// Servir CSS con cache agresiva
+// Servir CSS con cache moderada
 app.use('/css', express.static(path.join(__dirname, 'frontend', 'css'), {
-  maxAge: '7d', // 7 días para CSS
+  maxAge: '1h', // 1 hora para CSS - permite ver cambios más rápido
   etag: true,
   lastModified: true,
   setHeaders: (res) => {
-    res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 días
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hora
   }
 }));
 
-// Servir imágenes con cache muy agresiva
+// Servir archivos estáticos (imágenes, otros archivos)
 app.use(express.static(path.join(__dirname, 'frontend'), {
-  maxAge: '30d', // 30 días para imágenes estáticas
+  maxAge: '1d', // 1 día para imágenes
   etag: true,
   lastModified: true,
   setHeaders: (res, filePath) => {
     if (filePath.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i)) {
-      res.setHeader('Cache-Control', 'public, max-age=2592000'); // 30 días
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 día para imágenes
     } else {
-      res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 día para otros
+      res.setHeader('Cache-Control', 'public, max-age=300'); // 5 minutos para otros
     }
   }
 }));
