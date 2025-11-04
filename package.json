@@ -7,10 +7,15 @@
     "start": "node server.js",
     "dev": "node server.js"
   },
-  "keywords": ["inmobiliaria", "real-estate", "property"],
+  "keywords": [
+    "inmobiliaria",
+    "real-estate",
+    "property"
+  ],
   "author": "Match Property",
   "license": "MIT",
   "dependencies": {
+    "compression": "^1.8.1",
     "express": "^4.18.2"
   }
 }
