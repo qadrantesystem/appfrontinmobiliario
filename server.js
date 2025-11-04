@@ -49,15 +49,18 @@ app.get('/sobre-nosotros', (req, res) => {
   res.redirect('/#sobre-nosotros');
 });
 
-// ✅ Servir JS sin cache (para desarrollo/debugging)
+// ✅ Servir JS con cache para mejorar rendimiento en móvil
 app.use('/js', express.static(path.join(__dirname, 'frontend', 'js'), {
-  maxAge: 0, // Sin cache
-  etag: false,
-  lastModified: false,
-  setHeaders: (res) => {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
+  maxAge: '1h', // 1 hora de cache (buen balance para desarrollo)
+  etag: true,
+  lastModified: true,
+  setHeaders: (res, filePath) => {
+    // Solo desactivar cache para archivos que estamos modificando activamente
+    if (filePath.includes('profile-modal.js') || filePath.includes('dashboard-app.js')) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hora
+    }
   }
 }));
 
