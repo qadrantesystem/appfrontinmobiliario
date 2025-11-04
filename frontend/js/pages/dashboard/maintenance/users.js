@@ -114,6 +114,7 @@ class UsersModule {
       console.error('❌ Error en render():', e);
       return `<div class="error-message">Error: ${e.message}</div>`;
     }
+  }
 
   renderStats() {
     const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
@@ -338,7 +339,7 @@ class UsersModule {
       // Calcular estadísticas por perfil
       this.stats = {};
       this.usuarios.forEach(u => {
-        if (\!this.stats[u.perfil_id]) {
+        if (!this.stats[u.perfil_id]) {
           this.stats[u.perfil_id] = 0;
         }
         this.stats[u.perfil_id]++;
