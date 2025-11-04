@@ -141,7 +141,6 @@ class UsersModule {
       `;
     }).join('');
   }
-  }
 
   renderLoadingState() {
     return `
