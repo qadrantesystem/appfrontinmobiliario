@@ -8,6 +8,7 @@ class UsersModule {
     this.usuarios = [];
     this.perfiles = [];
     this.estados = ['activo', 'inactivo', 'suspendido', 'pendiente'];
+    this.stats = {}; // Estadísticas por perfil
     this.filters = {
       search: '',
       perfil_id: null,
@@ -48,6 +49,11 @@ class UsersModule {
           </div>
 
           <div class="module-content">
+            <!-- Estadísticas por perfil -->
+            <div class="stats-grid">
+              ${this.renderStats()}
+            </div>
+
             <!-- Filtros -->
             <div class="filters-bar">
               <div class="filter-group">
@@ -108,6 +114,33 @@ class UsersModule {
       console.error('❌ Error en render():', e);
       return `<div class="error-message">Error: ${e.message}</div>`;
     }
+
+  renderStats() {
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+    
+    return this.perfiles.map((perfil, index) => {
+      const count = this.stats[perfil.perfil_id] || 0;
+      const color = colors[index % colors.length];
+      
+      return `
+        <div class="stat-card" style="border-left-color: ${color}">
+          <div class="stat-icon" style="background: ${color}20; color: ${color}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h4>${perfil.nombre}</h4>
+            <p class="stat-number">${count}</p>
+            <p class="stat-label">usuarios</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
   }
 
   renderLoadingState() {
@@ -302,6 +335,15 @@ class UsersModule {
         total: 0,
         total_pages: 0
       };
+      
+      // Calcular estadísticas por perfil
+      this.stats = {};
+      this.usuarios.forEach(u => {
+        if (\!this.stats[u.perfil_id]) {
+          this.stats[u.perfil_id] = 0;
+        }
+        this.stats[u.perfil_id]++;
+      });
 
       console.log('✅ Usuarios cargados:', this.usuarios.length);
 
@@ -314,9 +356,16 @@ class UsersModule {
   }
 
   refreshTable() {
+    // Actualizar tabla
     const container = document.getElementById('usersTableContainer');
     if (container) {
       container.innerHTML = this.renderTable();
+    }
+    
+    // Actualizar stats
+    const statsContainer = document.querySelector('.stats-grid');
+    if (statsContainer) {
+      statsContainer.innerHTML = this.renderStats();
     }
   }
 
