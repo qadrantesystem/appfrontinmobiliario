@@ -269,14 +269,14 @@ class MaintenanceService {
    * Listar todos los perfiles
    */
   async getPerfiles() {
-    return await this.request('/perfiles-mae/mantenimiento', 'GET', null, true);
+    return await this.request('/perfiles-mae', 'GET', null, true);
   }
 
   /**
    * Listar perfiles con paginación
    */
   async getPerfilesPaginado(page = 1, pageSize = 5, search = '') {
-    let url = `/perfiles-mae/mantenimiento/paginado?page=${page}&page_size=${pageSize}`;
+    let url = `/perfiles-mae/paginado?page=${page}&page_size=${pageSize}`;
     if (search) {
       url += `&search=${encodeURIComponent(search)}`;
     }
@@ -287,21 +287,21 @@ class MaintenanceService {
    * Crear perfil
    */
   async createPerfil(data) {
-    return await this.request('/perfiles-mae/mantenimiento', 'POST', data, true);
+    return await this.request('/perfiles-mae', 'POST', data, true);
   }
 
   /**
    * Actualizar perfil
    */
   async updatePerfil(id, data) {
-    return await this.request(`/perfiles-mae/mantenimiento/${id}`, 'PUT', data, true);
+    return await this.request(`/perfiles-mae/${id}`, 'PUT', data, true);
   }
 
   /**
    * Eliminar perfil
    */
   async deletePerfil(id) {
-    return await this.request(`/perfiles-mae/mantenimiento/${id}`, 'DELETE', null, true);
+    return await this.request(`/perfiles-mae/${id}`, 'DELETE', null, true);
   }
 
   // ==========================================
