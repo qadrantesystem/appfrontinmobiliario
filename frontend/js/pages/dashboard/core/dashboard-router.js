@@ -88,6 +88,17 @@ class DashboardRouter {
 
     console.log(`📍 Navegando a tab: ${tabId}`);
 
+    // Verificar si el tab requiere autorización
+    const profileId = this.app.currentUser.perfil_id;
+    const userAutorizado = this.app.currentUser.autorizado || false;
+    const lockMessage = TabsConfig.requiresAuthorization(profileId, tabId, userAutorizado);
+
+    if (lockMessage) {
+      console.log(`🔒 Tab ${tabId} bloqueado para usuario no autorizado`);
+      this.showLockedMessage(lockMessage);
+      return;
+    }
+
     // Mostrar loading
     this.showLoading();
 
@@ -337,6 +348,31 @@ class DashboardRouter {
       <div class="empty-state">
         <h3>Tab: ${tabId}</h3>
         <p>Este módulo aún no está implementado</p>
+      </div>
+    `;
+  }
+
+  /**
+   * Mostrar mensaje de tab bloqueado
+   */
+  showLockedMessage(lockMessage) {
+    this.tabContent.innerHTML = `
+      <div class="locked-tab-container">
+        <div class="locked-tab-card">
+          <div class="locked-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <h2 class="locked-title">${lockMessage.title}</h2>
+          <p class="locked-message">${lockMessage.message}</p>
+          <div class="locked-actions">
+            <button class="btn-secondary" onclick="window.dashboardApp.router.navigate('dashboard')">
+              Volver al Dashboard
+            </button>
+          </div>
+        </div>
       </div>
     `;
   }

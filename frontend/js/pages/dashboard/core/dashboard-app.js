@@ -76,12 +76,39 @@ class DashboardApp {
    * Verificar autenticación
    */
   checkAuth() {
-    if (!authService.isAuthenticated()) {
-      console.log('❌ No autenticado, redirigiendo al login...');
-      window.location.href = 'login.html';
+    try {
+      if (!authService.isAuthenticated()) {
+        console.log('❌ No autenticado, redirigiendo al login...');
+        
+        // Detener inactivity manager si existe
+        if (window.inactivityManager && window.inactivityManager.isActive) {
+          window.inactivityManager.stop();
+        }
+        
+        // Limpiar cualquier token residual
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch (e) {
+          console.error('Error limpiando storage:', e);
+        }
+        
+        // Construir URL dinámica
+        const loginUrl = window.location.origin + '/login';
+        console.log('🔄 Redirigiendo a:', loginUrl);
+        
+        // Usar replace para evitar bucles con el botón atrás
+        window.location.replace(loginUrl);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('❌ Error en checkAuth:', error);
+      // En caso de error, asumir no autenticado con ruta dinámica
+      const loginUrl = window.location.origin + '/login';
+      window.location.replace(loginUrl);
       return false;
     }
-    return true;
   }
 
   /**
@@ -161,16 +188,44 @@ class DashboardApp {
    * Generar avatar
    */
   generateAvatar(user) {
-    if (user.foto_perfil) {
+    // Check for any type of avatar (foto_perfil, avatar_url, or avatar_local)
+    const avatarSource = user.foto_perfil || user.avatar_url || user.avatar_local;
+    
+    if (avatarSource) {
       const img = document.createElement('img');
-      img.src = user.foto_perfil;
-      img.alt = user.nombre;
+      img.src = avatarSource;
+      img.alt = user.nombre || 'Usuario';
+      img.className = 'user-avatar-img';
       this.userAvatar.innerHTML = '';
       this.userAvatar.appendChild(img);
     } else {
-      // Generar iniciales
-      const initials = `${user.nombre.charAt(0)}${user.apellido.charAt(0)}`.toUpperCase();
-      this.avatarInitials.textContent = initials;
+      // Generate initials - handle missing apellido
+      const nameParts = (user.nombre || 'Usuario').split(' ');
+      let initials = '';
+      
+      if (nameParts.length > 1) {
+        // If the name has multiple parts, use first letter of first two parts
+        initials = nameParts.slice(0, 2).map(part => part.charAt(0)).join('');
+      } else if (user.apellido) {
+        // If we have apellido, use first letter of nombre and apellido
+        initials = `${(user.nombre || 'U').charAt(0)}${user.apellido.charAt(0)}`;
+      } else {
+        // Only nombre available, use first two letters
+        initials = (user.nombre || 'US').substring(0, 2);
+      }
+      
+      this.avatarInitials.textContent = initials.toUpperCase();
+    }
+  }
+
+  /**
+   * Refresh user info (can be called externally)
+   */
+  refreshUserInfo() {
+    const currentUser = JSON.parse(localStorage.getItem('current_user') || '{}');
+    if (currentUser && currentUser.usuario_id) {
+      this.currentUser = currentUser;
+      this.displayUserInfo(currentUser);
     }
   }
 

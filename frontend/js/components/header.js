@@ -116,8 +116,8 @@ class HeaderComponent {
 
     if (!userName || !userRole) return;
 
-    // Nombre completo
-    const fullName = `${user.nombre} ${user.apellido}`;
+    // Nombre completo (solo nombre, sin apellido)
+    const fullName = user.nombre || 'Usuario';
     userName.textContent = fullName;
 
     // Rol/Perfil
@@ -129,17 +129,27 @@ class HeaderComponent {
     };
     userRole.textContent = perfilNames[user.perfil_id] || 'Usuario';
 
-    // Avatar
-    if (user.foto_perfil) {
+    // Avatar - Actualizado para usar avatar_url o avatar_local
+    const avatarSource = user.foto_perfil || user.avatar_url || user.avatar_local;
+    if (avatarSource) {
       const img = document.createElement('img');
-      img.src = user.foto_perfil;
+      img.src = avatarSource;
       img.alt = user.nombre;
+      img.className = 'user-avatar-img';
       userAvatar.innerHTML = '';
       userAvatar.appendChild(img);
     } else {
-      // Generar iniciales
-      const initials = `${user.nombre.charAt(0)}${user.apellido.charAt(0)}`.toUpperCase();
-      avatarInitials.textContent = initials;
+      // Generar iniciales (primeras 2 letras del nombre o las iniciales si tiene espacio)
+      const nameParts = user.nombre ? user.nombre.split(' ') : ['U'];
+      let initials = '';
+      if (nameParts.length > 1) {
+        // Si tiene nombre y apellido, tomar las iniciales
+        initials = nameParts.slice(0, 2).map(n => n.charAt(0)).join('');
+      } else {
+        // Si solo tiene un nombre, tomar las primeras 2 letras
+        initials = (nameParts[0] || 'U').substring(0, 2);
+      }
+      avatarInitials.textContent = initials.toUpperCase();
     }
   }
 
@@ -290,6 +300,40 @@ class HeaderComponent {
     });
 
     console.log('✅ Event delegation configurado para logout (desktop + móvil)');
+
+    // ✅ Mi Perfil - Abrir modal en lugar de navegar
+    document.addEventListener('click', async (e) => {
+      const perfilLink = e.target.closest('#perfilLink');
+      if (perfilLink) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('👤 Click en Mi Perfil detectado');
+        
+        // Cerrar dropdown menu
+        const userMenu = document.querySelector('.user-menu');
+        if (userMenu) {
+          userMenu.classList.remove('active');
+        }
+        
+        // Abrir modal de perfil
+        try {
+          const profileModal = new ProfileModal();
+          await profileModal.show();
+        } catch (error) {
+          console.error('Error al abrir modal de perfil:', error);
+          
+          // Mostrar error con SweetAlert2
+          Swal.fire({
+            title: 'Error',
+            text: 'No se pudo cargar el perfil. Por favor intenta nuevamente.',
+            icon: 'error',
+            confirmButtonColor: '#2C5282'
+          });
+        }
+      }
+    });
+
+    console.log('✅ Event delegation configurado para Mi Perfil');
 
     // Notificaciones (placeholder)
     const notificationsBtn = document.getElementById('notificationsBtn');

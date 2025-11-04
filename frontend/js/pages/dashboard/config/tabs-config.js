@@ -39,7 +39,12 @@ const TabsConfig = {
       {
         id: 'propiedades',
         name: 'Propiedades',
-        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>'
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
+        requiresAuth: true,
+        lockedMessage: {
+          title: '🔒 Acceso Restringido',
+          message: 'Tu cuenta está en proceso de verificación. Un personal administrativo se pondrá en contacto contigo pronto.'
+        }
       },
       {
         id: 'busquedas',
@@ -67,7 +72,12 @@ const TabsConfig = {
       {
         id: 'propiedades',
         name: 'Propiedades',
-        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>'
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
+        requiresAuth: true,
+        lockedMessage: {
+          title: '🔒 Acceso Restringido',
+          message: 'Tu cuenta está en proceso de verificación. Un personal administrativo se pondrá en contacto contigo pronto.'
+        }
       },
       {
         id: 'busquedas',
@@ -139,6 +149,32 @@ const TabsConfig = {
   canAccess(profileId, tabId) {
     const tabs = this.getForProfile(profileId);
     return tabs.some(tab => tab.id === tabId);
+  },
+
+  /**
+   * Verificar si un tab requiere autorización para el usuario actual
+   */
+  requiresAuthorization(profileId, tabId, userAutorizado = false) {
+    const tabs = this.getForProfile(profileId);
+    const tab = tabs.find(t => t.id === tabId);
+
+    // Si el tab requiere auth y el usuario no está autorizado
+    if (tab && tab.requiresAuth && !userAutorizado) {
+      return tab.lockedMessage || {
+        title: '🔒 Acceso Restringido',
+        message: 'Necesitas autorización para acceder a este módulo.'
+      };
+    }
+
+    return null;
+  },
+
+  /**
+   * Obtener información de un tab específico
+   */
+  getTab(profileId, tabId) {
+    const tabs = this.getForProfile(profileId);
+    return tabs.find(tab => tab.id === tabId);
   }
 };
 

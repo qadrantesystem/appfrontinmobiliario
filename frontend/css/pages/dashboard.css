@@ -302,7 +302,7 @@
 }
 
 .tab-btn {
-  flex: 0 0 auto;
+  flex: 0 0 auto; /* Por defecto auto-size, será sobrescrito en media queries */
   padding: 10px 16px;
   border: none;
   background: transparent;
@@ -316,6 +316,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  border-radius: 8px; /* Añadir bordes redondeados */
 }
 
 .tab-btn svg {
@@ -342,12 +343,14 @@
 .tab-btn.active {
   color: var(--azul-corporativo);
   font-weight: 600;
+  background: rgba(0, 102, 204, 0.05); /* Fondo sutil por defecto */
 }
 
 .tab-btn.active svg {
   opacity: 1;
 }
 
+/* Línea inferior solo en móvil, será sobrescrita en desktop */
 .tab-btn.active::after {
   content: '';
   position: absolute;
@@ -916,6 +919,140 @@
 /* ========================================
    RESPONSIVE
    ======================================== */
+
+/* Desktop: Tabs justificados para ocupar todo el ancho */
+@media (min-width: 769px) {
+  .dashboard-tabs {
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .tabs-list {
+    display: flex;
+    justify-content: stretch;
+    width: 100%;
+    gap: 2px; /* Pequeño espacio entre tabs */
+    background: linear-gradient(to bottom, #f9fafb, #ffffff);
+    padding: 4px;
+    border-radius: 12px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow-x: visible; /* Sin scroll en desktop */
+  }
+  
+  .tab-btn {
+    flex: 1 1 0; /* Todos los tabs del mismo tamaño */
+    min-width: 0; /* Permite que se encojan si es necesario */
+    justify-content: center;
+    text-align: center;
+    padding: 12px 8px;
+    background: transparent;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+  
+  /* Para navegadores que soportan :has() - ajustes específicos */
+  @supports selector(:has(*)) {
+    /* Para perfiles con 3-5 tabs */
+    .tabs-list:has(.tab-btn:nth-child(3)):not(:has(.tab-btn:nth-child(6))) .tab-btn {
+      max-width: 200px; /* Limitar ancho máximo para que no se vean muy anchos */
+    }
+    
+    /* Para perfil admin con 7 tabs */
+    .tabs-list:has(.tab-btn:nth-child(7)) .tab-btn {
+      min-width: 100px; /* Ancho mínimo para que quepan todos */
+      padding: 12px 4px; /* Menos padding lateral */
+    }
+    
+    /* Para 6 tabs */
+    .tabs-list:has(.tab-btn:nth-child(6)):not(:has(.tab-btn:nth-child(7))) .tab-btn {
+      max-width: 150px;
+    }
+  }
+  
+  /* Asegurar que el texto no se corte */
+  .tab-btn-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 120px; /* Ancho máximo del texto */
+  }
+  
+  /* Hover effect más visible en desktop */
+  .tab-btn:hover:not(.active) {
+    background: rgba(0, 102, 204, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.15);
+  }
+  
+  /* Active tab más destacado */
+  .tab-btn.active {
+    background: white;
+    color: var(--azul-corporativo);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+  }
+  
+  .tab-btn.active::after {
+    display: none; /* Remover la línea inferior, ahora usamos background */
+  }
+  
+  /* Iconos más visibles en active */
+  .tab-btn.active svg {
+    opacity: 1;
+    color: var(--azul-corporativo);
+  }
+}
+
+/* Desktop grande: Mejor distribución en pantallas amplias */
+@media (min-width: 1200px) {
+  .tabs-list {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  .tab-btn {
+    padding: 14px 16px;
+    font-size: 0.95rem;
+  }
+  
+  .tab-btn-text {
+    max-width: 180px;
+  }
+  
+  .tab-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* Para perfiles con pocos tabs en pantallas grandes */
+  @supports selector(:has(*)) {
+    /* 3-4 tabs: no ocupar todo el ancho */
+    .tabs-list:has(.tab-btn:nth-child(3)):not(:has(.tab-btn:nth-child(5))) {
+      justify-content: center;
+    }
+    
+    .tabs-list:has(.tab-btn:nth-child(3)):not(:has(.tab-btn:nth-child(5))) .tab-btn {
+      flex: 0 1 250px;
+      margin: 0 4px;
+    }
+    
+    /* 5 tabs: distribuir mejor */
+    .tabs-list:has(.tab-btn:nth-child(5)):not(:has(.tab-btn:nth-child(6))) .tab-btn {
+      max-width: 220px;
+    }
+  }
+}
+
+/* Tablets y pantallas medianas */
+@media (min-width: 481px) and (max-width: 768px) {
+  .tabs-list {
+    justify-content: space-between;
+  }
+  
+  .tab-btn {
+    flex: 1 1 auto;
+    padding: var(--spacing-sm) var(--spacing-sm);
+  }
+}
 
 @media (max-width: 768px) {
   .dashboard-header {
@@ -1494,5 +1631,106 @@
 
   .kpi-subtitle {
     font-size: 0.7rem;
+  }
+}
+
+/* ========================================
+   TAB BLOQUEADO - Locked Tab Message
+   ======================================== */
+
+.locked-tab-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: var(--spacing-xl);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
+}
+
+.locked-tab-card {
+  background: white;
+  border-radius: 16px;
+  padding: var(--spacing-xxl);
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.locked-icon {
+  color: var(--error);
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.8;
+}
+
+.locked-icon svg {
+  stroke-width: 1.5;
+}
+
+.locked-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--texto-principal);
+  margin-bottom: var(--spacing-md);
+}
+
+.locked-message {
+  font-size: 1rem;
+  color: var(--texto-secundario);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-xl);
+}
+
+.locked-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+.locked-actions .btn-secondary {
+  min-width: 180px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive para locked tab */
+@media (max-width: 768px) {
+  .locked-tab-container {
+    padding: var(--spacing-lg);
+  }
+
+  .locked-tab-card {
+    padding: var(--spacing-xl);
+  }
+
+  .locked-title {
+    font-size: 1.25rem;
+  }
+
+  .locked-message {
+    font-size: 0.9rem;
+  }
+
+  .locked-icon svg {
+    width: 60px;
+    height: 60px;
+  }
+
+  .locked-actions {
+    flex-direction: column;
+  }
+
+  .locked-actions .btn-secondary {
+    width: 100%;
   }
 }

@@ -1,0 +1,688 @@
+/**
+ * 💳 Suscripciones - Estilos
+ * Archivo: dashboard-suscripciones.css
+ * Sistema de planes multipaso
+ */
+
+/* ========================================
+   CONTAINER PRINCIPAL
+   ======================================== */
+
+.suscripciones-container {
+  padding: var(--spacing-xl);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.suscripciones-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xxl);
+}
+
+.suscripciones-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--texto-principal);
+  margin-bottom: var(--spacing-sm);
+}
+
+.suscripciones-subtitle {
+  font-size: 1.1rem;
+  color: var(--texto-secundario);
+}
+
+/* ========================================
+   SUSCRIPCIÓN ACTUAL
+   ======================================== */
+
+.current-suscripcion-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xxl);
+  color: white;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.current-susc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.current-susc-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.current-susc-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-lg);
+}
+
+.susc-info {
+  display: flex;
+  gap: var(--spacing-xl);
+  flex-wrap: wrap;
+}
+
+.susc-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.susc-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.susc-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.susc-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.current-suscripcion-card .btn-secondary,
+.current-suscripcion-card .btn-outline {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.current-suscripcion-card .btn-secondary:hover,
+.current-suscripcion-card .btn-outline:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   STEPPER MULTIPASO
+   ======================================== */
+
+.stepper-container {
+  margin-bottom: var(--spacing-xxl);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  position: relative;
+  z-index: 1;
+}
+
+.step-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--borde);
+  color: var(--texto-secundario);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.step.active .step-circle {
+  background: var(--azul-corporativo);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.step.completed .step-circle {
+  background: var(--exito);
+  color: white;
+}
+
+.step-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--texto-secundario);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.step.active .step-label {
+  color: var(--azul-corporativo);
+  font-weight: 600;
+}
+
+.step.completed .step-label {
+  color: var(--exito);
+}
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  background: var(--borde);
+  min-width: 50px;
+  max-width: 100px;
+}
+
+/* ========================================
+   PLANES GRID
+   ======================================== */
+
+.planes-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 columnas en desktop */
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+}
+
+.plan-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.plan-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+.plan-card.plan-popular {
+  border-color: var(--exito);
+}
+
+.plan-card.plan-premium {
+  border-color: var(--azul-corporativo);
+}
+
+.plan-badge {
+  position: absolute;
+  top: 16px;
+  right: -32px;
+  background: var(--exito);
+  color: white;
+  padding: 4px 40px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transform: rotate(45deg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.plan-badge-premium {
+  background: var(--azul-corporativo);
+}
+
+.plan-header {
+  padding: var(--spacing-lg); /* Más compacto */
+  color: white;
+  text-align: center;
+}
+
+.gradient-blue {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-green {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.gradient-purple {
+  background: linear-gradient(135deg, #4776e6 0%, #8e54e9 100%);
+}
+
+.plan-name {
+  font-size: 1.2rem; /* Más compacto */
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+}
+
+.plan-price {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.price-currency {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.price-amount {
+  font-size: 2.2rem; /* Más compacto */
+  font-weight: 700;
+  line-height: 1;
+}
+
+.price-period {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.plan-description {
+  font-size: 0.85rem; /* Más compacto */
+  opacity: 0.95;
+  margin: 0;
+}
+
+.plan-body {
+  padding: var(--spacing-lg); /* Más compacto */
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-lg) 0; /* Menos margen */
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs); /* Más compacto */
+  padding: 6px 0; /* Más compacto */
+  font-size: 0.85rem; /* Más pequeño */
+  color: var(--texto-principal);
+}
+
+.feature-icon {
+  font-size: 1rem; /* Más pequeño */
+  flex-shrink: 0;
+}
+
+.btn-plan {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-plan:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   MÉTODO DE PAGO
+   ======================================== */
+
+.payment-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.payment-summary {
+  background: white;
+  padding: var(--spacing-xl);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: var(--spacing-xl);
+}
+
+.payment-summary h3 {
+  font-size: 1.3rem;
+  margin-bottom: var(--spacing-lg);
+  color: var(--texto-principal);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--borde);
+  font-size: 1rem;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-total {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--azul-corporativo);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 2px solid var(--borde);
+}
+
+.summary-value {
+  font-weight: 600;
+}
+
+.payment-methods h3 {
+  font-size: 1.3rem;
+  margin-bottom: var(--spacing-lg);
+  color: var(--texto-principal);
+}
+
+.payment-method-card {
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: 12px;
+  border: 2px solid var(--borde);
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.payment-method-card:hover:not(.disabled) {
+  border-color: var(--azul-corporativo);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+  transform: translateY(-2px);
+}
+
+.payment-method-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.payment-method-icon {
+  flex-shrink: 0;
+}
+
+.payment-method-icon svg {
+  color: var(--azul-corporativo);
+}
+
+.payment-method-info {
+  flex: 1;
+}
+
+.payment-method-info h4 {
+  font-size: 1.1rem;
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--texto-principal);
+}
+
+.payment-method-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--texto-secundario);
+}
+
+.payment-method-badge {
+  flex-shrink: 0;
+}
+
+.payment-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xxl);
+}
+
+.payment-actions button {
+  flex: 1;
+  max-width: 200px;
+}
+
+/* ========================================
+   CONFIRMACIÓN
+   ======================================== */
+
+.confirmation-container {
+  text-align: center;
+  padding: var(--spacing-xxl);
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.confirmation-icon {
+  color: var(--exito);
+  margin-bottom: var(--spacing-xl);
+  animation: checkmark 0.6s ease-out;
+}
+
+@keyframes checkmark {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.confirmation-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--texto-principal);
+  margin-bottom: var(--spacing-md);
+}
+
+.confirmation-message {
+  font-size: 1.1rem;
+  color: var(--texto-secundario);
+  margin-bottom: var(--spacing-xxl);
+  line-height: 1.6;
+}
+
+.confirmation-actions button {
+  min-width: 200px;
+  padding: var(--spacing-md) var(--spacing-xxl);
+}
+
+/* ========================================
+   BADGES
+   ======================================== */
+
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-success {
+  background: rgba(46, 213, 115, 0.15);
+  color: var(--exito);
+}
+
+.badge-error {
+  background: rgba(231, 76, 60, 0.15);
+  color: var(--error);
+}
+
+.badge-warning {
+  background: rgba(255, 159, 64, 0.15);
+  color: var(--warning);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+/* Tablet: 2 columnas */
+@media (max-width: 1024px) {
+  .planes-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablet */
+    gap: var(--spacing-lg);
+  }
+}
+
+/* Móvil: 2 columnas también */
+@media (max-width: 768px) {
+  .planes-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móvil */
+    gap: var(--spacing-md);
+  }
+
+  .suscripciones-container {
+    padding: var(--spacing-lg);
+  }
+
+  .suscripciones-title {
+    font-size: 1.5rem;
+  }
+
+  .suscripciones-subtitle {
+    font-size: 1rem;
+  }
+
+  .current-susc-body {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .susc-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .susc-actions button {
+    width: 100%;
+  }
+
+  .stepper {
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .step-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .step-label {
+    font-size: 0.75rem;
+  }
+
+  .step-line {
+    min-width: 30px;
+  }
+
+  /* Las tarjetas ya están configuradas para 2 columnas arriba */
+
+  .plan-name {
+    font-size: 1.1rem; /* Más compacto en móvil */
+  }
+
+  .price-amount {
+    font-size: 2rem; /* Más compacto en móvil */
+  }
+
+  .payment-method-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .payment-actions {
+    flex-direction: column;
+  }
+
+  .payment-actions button {
+    max-width: 100%;
+  }
+
+  .confirmation-container {
+    padding: var(--spacing-xl);
+  }
+
+  .confirmation-title {
+    font-size: 1.5rem;
+  }
+
+  .confirmation-message {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Mantener 2 columnas pero con elementos más pequeños */
+  .planes-grid {
+    gap: var(--spacing-sm); /* Reducir espacio entre tarjetas */
+  }
+
+  .current-suscripcion-card {
+    padding: var(--spacing-md);
+  }
+
+  .susc-info {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .plan-badge {
+    font-size: 0.6rem;
+    padding: 4px 28px;
+  }
+
+  .plan-header {
+    padding: var(--spacing-md); /* Más compacto */
+  }
+
+  .plan-body {
+    padding: var(--spacing-md); /* Más compacto */
+  }
+
+  .plan-name {
+    font-size: 1rem;
+  }
+
+  .price-amount {
+    font-size: 1.8rem; /* Más pequeño */
+  }
+
+  .price-currency {
+    font-size: 0.85rem;
+  }
+
+  .price-period {
+    font-size: 0.75rem;
+  }
+
+  .feature-item {
+    font-size: 0.75rem;
+    padding: 4px 0;
+  }
+
+  .feature-icon {
+    font-size: 0.9rem;
+  }
+
+  .btn-plan {
+    padding: var(--spacing-sm);
+    font-size: 0.85rem;
+  }
+}
