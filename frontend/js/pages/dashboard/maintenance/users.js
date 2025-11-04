@@ -13,11 +13,12 @@ class UsersModule {
       search: '',
       perfil_id: null,
       estado: null,
+      anio: null,
       mes: null
     };
     this.pagination = {
       page: 1,
-      limit: 10,
+      limit: window.innerWidth <= 768 ? 5 : 10,
       total: 0,
       total_pages: 0
     };
@@ -31,6 +32,9 @@ class UsersModule {
 
       // Cargar perfiles para filtros
       await this.loadPerfiles();
+      
+      // Cargar estadísticas iniciales
+      await this.loadStats();
 
       const html = `
         <div class="maintenance-module">
@@ -87,6 +91,13 @@ class UsersModule {
               </div>
 
               <div class="filter-group">
+                <select id="anioFilter" onchange="window.usersModule.handleFilterChange('anio', this.value)">
+                  <option value="">Todos los años</option>
+                  ${this.generateYearOptions()}
+                </select>
+              </div>
+
+              <div class="filter-group">
                 <select id="mesFilter" onchange="window.usersModule.handleFilterChange('mes', this.value)">
                   <option value="">Todos los meses</option>
                   ${this.generateMonthOptions()}
@@ -107,7 +118,15 @@ class UsersModule {
       `;
 
       // Cargar usuarios después de renderizar
-      setTimeout(() => this.loadUsuarios(), 100);
+      setTimeout(() => {
+        this.loadUsuarios().then(() => {
+          // Asegurar que las estadísticas se muestren correctamente
+          const statsContainer = document.querySelector('.stats-grid');
+          if (statsContainer) {
+            statsContainer.innerHTML = this.renderStats();
+          }
+        });
+      }, 100);
 
       return html;
     } catch(e) {
@@ -119,6 +138,43 @@ class UsersModule {
   renderStats() {
     const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
     
+    // Si no hay perfiles cargados, mostrar estado de carga
+    if (!this.perfiles || this.perfiles.length === 0) {
+      return `
+        <div class="stat-card" style="grid-column: 1 / -1; text-align: center; opacity: 0.7;">
+          <div class="stat-info">
+            <p style="color: #6b7280; font-size: 0.875rem;">Cargando estadísticas...</p>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Si hay perfiles pero no stats, mostrar ceros
+    if (Object.keys(this.stats).length === 0) {
+      return this.perfiles.map((perfil, index) => {
+        const color = colors[index % colors.length];
+        
+        return `
+          <div class="stat-card" style="border-left-color: ${color}">
+            <div class="stat-icon" style="background: ${color}20; color: ${color}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h4>${perfil.nombre}</h4>
+              <p class="stat-number">0</p>
+              <p class="stat-label">usuarios</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Renderizar estadísticas normales
     return this.perfiles.map((perfil, index) => {
       const count = this.stats[perfil.perfil_id] || 0;
       const color = colors[index % colors.length];
@@ -281,21 +337,30 @@ class UsersModule {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
+  generateYearOptions() {
+    const currentYear = new Date().getFullYear();
+    let options = '';
+    
+    for (let year = currentYear; year >= currentYear - 3; year--) {
+      const selected = this.filters.anio === year.toString() ? 'selected' : '';
+      options += `<option value="${year}" ${selected}>${year}</option>`;
+    }
+    
+    return options;
+  }
+
   generateMonthOptions() {
     const meses = [
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
-    const currentYear = new Date().getFullYear();
     let options = '';
 
-    for (let year = currentYear; year >= currentYear - 2; year--) {
-      meses.forEach((mes, index) => {
-        const value = `${year}-${String(index + 1).padStart(2, '0')}`;
-        const selected = this.filters.mes === value ? 'selected' : '';
-        options += `<option value="${value}" ${selected}>${mes} ${year}</option>`;
-      });
-    }
+    meses.forEach((mes, index) => {
+      const value = String(index + 1).padStart(2, '0');
+      const selected = this.filters.mes === value ? 'selected' : '';
+      options += `<option value="${value}" ${selected}>${mes}</option>`;
+    });
 
     return options;
   }
@@ -312,6 +377,84 @@ class UsersModule {
     }
   }
 
+  async loadStats() {
+    try {
+      console.log('📊 Calculando estadísticas...');
+
+      // Obtener TODOS los usuarios con paginación (máximo 50 por request para evitar 422)
+      let allUsers = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const params = new URLSearchParams({
+          page: page,
+          limit: 50 // Límite seguro para evitar error 422
+        });
+
+        // Aplicar los mismos filtros que en la tabla
+        if (this.filters.search) params.append('search', this.filters.search);
+        if (this.filters.perfil_id) params.append('perfil_id', this.filters.perfil_id);
+        if (this.filters.estado) params.append('estado', this.filters.estado);
+        if (this.filters.anio) params.append('anio', this.filters.anio);
+        if (this.filters.mes) params.append('mes', this.filters.mes);
+
+        const response = await maintenanceService.request(`/usuarios?${params}`, 'GET');
+        const users = response.data || [];
+        
+        allUsers = allUsers.concat(users);
+        
+        // Verificar si hay más páginas
+        const pagination = response.pagination || {};
+        hasMore = users.length === 50 && page < (pagination.total_pages || 1);
+        page++;
+      }
+
+      console.log('📊 Total usuarios obtenidos:', allUsers.length);
+
+      // Calcular stats por perfil
+      this.stats = {};
+      allUsers.forEach(u => {
+        // Usar el campo correcto para el perfil
+        const perfilId = u.perfil_id || u.perfilId || u.perfil || u.id_perfil;
+        const perfilNombre = u.perfil_nombre || u.perfilNombre || u.perfil_nombre;
+        
+        // Si no hay perfil_id pero hay perfil_nombre, buscar por nombre
+        if (!perfilId && perfilNombre) {
+          const perfil = this.perfiles.find(p => p.nombre === perfilNombre);
+          if (perfil) {
+            const id = perfil.perfil_id;
+            if (!this.stats[id]) {
+              this.stats[id] = 0;
+            }
+            this.stats[id]++;
+          }
+        } else if (perfilId) {
+          if (!this.stats[perfilId]) {
+            this.stats[perfilId] = 0;
+          }
+          this.stats[perfilId]++;
+        }
+      });
+
+      console.log('✅ Estadísticas calculadas:', this.stats);
+
+      // Actualizar stats en la UI
+      const statsContainer = document.querySelector('.stats-grid');
+      if (statsContainer) {
+        statsContainer.innerHTML = this.renderStats();
+      }
+    } catch(e) {
+      console.error('❌ Error calculando estadísticas:', e);
+      this.stats = {};
+      // Mostrar stats vacías en caso de error
+      const statsContainer = document.querySelector('.stats-grid');
+      if (statsContainer) {
+        statsContainer.innerHTML = this.renderStats();
+      }
+    }
+  }
+
   async loadUsuarios() {
     try {
       console.log('🔄 Cargando usuarios...');
@@ -325,27 +468,25 @@ class UsersModule {
       if (this.filters.search) params.append('search', this.filters.search);
       if (this.filters.perfil_id) params.append('perfil_id', this.filters.perfil_id);
       if (this.filters.estado) params.append('estado', this.filters.estado);
+      if (this.filters.anio) params.append('anio', this.filters.anio);
+      if (this.filters.mes) params.append('mes', this.filters.mes);
 
       const response = await maintenanceService.request(`/usuarios?${params}`, 'GET');
 
       this.usuarios = response.data || [];
       this.pagination = response.pagination || {
         page: 1,
-        limit: 10,
+        limit: window.innerWidth <= 768 ? 5 : 10,
         total: 0,
         total_pages: 0
       };
       
-      // Calcular estadísticas por perfil
-      this.stats = {};
-      this.usuarios.forEach(u => {
-        if (!this.stats[u.perfil_id]) {
-          this.stats[u.perfil_id] = 0;
-        }
-        this.stats[u.perfil_id]++;
-      });
-
+      
       console.log('✅ Usuarios cargados:', this.usuarios.length);
+      
+      // Recalcular estadísticas
+      await this.loadStats();
+
 
       this.refreshTable();
     } catch(e) {
@@ -389,6 +530,7 @@ class UsersModule {
       search: '',
       perfil_id: null,
       estado: null,
+      anio: null,
       mes: null
     };
 
@@ -396,11 +538,13 @@ class UsersModule {
     const searchInput = document.getElementById('searchInput');
     const perfilFilter = document.getElementById('perfilFilter');
     const estadoFilter = document.getElementById('estadoFilter');
+    const anioFilter = document.getElementById('anioFilter');
     const mesFilter = document.getElementById('mesFilter');
 
     if (searchInput) searchInput.value = '';
     if (perfilFilter) perfilFilter.selectedIndex = 0;
     if (estadoFilter) estadoFilter.selectedIndex = 0;
+    if (anioFilter) anioFilter.selectedIndex = 0;
     if (mesFilter) mesFilter.selectedIndex = 0;
 
     this.pagination.page = 1;
