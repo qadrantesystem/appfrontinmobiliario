@@ -1,12 +1,8 @@
 const express = require('express');
 const path = require('path');
-const compression = require('compression');
 const app = express();
 const PORT = process.env.PORT || 3002;
 const HOST = '0.0.0.0'; // ✅ Railway necesita esto
-
-// ✅ Compresión GZIP para móvil (muy importante)
-app.use(compression());
 
 // ✅ Headers de seguridad
 app.use((req, res, next) => {
@@ -15,13 +11,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Logging SOLO en desarrollo (desactivado para producción)
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    next();
-  });
-}
+// ✅ Logging middleware para debugging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
 
 // ✅ Health check endpoint para Railway
 app.get('/health', (req, res) => {
