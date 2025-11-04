@@ -153,30 +153,15 @@ class CharacteristicsByTypeModule {
           }, true);
           this.originalState[tid+'_'+caracId] = true;
         } else if(action === 'del') {
-          console.log('➖ Eliminando:', tid, caracId);
-          // First fetch all relations for this tipo
-          const relaciones = await maintenanceService.request('/caracteristicas-x-inmueble/tipo-inmueble/'+tid, 'GET', null, false);
-          console.log('📦 Relaciones obtenidas:', relaciones);
-
-          // Find the specific relation
-          const relacion = relaciones.find(r => r.caracteristica_id === caracId);
-          console.log('🔍 Relación encontrada:', relacion);
-          
-          if(relacion) {
-            // Try different possible ID field names
-            const relationId = relacion.caracteristica_x_inmueble_id || relacion.id;
-            console.log('🆔 Using relation ID:', relationId);
-            
-            if(!relationId) {
-              console.error('❌ No se encontró ID en la relación:', relacion);
-              throw new Error('No se pudo obtener el ID de la relación');
-            }
-            
-            await maintenanceService.request('/caracteristicas-x-inmueble/'+relationId, 'DELETE', null, true);
-            this.originalState[tid+'_'+caracId] = false;
-          } else {
-            console.warn('⚠️ No se encontró relación para tid='+tid+', caracId='+caracId);
-          }
+          console.log("➖ Eliminando:", tid, caracId);
+          // Delete directly using tipo_inmueble_id and caracteristica_id
+          await maintenanceService.request(
+            "/caracteristicas-x-inmueble/tipo/"+tid+"/caracteristica/"+caracId,
+            "DELETE",
+            null,
+            true
+          );
+          this.originalState[tid+"_"+caracId] = false;
         }
       }
 
