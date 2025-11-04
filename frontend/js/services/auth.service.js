@@ -6,7 +6,14 @@
 class AuthService {
     constructor() {
         this.currentUser = null;
+        this.isInitialized = false;
+        
+        // Cargar usuario del storage si existe
         this.loadUserFromStorage();
+        
+        // Marcar como inicializado
+        this.isInitialized = true;
+        console.log('✅ AuthService inicializado');
     }
 
     /**
@@ -128,7 +135,8 @@ class AuthService {
      */
     async getMyProfile() {
         try {
-            const response = await apiRequest(API_CONFIG.USER.ME, {
+            // ✅ CORRECTO - Usar /perfiles/me donde está el avatar
+            const response = await apiRequest('/perfiles/me', {
                 method: 'GET',
                 auth: true
             });
@@ -151,7 +159,8 @@ class AuthService {
      */
     async updateProfile(userData) {
         try {
-            const response = await apiRequest(API_CONFIG.USER.UPDATE, {
+            // ✅ CORRECTO - Usar /perfiles/me donde está el avatar
+            const response = await apiRequest('/perfiles/me', {
                 method: 'PUT',
                 auth: true,
                 body: JSON.stringify(userData)
@@ -169,6 +178,13 @@ class AuthService {
             console.error('❌ Error actualizando perfil:', error);
             throw error;
         }
+    }
+
+    /**
+     * 📝 Actualizar perfil (alias para compatibilidad)
+     */
+    async updateMyProfile(userData) {
+        return this.updateProfile(userData);
     }
 
     /**
@@ -196,13 +212,62 @@ class AuthService {
     /**
      * 🚪 Cerrar sesión
      */
-    logout() {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('token_type');
-        localStorage.removeItem('current_user');
-        this.currentUser = null;
-        console.log('✅ Sesión cerrada');
-        window.location.href = '/login';
+    logout(message = null) {
+        try {
+            // Detener el gestor de inactividad si está activo
+            if (window.inactivityManager && window.inactivityManager.isActive) {
+                window.inactivityManager.stop();
+            }
+
+            // Limpiar TODO del localStorage
+            const keysToRemove = ['access_token', 'token_type', 'current_user', 'refresh_token'];
+            keysToRemove.forEach(key => {
+                try {
+                    localStorage.removeItem(key);
+                } catch (e) {
+                    console.error(`Error removing ${key}:`, e);
+                }
+            });
+            
+            // Limpiar sessionStorage también
+            try {
+                sessionStorage.clear();
+            } catch (e) {
+                console.error('Error clearing sessionStorage:', e);
+            }
+            
+            // Limpiar estado interno
+            this.currentUser = null;
+            
+            // Si hay mensaje, guardarlo temporalmente para mostrar en login
+            if (message) {
+                try {
+                    sessionStorage.setItem('logout_message', message);
+                } catch (e) {
+                    console.error('Error saving logout message:', e);
+                }
+            }
+            
+            console.log('✅ Sesión cerrada completamente');
+            
+            // Usar el helper de ambiente si está disponible
+            if (window.environment && typeof environment.redirectToLogin === 'function') {
+                environment.redirectToLogin(message);
+            } else {
+                // Fallback: construir URL manualmente
+                const origin = window.location.origin;
+                const loginPath = '/login';
+                const loginUrl = origin + loginPath;
+                
+                console.log('🔄 Redirigiendo a:', loginUrl);
+                window.location.replace(loginUrl);
+            }
+        } catch (error) {
+            console.error('❌ Error durante logout:', error);
+            // Forzar redirección aunque haya errores
+            const fallbackUrl = window.location.origin + '/login';
+            window.location.replace(fallbackUrl);
+        }
     }
 
     /**
@@ -218,8 +283,48 @@ class AuthService {
     /**
      * 💾 Guardar usuario en storage
      */
+    /**
+     * 💾 Guardar usuario en storage (preservando datos importantes)
+     */
     saveUserToStorage(user) {
-        localStorage.setItem('current_user', JSON.stringify(user));
+        // Obtener usuario actual del localStorage para preservar datos
+        const currentUserStr = localStorage.getItem('current_user');
+        let currentUser = {};
+        
+        if (currentUserStr) {
+            try {
+                currentUser = JSON.parse(currentUserStr);
+            } catch (error) {
+                console.error('Error parseando usuario actual:', error);
+            }
+        }
+        
+        // Combinar datos: prioridad a los nuevos pero preservar importantes
+        const userToSave = {
+            // Preservar datos importantes del usuario actual
+            id: user.id || currentUser.id,
+            email: user.email || currentUser.email,
+            nombre: user.nombre || currentUser.nombre || 'usuario',
+            apellido: user.apellido || currentUser.apellido,
+            telefono: user.telefono || currentUser.telefono,
+            perfil_id: user.perfil_id || currentUser.perfil_id,
+            rol: user.rol || currentUser.rol,
+            
+            // Actualizar datos del perfil (avatar, etc)
+            foto_perfil: user.foto_perfil || currentUser.foto_perfil,
+            avatar_url: user.avatar_url || currentUser.avatar_url,
+            
+            // Otros datos del nuevo usuario
+            ...user
+        };
+        
+        console.log('💾 Guardando usuario en localStorage:', {
+            nombre: userToSave.nombre,
+            email: userToSave.email,
+            foto_perfil: userToSave.foto_perfil ? 'EXISTS' : 'NOT FOUND'
+        });
+        
+        localStorage.setItem('current_user', JSON.stringify(userToSave));
     }
 
     /**

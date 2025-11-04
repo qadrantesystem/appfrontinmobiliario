@@ -34,6 +34,8 @@ class DashboardHomeTab {
       return await this.getDemandanteDashboard();
     } else if (perfilIdNum === 2) {
       return await this.getOfertanteDashboard();
+    } else if (perfilIdNum === 3) {
+      return await this.getCorredorDashboard();
     } else if (perfilIdNum === 4) {
       return await this.getAdminDashboard();
     } else {
@@ -364,12 +366,323 @@ class DashboardHomeTab {
   }
 
   /**
+   * 📊 Dashboard para Corredor (perfil 3)
+   * Combina características de Ofertante y Demandante
+   */
+  async getCorredorDashboard() {
+    try {
+      const currentYear = new Date().getFullYear();
+      const stats = await this.getDashboardStats(currentYear);
+
+      console.log('📊 Dashboard Corredor Stats:', stats);
+
+      // Función para formatear números
+      const formatNumber = (num) => {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num ? num.toString() : '0';
+      };
+
+      // Calcular el mes más activo
+      const getMesActivo = () => {
+        if (!stats.propiedades || !stats.propiedades.por_mes) return 'N/A';
+        const meses = stats.propiedades.por_mes;
+        let maxMes = '';
+        let maxCount = 0;
+        for (const [mes, count] of Object.entries(meses)) {
+          if (count > maxCount) {
+            maxCount = count;
+            maxMes = mes;
+          }
+        }
+        const mesesNombres = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        return mesesNombres[parseInt(maxMes)] || 'N/A';
+      };
+
+      return `
+        <h2 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-xl);">
+          Dashboard Corredor - ${this.app.currentUser?.nombre || 'Usuario'}
+        </h2>
+
+        <!-- KPIs Grid Principal -->
+        <div class="kpis-grid">
+          <!-- Total Propiedades -->
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon">${this.getIcon('building')}</div>
+              <span class="kpi-title">Total Propiedades</span>
+            </div>
+            <div class="kpi-value">${stats.resumen.total_propiedades}</div>
+            <div class="kpi-subtitle">En cartera</div>
+          </div>
+
+          <!-- Propiedades Activas -->
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon">${this.getIcon('checkCircle')}</div>
+              <span class="kpi-title">Activas</span>
+            </div>
+            <div class="kpi-value">${stats.propiedades?.por_estado?.activo || 0}</div>
+            <div class="kpi-subtitle">Publicadas</div>
+          </div>
+
+          <!-- Valor Total -->
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon">${this.getIcon('dollar')}</div>
+              <span class="kpi-title">Valor Total</span>
+            </div>
+            <div class="kpi-value">$${formatNumber(stats.propiedades?.valor_total || 0)}</div>
+            <div class="kpi-subtitle">Portafolio</div>
+          </div>
+
+          <!-- Favoritos -->
+          <div class="kpi-card">
+            <div class="kpi-header">
+              <div class="kpi-icon">${this.getIcon('heart')}</div>
+              <span class="kpi-title">Favoritos</span>
+            </div>
+            <div class="kpi-value">${stats.resumen.total_favoritos}</div>
+            <div class="kpi-subtitle">Propiedades guardadas</div>
+          </div>
+        </div>
+
+        <!-- Sección de Búsquedas y Favoritos -->
+        <div class="dashboard-sections">
+          <!-- Búsquedas por Distrito -->
+          <div class="dashboard-section">
+            <h3 class="section-title">
+              ${this.getIcon('map')} Búsquedas por Distrito
+            </h3>
+            <div class="district-list">
+              ${stats.busquedas?.por_distrito && Object.keys(stats.busquedas.por_distrito).length > 0 ? 
+                Object.entries(stats.busquedas.por_distrito)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 5)
+                  .map(([distrito, count]) => `
+                    <div class="district-item">
+                      <span class="district-name">${distrito}</span>
+                      <span class="district-count">${count} búsquedas</span>
+                    </div>
+                  `).join('') :
+                '<div class="empty-message">No hay búsquedas registradas</div>'
+              }
+            </div>
+          </div>
+
+          <!-- Favoritos por Distrito -->
+          <div class="dashboard-section">
+            <h3 class="section-title">
+              ${this.getIcon('heart')} Favoritos por Distrito
+            </h3>
+            <div class="district-list">
+              ${stats.favoritos?.por_distrito && Object.keys(stats.favoritos.por_distrito).length > 0 ?
+                Object.entries(stats.favoritos.por_distrito)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 5)
+                  .map(([distrito, count]) => `
+                    <div class="district-item">
+                      <span class="district-name">${distrito}</span>
+                      <span class="district-count">${count} favoritos</span>
+                    </div>
+                  `).join('') :
+                '<div class="empty-message">No hay favoritos registrados</div>'
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen de Propiedades por Tipo -->
+        <div class="dashboard-section" style="margin-top: var(--spacing-xl);">
+          <h3 class="section-title">
+            ${this.getIcon('grid')} Propiedades por Tipo
+          </h3>
+          <div class="type-grid">
+            ${stats.propiedades?.por_tipo_inmueble && Object.keys(stats.propiedades.por_tipo_inmueble).length > 0 ?
+              Object.entries(stats.propiedades.por_tipo_inmueble)
+                .map(([tipo, count]) => `
+                  <div class="type-card">
+                    <div class="type-icon">${this.getPropertyIcon(tipo)}</div>
+                    <div class="type-name">${tipo}</div>
+                    <div class="type-count">${count}</div>
+                  </div>
+                `).join('') :
+              '<div class="empty-message">No hay propiedades registradas</div>'
+            }
+          </div>
+        </div>
+
+        <!-- Stats Adicionales -->
+        <div class="stats-row" style="margin-top: var(--spacing-xl);">
+          <div class="stat-card">
+            <span class="stat-label">Mes más activo</span>
+            <span class="stat-value">${getMesActivo()}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Precio promedio</span>
+            <span class="stat-value">$${formatNumber(stats.propiedades?.precio_promedio || 0)}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Búsquedas este año</span>
+            <span class="stat-value">${stats.resumen.total_busquedas}</span>
+          </div>
+        </div>
+
+        <style>
+          .dashboard-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-xl);
+          }
+
+          .dashboard-section {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+          }
+
+          .section-title {
+            color: var(--azul-corporativo);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+          }
+
+          .district-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+          }
+
+          .district-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm);
+            background: var(--gray-50);
+            border-radius: var(--border-radius-sm);
+          }
+
+          .district-name {
+            font-weight: 500;
+            color: var(--text-primary);
+          }
+
+          .district-count {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+          }
+
+          .type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: var(--spacing-md);
+          }
+
+          .type-card {
+            text-align: center;
+            padding: var(--spacing-md);
+            background: var(--gray-50);
+            border-radius: var(--border-radius-sm);
+          }
+
+          .type-icon {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-xs);
+          }
+
+          .type-name {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xs);
+          }
+
+          .type-count {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--azul-corporativo);
+          }
+
+          .stats-row {
+            display: flex;
+            gap: var(--spacing-lg);
+            flex-wrap: wrap;
+          }
+
+          .stat-card {
+            flex: 1;
+            min-width: 150px;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+          }
+
+          .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-xs);
+          }
+
+          .stat-value {
+            color: var(--azul-corporativo);
+            font-size: 1.5rem;
+            font-weight: 600;
+          }
+
+          .empty-message {
+            text-align: center;
+            padding: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-style: italic;
+          }
+
+          @media (max-width: 768px) {
+            .dashboard-sections {
+              grid-template-columns: 1fr;
+            }
+
+            .type-grid {
+              grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+          }
+        </style>
+      `;
+    } catch (error) {
+      console.error('❌ Error cargando dashboard corredor:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 📊 Dashboard para Admin (perfil 4)
    */
   async getAdminDashboard() {
     try {
       const currentYear = new Date().getFullYear();
       const stats = await this.getDashboardStats(currentYear, null, null, 4);
+
+      console.log('📊 Dashboard Admin Stats:', stats);
+
+      // Función para formatear números grandes
+      const formatNumber = (num) => {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num ? num.toString() : '0';
+      };
+
+      // Calcular propiedades sin corredor
+      const propiedadesSinCorredor = stats.propiedades?.sin_corredor || 
+        (stats.propiedades?.total - (stats.propiedades?.con_corredor || 0)) || 0;
 
       return `
         <div class="admin-dashboard">
@@ -379,105 +692,231 @@ class DashboardHomeTab {
                 Panel de Administración
               </h1>
               <p style="color: var(--gris-medio); margin-top: 0.5rem;">
-                Vista general del sistema inmobiliario
+                Vista general del sistema inmobiliario - ${currentYear}
               </p>
             </div>
           </div>
 
           <!-- KPIs principales -->
-          <div class="kpis-grid" style="grid-template-columns: repeat(4, 1fr); gap: var(--spacing-lg);">
+          <div class="kpis-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-lg);">
+            <!-- Total Propiedades -->
             <div class="kpi-card" style="border-left: 4px solid var(--azul-corporativo);">
               <div class="kpi-header">
-                <div class="kpi-icon" style="color: var(--azul-corporativo);">🏢</div>
-                <span class="kpi-title">Propiedades</span>
+                <div class="kpi-icon">${this.getIcon('building')}</div>
+                <span class="kpi-title">Total Propiedades</span>
               </div>
-              <div class="kpi-value" style="color: var(--azul-corporativo);">${stats.propiedades?.total || 0}</div>
-              <div class="kpi-subtitle">${stats.propiedades?.publicadas || 0} publicadas</div>
+              <div class="kpi-value">${stats.propiedades?.total || stats.resumen?.total_propiedades || 0}</div>
+              <div class="kpi-subtitle">${stats.propiedades?.por_estado?.activo || 0} activas</div>
             </div>
 
-            <div class="kpi-card" style="border-left: 4px solid var(--dorado);">
-              <div class="kpi-header">
-                <div class="kpi-icon" style="color: var(--dorado);">💰</div>
-                <span class="kpi-title">Valor Cartera</span>
-              </div>
-              <div class="kpi-value" style="color: var(--dorado);">S/ ${((stats.propiedades?.valor_total || 0) / 1000000).toFixed(1)}M</div>
-              <div class="kpi-subtitle">Promedio: S/ ${(stats.propiedades?.precio_promedio || 0).toLocaleString('es-PE')}</div>
-            </div>
-
+            <!-- Total Búsquedas -->
             <div class="kpi-card" style="border-left: 4px solid #10b981;">
               <div class="kpi-header">
-                <div class="kpi-icon" style="color: #10b981;">✅</div>
-                <span class="kpi-title">Cerrados</span>
+                <div class="kpi-icon" style="color: #10b981;">${this.getIcon('search')}</div>
+                <span class="kpi-title">Total Búsquedas</span>
               </div>
-              <div class="kpi-value" style="color: #10b981;">${stats.propiedades?.por_estado_crm?.cerrado_ganado || 0}</div>
-              <div class="kpi-subtitle">${stats.propiedades?.por_estado_crm?.pre_cierre || 0} por cerrar</div>
+              <div class="kpi-value" style="color: #10b981;">${formatNumber(stats.resumen?.total_busquedas || stats.busquedas?.total || 0)}</div>
+              <div class="kpi-subtitle">Este año ${currentYear}</div>
             </div>
 
-            <div class="kpi-card" style="border-left: 4px solid #f59e0b;">
+            <!-- Propiedades Sin Corredor -->
+            <div class="kpi-card" style="border-left: 4px solid #ef4444;">
               <div class="kpi-header">
-                <div class="kpi-icon" style="color: #f59e0b;">📊</div>
-                <span class="kpi-title">En Pipeline</span>
+                <div class="kpi-icon" style="color: #ef4444;">⚠️</div>
+                <span class="kpi-title">Sin Corredor</span>
               </div>
-              <div class="kpi-value" style="color: #f59e0b);">${(stats.propiedades?.por_estado_crm?.contacto || 0) + (stats.propiedades?.por_estado_crm?.propuesta || 0) + (stats.propiedades?.por_estado_crm?.negociacion || 0)}</div>
-              <div class="kpi-subtitle">Contacto, Propuesta, Negociación</div>
+              <div class="kpi-value" style="color: #ef4444;">${propiedadesSinCorredor}</div>
+              <div class="kpi-subtitle">Requieren asignación</div>
+            </div>
+
+            <!-- Valor Cartera -->
+            <div class="kpi-card" style="border-left: 4px solid var(--dorado);">
+              <div class="kpi-header">
+                <div class="kpi-icon" style="color: var(--dorado);">${this.getIcon('dollar')}</div>
+                <span class="kpi-title">Valor Cartera</span>
+              </div>
+              <div class="kpi-value" style="color: var(--dorado);">$${formatNumber(stats.propiedades?.valor_total || 0)}</div>
+              <div class="kpi-subtitle">Promedio: $${formatNumber(stats.propiedades?.precio_promedio || 0)}</div>
             </div>
           </div>
 
-          <!-- Pipeline CRM Visual -->
-          <div style="margin-top: var(--spacing-xl);">
-            <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-lg);">
-              📊 Pipeline de Ventas
+          <!-- Sección de Búsquedas por Distrito -->
+          <div style="margin-top: var(--spacing-xl); background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm);">
+            <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-lg); display: flex; align-items: center; gap: var(--spacing-sm);">
+              ${this.getIcon('map')} Búsquedas por Distrito
             </h3>
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--spacing-sm);">
-              <div style="background: white; border: 2px solid var(--azul-corporativo); padding: var(--spacing-md); border-radius: 8px; text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: var(--azul-corporativo);">${stats.propiedades?.por_estado_crm?.lead || 0}</div>
-                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">Lead</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--spacing-md);">
+              ${stats.busquedas?.por_distrito && Object.keys(stats.busquedas.por_distrito).length > 0 ?
+                Object.entries(stats.busquedas.por_distrito)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 10)
+                  .map(([distrito, count]) => {
+                    const porcentaje = ((count / (stats.busquedas?.total || stats.resumen?.total_busquedas || 1)) * 100).toFixed(1);
+                    return `
+                      <div style="background: var(--gray-50); padding: var(--spacing-md); border-radius: var(--border-radius-sm); border-left: 3px solid var(--azul-corporativo);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <span style="font-weight: 600; color: var(--text-primary);">${distrito}</span>
+                          <span style="background: var(--azul-corporativo); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.85rem;">${count}</span>
+                        </div>
+                        <div style="margin-top: 4px;">
+                          <div style="background: #e5e7eb; height: 4px; border-radius: 2px; overflow: hidden;">
+                            <div style="background: var(--azul-corporativo); height: 100%; width: ${porcentaje}%; transition: width 0.3s ease;"></div>
+                          </div>
+                          <span style="font-size: 0.75rem; color: var(--text-secondary);">${porcentaje}% del total</span>
+                        </div>
+                      </div>
+                    `;
+                  }).join('') :
+                '<div style="text-align: center; color: var(--text-secondary); padding: var(--spacing-lg);">No hay datos de búsquedas por distrito</div>'
+              }
+            </div>
+          </div>
+
+          <!-- Pipeline CRM y Asignación de Corredores -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-xl); margin-top: var(--spacing-xl);">
+            <!-- Pipeline CRM -->
+            <div style="background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm);">
+              <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-lg);">
+                📊 Pipeline de Ventas
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                ${['lead', 'contacto', 'propuesta', 'negociacion', 'pre_cierre', 'cerrado_ganado', 'cerrado_perdido'].map(estado => {
+                  const count = stats.propiedades?.por_estado_crm?.[estado] || 0;
+                  const colors = {
+                    lead: '#6b7280',
+                    contacto: '#10b981',
+                    propuesta: '#f59e0b',
+                    negociacion: '#8b5cf6',
+                    pre_cierre: '#6366f1',
+                    cerrado_ganado: '#22c55e',
+                    cerrado_perdido: '#ef4444'
+                  };
+                  const labels = {
+                    lead: 'Lead',
+                    contacto: 'Contacto',
+                    propuesta: 'Propuesta',
+                    negociacion: 'Negociación',
+                    pre_cierre: 'Pre-Cierre',
+                    cerrado_ganado: '✅ Ganado',
+                    cerrado_perdido: '❌ Perdido'
+                  };
+                  return `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--spacing-sm); background: ${colors[estado]}10; border-left: 3px solid ${colors[estado]}; border-radius: 4px;">
+                      <span style="font-weight: 500; color: ${colors[estado]};">${labels[estado]}</span>
+                      <span style="font-size: 1.2rem; font-weight: 700; color: ${colors[estado]};">${count}</span>
+                    </div>
+                  `;
+                }).join('')}
               </div>
-              <div style="background: white; border: 2px solid #10b981; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">${stats.propiedades?.por_estado_crm?.contacto || 0}</div>
-                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">Contacto</div>
-              </div>
-              <div style="background: white; border: 2px solid #f59e0b; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;">${stats.propiedades?.por_estado_crm?.propuesta || 0}</div>
-                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">Propuesta</div>
-              </div>
-              <div style="background: white; border: 2px solid #8b5cf6; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #8b5cf6;">${stats.propiedades?.por_estado_crm?.negociacion || 0}</div>
-                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">Negociación</div>
-              </div>
-              <div style="background: white; border: 2px solid #6366f1; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #6366f1;">${stats.propiedades?.por_estado_crm?.pre_cierre || 0}</div>
-                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">Pre-Cierre</div>
-              </div>
-              <div style="background: white; border: 2px solid #22c55e; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #22c55e;">${stats.propiedades?.por_estado_crm?.cerrado_ganado || 0}</div>
-                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">✅ Ganado</div>
-              </div>
-              <div style="background: white; border: 2px solid #ef4444; padding: var(--spacing-md); border-radius: 8px; text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;">${stats.propiedades?.por_estado_crm?.cerrado_perdido || 0}</div>
-                <div style="font-size: 0.85rem; color: var(--gris-medio); margin-top: 4px;">❌ Perdido</div>
+            </div>
+
+            <!-- Estado de Asignación de Corredores -->
+            <div style="background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm);">
+              <h3 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-lg);">
+                👥 Asignación de Corredores
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+                <!-- Gráfico circular simple -->
+                <div style="display: flex; align-items: center; justify-content: center;">
+                  <div style="position: relative; width: 150px; height: 150px;">
+                    <svg viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" stroke-width="10"></circle>
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#10b981" stroke-width="10" 
+                        stroke-dasharray="${((stats.propiedades?.con_corredor || 0) / (stats.propiedades?.total || 1)) * 251.2} 251.2"></circle>
+                    </svg>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                      <div style="font-size: 1.5rem; font-weight: 700; color: var(--azul-corporativo);">
+                        ${Math.round(((stats.propiedades?.con_corredor || 0) / (stats.propiedades?.total || 1)) * 100)}%
+                      </div>
+                      <div style="font-size: 0.75rem; color: var(--text-secondary);">Asignadas</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Detalles -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                  <div style="text-align: center; padding: var(--spacing-md); background: #10b98110; border-radius: var(--border-radius-sm);">
+                    <div style="font-size: 2rem; font-weight: 700; color: #10b981;">${stats.propiedades?.con_corredor || ((stats.propiedades?.total || 0) - propiedadesSinCorredor)}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Con Corredor</div>
+                  </div>
+                  <div style="text-align: center; padding: var(--spacing-md); background: #ef444410; border-radius: var(--border-radius-sm);">
+                    <div style="font-size: 2rem; font-weight: 700; color: #ef4444;">${propiedadesSinCorredor}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Sin Asignar</div>
+                  </div>
+                </div>
+                
+                ${propiedadesSinCorredor > 0 ? `
+                  <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--border-radius-sm); padding: var(--spacing-md);">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-sm); color: #dc2626;">
+                      <span>⚠️</span>
+                      <span style="font-weight: 500;">Acción Requerida</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #7f1d1d; margin: 4px 0 0 0;">
+                      Hay ${propiedadesSinCorredor} propiedades que necesitan un corredor asignado.
+                    </p>
+                  </div>
+                ` : `
+                  <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--border-radius-sm); padding: var(--spacing-md);">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-sm); color: #16a34a;">
+                      <span>✅</span>
+                      <span style="font-weight: 500;">Todo en orden</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #14532d; margin: 4px 0 0 0;">
+                      Todas las propiedades tienen corredor asignado.
+                    </p>
+                  </div>
+                `}
               </div>
             </div>
           </div>
 
-          <!-- Gráficos de análisis -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-xl); margin-top: var(--spacing-xl);">
-            ${Object.keys(stats.propiedades?.por_tipo_inmueble || {}).length > 0 ?
-              Charts.generatePieChart(stats.propiedades.por_tipo_inmueble, {
-                title: '🏢 Propiedades por Tipo',
-                size: 300,
-                colors: ['var(--azul-corporativo)', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4']
-              })
-            : ''}
+          <!-- Métricas adicionales -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-lg); margin-top: var(--spacing-xl);">
+            <!-- Total Usuarios -->
+            <div style="background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm); text-align: center;">
+              <div style="font-size: 2.5rem; color: var(--azul-corporativo);">${this.getIcon('users')}</div>
+              <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin: var(--spacing-sm) 0;">${stats.usuarios?.total || 0}</div>
+              <div style="color: var(--text-secondary);">Usuarios Registrados</div>
+            </div>
 
-            ${Object.keys(stats.propiedades?.por_distrito || {}).length > 0 ?
-              Charts.generatePieChart(stats.propiedades.por_distrito, {
-                title: '📍 Propiedades por Distrito',
-                size: 300,
-                colors: ['var(--azul-corporativo)', 'var(--dorado)', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444']
-              })
-            : ''}
+            <!-- Favoritos Totales -->
+            <div style="background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm); text-align: center;">
+              <div style="font-size: 2.5rem; color: #ef4444;">${this.getIcon('heart')}</div>
+              <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin: var(--spacing-sm) 0;">${stats.resumen?.total_favoritos || 0}</div>
+              <div style="color: var(--text-secondary);">Total Favoritos</div>
+            </div>
+
+            <!-- Tipos de Inmuebles -->
+            <div style="background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm); text-align: center;">
+              <div style="font-size: 2.5rem; color: #8b5cf6;">${this.getIcon('grid')}</div>
+              <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin: var(--spacing-sm) 0;">${Object.keys(stats.propiedades?.por_tipo_inmueble || {}).length}</div>
+              <div style="color: var(--text-secondary);">Tipos de Inmueble</div>
+            </div>
+
+            <!-- Distritos Activos -->
+            <div style="background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm); text-align: center;">
+              <div style="font-size: 2.5rem; color: #06b6d4;">${this.getIcon('map')}</div>
+              <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin: var(--spacing-sm) 0;">${Object.keys(stats.propiedades?.por_distrito || {}).length}</div>
+              <div style="color: var(--text-secondary);">Distritos con Propiedades</div>
+            </div>
           </div>
+
+          <style>
+            .admin-dashboard .kpi-card {
+              transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            
+            .admin-dashboard .kpi-card:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            @media (max-width: 768px) {
+              .admin-dashboard > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+              }
+            }
+          </style>
         </div>
       `;
     } catch (error) {
@@ -539,9 +978,34 @@ class DashboardHomeTab {
       'map': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
       'chart': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>',
       'users': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
-      'briefcase': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>'
+      'briefcase': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>',
+      'checkCircle': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
+      'dollar': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
+      'grid': '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>'
     };
     return icons[type] || '';
+  }
+
+  /**
+   * Obtener iconos para tipos de propiedad
+   */
+  getPropertyIcon(tipo) {
+    const tipoLower = tipo.toLowerCase();
+    if (tipoLower.includes('casa')) {
+      return '🏠';
+    } else if (tipoLower.includes('departamento') || tipoLower.includes('apartamento')) {
+      return '🏢';
+    } else if (tipoLower.includes('terreno') || tipoLower.includes('lote')) {
+      return '🏞️';
+    } else if (tipoLower.includes('local') || tipoLower.includes('comercial')) {
+      return '🏪';
+    } else if (tipoLower.includes('oficina')) {
+      return '🏛️';
+    } else if (tipoLower.includes('bodega') || tipoLower.includes('almacén')) {
+      return '🏭';
+    } else {
+      return '🏘️';
+    }
   }
 
   /**

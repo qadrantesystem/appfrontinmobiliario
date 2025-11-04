@@ -7,9 +7,9 @@ class InactivityManager {
   constructor(options = {}) {
     // Configuración (tiempos en milisegundos)
     this.config = {
-      warningTime: options.warningTime || 14 * 60 * 1000, // 14 minutos antes de mostrar warning
-      timeoutTime: options.timeoutTime || 15 * 60 * 1000, // 15 minutos total
-      countdownSeconds: options.countdownSeconds || 30, // 30 segundos de countdown
+      warningTime: options.warningTime || 29 * 60 * 1000, // 29 minutos antes de mostrar warning
+      timeoutTime: options.timeoutTime || 30 * 60 * 1000, // 30 minutos total  
+      countdownSeconds: options.countdownSeconds || 60, // 60 segundos de countdown
       checkInterval: options.checkInterval || 1000 // Revisar cada segundo
     };
 
@@ -19,6 +19,8 @@ class InactivityManager {
     this.countdownInterval = null;
     this.checkInterval = null;
     this.isActive = false;
+    this.isLoggingOut = false; // Prevenir múltiples logouts
+    this.boundResetTimer = null; // Referencia para event listeners
 
     // Eventos que resetean el timer
     this.events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
@@ -41,9 +43,12 @@ class InactivityManager {
     // Crear modal si no existe
     this.createModal();
 
+    // Bind del handler una sola vez
+    this.boundResetTimer = this.resetTimer.bind(this);
+
     // Agregar listeners de actividad
     this.events.forEach(event => {
-      document.addEventListener(event, this.resetTimer.bind(this), true);
+      document.addEventListener(event, this.boundResetTimer, true);
     });
 
     // Iniciar verificación periódica
@@ -61,10 +66,13 @@ class InactivityManager {
     console.log('🔒 Gestor de inactividad detenido');
     this.isActive = false;
 
-    // Remover listeners
-    this.events.forEach(event => {
-      document.removeEventListener(event, this.resetTimer.bind(this), true);
-    });
+    // Remover listeners con la referencia correcta
+    if (this.boundResetTimer) {
+      this.events.forEach(event => {
+        document.removeEventListener(event, this.boundResetTimer, true);
+      });
+      this.boundResetTimer = null;
+    }
 
     // Limpiar intervals
     if (this.checkInterval) {
@@ -101,15 +109,24 @@ class InactivityManager {
 
     const now = Date.now();
     const inactiveTime = now - this.lastActivity;
+    const inactiveSeconds = Math.floor(inactiveTime / 1000);
+    const inactiveMinutes = Math.floor(inactiveSeconds / 60);
+    
+    // Debug para pruebas
+    if (inactiveSeconds % 30 === 0) { // Log cada 30 segundos
+      console.log(`⏱️ Tiempo inactivo: ${inactiveMinutes}m ${inactiveSeconds % 60}s`);
+    }
 
     // Si ya pasó el tiempo límite, cerrar sesión
     if (inactiveTime >= this.config.timeoutTime) {
+      console.log('⏰ Tiempo límite alcanzado, cerrando sesión...');
       this.logout();
       return;
     }
 
     // Si está en tiempo de advertencia y no se ha mostrado el warning
     if (inactiveTime >= this.config.warningTime && !this.warningShown) {
+      console.log('⚠️ Tiempo de advertencia alcanzado, mostrando popup...');
       this.showWarning();
     }
   }
@@ -179,19 +196,61 @@ class InactivityManager {
    * Cerrar sesión por inactividad
    */
   logout() {
+    // Prevenir múltiples llamadas al logout
+    if (this.isLoggingOut) return;
+    this.isLoggingOut = true;
+    
     console.log('🔒 Cerrando sesión por inactividad');
     
+    // Detener el manager inmediatamente
     this.stop();
     
-    // Usar el servicio de autenticación
-    if (window.authService) {
-      authService.logout('Tu sesión ha expirado por inactividad');
+    // Limpiar TODO antes de redirigir
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Guardar mensaje de logout para mostrar en login
+    sessionStorage.setItem('logout_message', 'Tu sesión ha expirado por inactividad');
+    
+    // Usar el servicio de autenticación si está disponible
+    if (window.authService && typeof authService.logout === 'function') {
+      try {
+        authService.logout('Tu sesión ha expirado por inactividad');
+      } catch (error) {
+        console.error('Error en logout:', error);
+        // Fallback: redirigir directamente con ruta dinámica
+        const loginUrl = window.location.origin + '/login';
+        window.location.replace(loginUrl);
+      }
     } else {
-      // Fallback: redirigir directamente
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = 'login.html';
+      // Fallback directo con ruta dinámica
+      const loginUrl = window.location.origin + '/login';
+      console.log('🔄 Redirigiendo a:', loginUrl);
+      window.location.replace(loginUrl);
     }
+  }
+
+  /**
+   * Destruir completamente el manager
+   */
+  destroy() {
+    console.log('🗑️ Destruyendo inactivity manager...');
+    
+    // Detener primero
+    this.stop();
+    
+    // Remover el modal del DOM
+    if (this.modal) {
+      this.modal.remove();
+      this.modal = null;
+    }
+    
+    // Limpiar referencias
+    this.countdownElement = null;
+    this.boundResetTimer = null;
+    
+    // Resetear estado
+    this.isLoggingOut = false;
   }
 
   /**
@@ -202,6 +261,7 @@ class InactivityManager {
     if (document.getElementById('inactivityModal')) {
       this.modal = document.getElementById('inactivityModal');
       this.countdownElement = document.getElementById('inactivityCountdown');
+      this.attachModalListeners();
       return;
     }
 
@@ -218,7 +278,7 @@ class InactivityManager {
           <h3>Sesión inactiva</h3>
           <p>Tu sesión está a punto de expirar por inactividad</p>
           <div class="inactivity-countdown">
-            <span id="inactivityCountdown">30</span>
+            <span id="inactivityCountdown">60</span>
             <span class="countdown-label">segundos</span>
           </div>
           <div class="inactivity-modal-actions">
@@ -239,22 +299,44 @@ class InactivityManager {
     this.modal = document.getElementById('inactivityModal');
     this.countdownElement = document.getElementById('inactivityCountdown');
 
-    // Event listeners
-    document.getElementById('continueSessionBtn').addEventListener('click', () => {
-      this.resetTimer();
-    });
+    // Agregar event listeners
+    this.attachModalListeners();
+  }
 
-    document.getElementById('logoutNowBtn').addEventListener('click', () => {
-      this.logout();
-    });
+  /**
+   * Agregar listeners al modal
+   */
+  attachModalListeners() {
+    const continueBtn = document.getElementById('continueSessionBtn');
+    const logoutBtn = document.getElementById('logoutNowBtn');
+
+    if (continueBtn && !continueBtn.hasListener) {
+      continueBtn.addEventListener('click', () => {
+        console.log('✅ Usuario continuó la sesión');
+        this.resetTimer();
+      });
+      continueBtn.hasListener = true;
+    }
+
+    if (logoutBtn && !logoutBtn.hasListener) {
+      logoutBtn.addEventListener('click', () => {
+        console.log('👋 Usuario cerró sesión manualmente');
+        this.logout();
+      });
+      logoutBtn.hasListener = true;
+    }
   }
 }
 
 // Crear instancia global
 const inactivityManager = new InactivityManager({
-  warningTime: 14 * 60 * 1000, // 14 minutos
-  timeoutTime: 15 * 60 * 1000, // 15 minutos
-  countdownSeconds: 30 // 30 segundos
+  warningTime: 2 * 60 * 1000, // 2 minutos antes de mostrar warning (PARA PRUEBAS)
+  timeoutTime: 3 * 60 * 1000, // 3 minutos total (PARA PRUEBAS)
+  countdownSeconds: 60 // 60 segundos de countdown
 });
+
+// TODO: Para PRODUCCIÓN cambiar a:
+// warningTime: 29 * 60 * 1000, // 29 minutos
+// timeoutTime: 30 * 60 * 1000, // 30 minutos
 
 window.inactivityManager = inactivityManager;

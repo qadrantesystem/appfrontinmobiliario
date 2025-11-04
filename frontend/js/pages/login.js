@@ -18,7 +18,7 @@ class LoginPage {
     // Verificar si ya está autenticado
     if (authService.isAuthenticated()) {
       console.log('✅ Usuario ya autenticado, redirigiendo...');
-      window.location.href = 'dashboard.html';
+      window.location.href = '/dashboard';
       return;
     }
 
@@ -102,7 +102,7 @@ class LoginPage {
 
       // Redirigir al dashboard
       setTimeout(() => {
-        window.location.href = 'dashboard.html';
+        window.location.href = '/dashboard';
       }, 1500);
 
     } catch (error) {
@@ -182,7 +182,7 @@ class LoginPage {
       
       // Redirigir a página de verificación (si existe)
       setTimeout(() => {
-        window.location.href = `verificar.html?email=${encodeURIComponent(email)}`;
+        window.location.href = `/verificar?email=${encodeURIComponent(email)}`;
       }, 2000);
     } catch (error) {
       showNotification('Error al reenviar código', 'error');

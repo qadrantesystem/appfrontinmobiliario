@@ -4,7 +4,7 @@
  */
 
 const API_CONFIG = {
-    BASE_URL: 'https://appbackimmobiliaria-production.up.railway.app/api/v1', // ✅ HTTPS (ya corregido)
+    BASE_URL: 'https://appbackimmobiliaria-production.up.railway.app/api/v1', // 🚀 Railway (funciona para auth)
     TIMEOUT: 30000, // 30 segundos
     
     // Endpoints de Autenticación
@@ -23,6 +23,14 @@ const API_CONFIG = {
         ME: '/usuarios/me',
         UPDATE: '/usuarios/me',
         CHANGE_PASSWORD: '/usuarios/me/password'
+    },
+    
+    // Endpoints de Perfiles
+    PROFILES: {
+        ME: '/perfiles/me',
+        UPDATE: '/perfiles/me',
+        AVATAR_UPLOAD: '/perfiles/avatar',
+        AVATAR_DELETE: '/perfiles/avatar'
     },
     
     // Endpoints de Propiedades
