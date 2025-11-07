@@ -26,42 +26,257 @@ class ResultadosPage {
     this.init();
   }
 
-  renderResumenGenericosMobile() {
+  renderResumenGenericosMobile(modoEdicion = false) {
     const box = document.getElementById('resumenGenericosMobile');
     if (!box) return;
     const fs = this.filtrosSimplificados || {};
 
-    // Distritos
-    const distritos = Array.isArray(fs.distritos_ids) && fs.distritos_ids.length > 0
-      ? fs.distritos_ids.map(id => this.distritos.find(d => d.id === id)?.nombre).filter(Boolean).join(', ')
-      : (fs.distrito_id ? (this.distritos.find(d => d.id === fs.distrito_id)?.nombre || '') : '—');
+    if (!modoEdicion) {
+      // MODO RESUMEN: Texto elegante
+      const distritos = Array.isArray(fs.distritos_ids) && fs.distritos_ids.length > 0
+        ? fs.distritos_ids.map(id => this.distritos.find(d => d.id === id)?.nombre).filter(Boolean).join(', ')
+        : '—';
 
-    // Tipo de inmueble
-    const tipoInmueble = fs.tipo_inmueble_id
-      ? (this.tiposInmuebles.find(t => t.id === fs.tipo_inmueble_id)?.nombre || '—')
-      : '—';
+      const tipoInmueble = fs.tipo_inmueble_id
+        ? (this.tiposInmuebles.find(t => t.id === fs.tipo_inmueble_id)?.nombre || '—')
+        : '—';
 
-    // Área/metraje
-    const metragem = fs.area ? `${fs.area} m²` : '—';
+      const metragem = fs.area ? `${fs.area} m²` : '—';
+      const condicion = fs.transaccion ? (fs.transaccion === 'compra' ? 'Compra' : 'Alquiler') : '—';
 
-    // Condición (compra/alquiler)
-    const condicion = fs.transaccion ? (fs.transaccion === 'compra' ? 'Compra' : 'Alquiler') : '—';
+      let presupuesto = '—';
+      if (fs.transaccion === 'compra' && fs.presupuesto_compra) {
+        presupuesto = `${Number(fs.presupuesto_compra).toLocaleString()} USD`;
+      } else if (fs.transaccion === 'alquiler' && fs.presupuesto_alquiler) {
+        presupuesto = `${Number(fs.presupuesto_alquiler).toLocaleString()} USD/mes`;
+      }
 
-    // Presupuesto (dependiendo de transacción)
-    let presupuesto = '—';
-    if (fs.transaccion === 'compra' && fs.presupuesto_compra) {
-      presupuesto = `${Number(fs.presupuesto_compra).toLocaleString()} USD`;
-    } else if (fs.transaccion === 'alquiler' && fs.presupuesto_alquiler) {
-      presupuesto = `${Number(fs.presupuesto_alquiler).toLocaleString()} USD/mes`;
+      box.innerHTML = `
+        <div class="item"><span>Distrito(s)</span><strong>${distritos}</strong></div>
+        <div class="item"><span>Tipo Inmueble</span><strong>${tipoInmueble}</strong></div>
+        <div class="item"><span>Área</span><strong>${metragem}</strong></div>
+        <div class="item"><span>Transacción</span><strong>${condicion}</strong></div>
+        <div class="item"><span>Presupuesto</span><strong>${presupuesto}</strong></div>
+        <div style="margin-top: 16px;">
+          <button id="btnEditarGenericosMob" class="btn btn-sm btn-outline" style="width: 100%;">
+            <i class="fa-solid fa-pencil"></i> Editar
+          </button>
+        </div>
+      `;
+
+      document.getElementById('btnEditarGenericosMob')?.addEventListener('click', () => {
+        this.renderResumenGenericosMobile(true);
+        this.setupAccordion(); // Re-adjuntar listeners del acordeón
+
+        // Verificar si algún acordeón está abierto
+        setTimeout(() => {
+          this.verificarMostrarResultadosPorAcordeon();
+        }, 50);
+      });
+
+    } else {
+      // MODO EDICIÓN: Formulario con multi-select de checkboxes
+      const distritosSeleccionados = Array.isArray(fs.distritos_ids) ? fs.distritos_ids : [];
+      const distritosNombres = distritosSeleccionados
+        .map(id => this.distritos.find(d => d.id === id)?.nombre)
+        .filter(Boolean);
+
+      // Mostrar máximo 3 tags, el resto como "+N"
+      const visibleTags = distritosNombres.slice(0, 3);
+      const remaining = distritosNombres.length - 3;
+      let tagsHTML = visibleTags.map(n => `<span class="multi-select__tag">${n}</span>`).join('');
+      if (remaining > 0) {
+        tagsHTML += `<span class="multi-select__tag">+${remaining}</span>`;
+      }
+
+      const tiposOptions = this.tiposInmuebles.map(t => {
+        const selected = fs.tipo_inmueble_id === t.id ? 'selected' : '';
+        return `<option value="${t.id}" ${selected}>${t.nombre}</option>`;
+      }).join('');
+
+      box.innerHTML = `
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">Distrito(s)</label>
+          <div id="gen_distritos_multi_mob" class="multi-select">
+            <button type="button" class="multi-select__button" id="gen_distritos_toggle_mob" aria-expanded="false" style="padding: 8px 10px;">
+              <span class="multi-select__placeholder" id="gen_distritos_placeholder_mob" style="${distritosSeleccionados.length > 0 ? 'display:none;' : ''}">Selecciona distritos...</span>
+              <span class="multi-select__tags" id="gen_distritos_tags_mob">
+                ${tagsHTML}
+              </span>
+              <span class="multi-select__arrow">▾</span>
+            </button>
+            <div class="multi-select__panel" id="gen_distritos_panel_mob" hidden>
+              <div class="multi-select__search">
+                <input type="text" id="gen_distritos_search_mob" placeholder="Buscar distrito..." class="multi-select__search-input">
+              </div>
+              <div class="multi-select__options" id="gen_distritos_options_mob">
+                ${this.distritos.map(d => {
+                  const checked = distritosSeleccionados.includes(d.id) ? 'checked' : '';
+                  return `
+                    <div class="multi-option">
+                      <input type="checkbox" id="distrito_mob_${d.id}" value="${d.id}" ${checked}>
+                      <label for="distrito_mob_${d.id}">${d.nombre}</label>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              <div class="multi-select__actions">
+                <button type="button" id="gen_distritos_select_all_mob" class="multi-select__action">Seleccionar todos</button>
+                <button type="button" id="gen_distritos_clear_mob" class="multi-select__action alt">Limpiar</button>
+              </div>
+            </div>
+          </div>
+          <small style="font-size: 10px; color: #999;">Busca y selecciona múltiples distritos</small>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label for="gen_tipo_mob" style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">Tipo Inmueble</label>
+          <select id="gen_tipo_mob" class="form-control" style="padding: 8px 10px; font-size: 13px;">
+            <option value="">Seleccionar...</option>
+            ${tiposOptions}
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label for="gen_area_mob" style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">Área (m²)</label>
+          <input type="number" id="gen_area_mob" class="form-control" style="padding: 8px 10px; font-size: 13px;" placeholder="Ej: 100" value="${fs.area || ''}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">Transacción</label>
+          <div style="display: flex; gap: 6px;">
+            <label style="display: flex; align-items: center; cursor: pointer; flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px;">
+              <input type="radio" name="gen_transaccion_mob" value="compra" ${fs.transaccion === 'compra' ? 'checked' : ''} style="margin-right: 5px;">
+              <span>Compra</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer; flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px;">
+              <input type="radio" name="gen_transaccion_mob" value="alquiler" ${fs.transaccion === 'alquiler' ? 'checked' : ''} style="margin-right: 5px;">
+              <span>Alquiler</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 8px;" id="gen_presupuesto_group_mob">
+          <label for="gen_presupuesto_mob" style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">
+            Presupuesto ${fs.transaccion === 'compra' ? '(USD)' : '(USD/mes)'}
+          </label>
+          <input
+            type="number"
+            id="gen_presupuesto_mob"
+            class="form-control"
+            style="padding: 8px 10px; font-size: 13px;"
+            placeholder="${fs.transaccion === 'compra' ? 'Ej: 200000' : 'Ej: 1500'}"
+            value="${fs.transaccion === 'compra' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '')}"
+          >
+        </div>
+
+        <div style="margin-top: 12px;">
+          <button id="btnVolverResumenMob" class="btn btn-outline btn-sm" style="width: 100%; padding: 8px;">
+            <i class="fa-solid fa-arrow-left"></i> Volver al Resumen
+          </button>
+        </div>
+      `;
+
+      this.attachGenericosListenersMobile();
     }
+  }
 
-    box.innerHTML = `
-      <div class="item"><span>Distrito(s)</span><strong>${distritos || '—'}</strong></div>
-      <div class="item"><span>Tipo Inmueble</span><strong>${tipoInmueble}</strong></div>
-      <div class="item"><span>Área</span><strong>${metragem}</strong></div>
-      <div class="item"><span>Transacción</span><strong>${condicion}</strong></div>
-      <div class="item"><span>Presupuesto</span><strong>${presupuesto}</strong></div>
-    `;
+  // Listeners para campos genéricos editables (MÓVIL)
+  // ✅ Cambios se aplican AUTOMÁTICAMENTE (sin botón Guardar/Cancelar)
+  attachGenericosListenersMobile() {
+    // Función para aplicar cambios automáticamente
+    const aplicarCambios = () => {
+      // Obtener distritos desde checkboxes (multi-select)
+      const distritosChecked = Array.from(
+        document.querySelectorAll('#gen_distritos_options_mob input[type="checkbox"]:checked')
+      ).map(cb => parseInt(cb.value));
+
+      const tipoSelect = document.getElementById('gen_tipo_mob');
+      const areaInput = document.getElementById('gen_area_mob');
+      const transaccionRadio = document.querySelector('input[name="gen_transaccion_mob"]:checked');
+      const presupuestoInput = document.getElementById('gen_presupuesto_mob');
+
+      if (!tipoSelect) return;
+
+      const tipoId = tipoSelect.value ? parseInt(tipoSelect.value) : null;
+      const area = areaInput.value ? parseFloat(areaInput.value) : null;
+      const transaccion = transaccionRadio?.value || null;
+      const presupuesto = presupuestoInput.value ? parseFloat(presupuestoInput.value) : null;
+
+      this.filtrosSimplificados = {
+        ...this.filtrosSimplificados,
+        distritos_ids: distritosChecked.length > 0 ? distritosChecked : [],
+        tipo_inmueble_id: tipoId,
+        area: area,
+        transaccion: transaccion
+      };
+
+      if (transaccion === 'compra') {
+        this.filtrosSimplificados.presupuesto_compra = presupuesto;
+        delete this.filtrosSimplificados.presupuesto_alquiler;
+      } else if (transaccion === 'alquiler') {
+        this.filtrosSimplificados.presupuesto_alquiler = presupuesto;
+        delete this.filtrosSimplificados.presupuesto_compra;
+      }
+
+      console.log('✅ Filtros genéricos actualizados (móvil):', this.filtrosSimplificados);
+
+      localStorage.setItem('filtros_simplificados', JSON.stringify(this.filtrosSimplificados));
+      this.aplicarFiltrosCompletos();
+      this.renderChipsActivos();
+
+      // Actualizar tags visuales del multi-select móvil
+      this.actualizarTagsDistritosMobile();
+
+      // Actualizar también la versión desktop
+      this.renderResumenGenericos(false);
+      this.setupAccordion(); // Re-adjuntar listeners del acordeón
+
+      // Verificar si algún acordeón está abierto
+      setTimeout(() => {
+        this.verificarMostrarResultadosPorAcordeon();
+      }, 50);
+    };
+
+    // Setup multi-select de distritos (móvil)
+    this.setupMultiSelectDistritosMobile(aplicarCambios);
+
+    // Aplicar automáticamente al cambiar otros campos
+    document.getElementById('gen_tipo_mob')?.addEventListener('change', aplicarCambios);
+    document.getElementById('gen_area_mob')?.addEventListener('input', aplicarCambios);
+    document.getElementById('gen_presupuesto_mob')?.addEventListener('input', aplicarCambios);
+
+    // Listener para cambio de transacción (actualiza label y aplica cambios)
+    document.querySelectorAll('input[name="gen_transaccion_mob"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const transaccion = e.target.value;
+        const presupuestoGroup = document.getElementById('gen_presupuesto_group_mob');
+        const presupuestoInput = document.getElementById('gen_presupuesto_mob');
+        const label = presupuestoGroup?.querySelector('label');
+
+        if (label && presupuestoInput) {
+          label.innerHTML = `Presupuesto ${transaccion === 'compra' ? '(USD)' : '(USD/mes)'}`;
+          presupuestoInput.placeholder = transaccion === 'compra' ? 'Ej: 200000' : 'Ej: 1500';
+
+          const fs = this.filtrosSimplificados || {};
+          presupuestoInput.value = transaccion === 'compra' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '');
+        }
+
+        // Aplicar cambios automáticamente
+        aplicarCambios();
+      });
+    });
+
+    // Botón "Volver al Resumen"
+    document.getElementById('btnVolverResumenMob')?.addEventListener('click', () => {
+      this.renderResumenGenericosMobile(false);
+      this.setupAccordion(); // Re-adjuntar listeners del acordeón
+
+      // Verificar si algún acordeón está abierto
+      setTimeout(() => {
+        this.verificarMostrarResultadosPorAcordeon();
+      }, 50);
+    });
   }
 
   setupMobileFilters() {
@@ -283,6 +498,11 @@ class ResultadosPage {
 
       // Mapear respuesta de propiedades
       this.propiedades = propiedadesData.data || propiedadesData;
+
+      // 🔍 DEBUG: Ver qué datos traemos del API
+      if (this.propiedades.length > 0) {
+        console.log('📊 Ejemplo de propiedad del API:', this.propiedades[0]);
+      }
 
       // Mapear características
       this.caracteristicas = caracteristicasData.map(c => ({
@@ -641,71 +861,87 @@ class ResultadosPage {
         // Buscar contenido en el mismo contenedor que el header
         const parentContainer = e.currentTarget.closest('.accordion-item-avanzado');
         const content = parentContainer?.querySelector(`.accordion-content-avanzado[data-categoria="${categoria}"]`);
+        const icon = e.currentTarget.querySelector('i');
 
-        if (!content) return;
-
-        const wasExpanded = e.currentTarget.getAttribute('aria-expanded') === 'true';
-
-        // Toggle current panel
-        if (wasExpanded) {
-          e.currentTarget.setAttribute('aria-expanded', 'false');
-          e.currentTarget.classList.remove('active');
-          content.classList.remove('open');
-        } else {
-          e.currentTarget.setAttribute('aria-expanded', 'true');
-          e.currentTarget.classList.add('active');
-          content.classList.add('open');
+        if (content && icon) {
+          const isExpanded = e.currentTarget.getAttribute('aria-expanded') === 'true';
+          
+          // Toggle current
+          e.currentTarget.setAttribute('aria-expanded', !isExpanded);
+          content.classList.toggle('open');
+          icon.classList.toggle('fa-chevron-down');
+          icon.classList.toggle('fa-chevron-up');
         }
       };
 
-      // Guardar referencia al listener y agregarlo
+      // Guardar referencia y agregar listener
       header._avanzadoListener = clickHandler;
       header.addEventListener('click', clickHandler);
-
-      // También intentar con touchstart para móvil
-      if ('ontouchstart' in window) {
-        header.addEventListener('touchstart', clickHandler, { passive: false });
-      }
     });
 
-    // Pill icon buttons (checkbox filters)
-    document.querySelectorAll('.pill-icon[data-tipo="checkbox"]').forEach(pill => {
-      pill.addEventListener('click', (e) => {
+    // Pill icon buttons (checkbox filters) - CON PREVENCIÓN DE DUPLICADOS
+    const pills = container.querySelectorAll('.pill-icon[data-tipo="checkbox"]');
+
+    pills.forEach((pill) => {
+      // Remover listener anterior si existe para evitar duplicados
+      if (pill._avanzadoPillListener) {
+        pill.removeEventListener('click', pill._avanzadoPillListener);
+      }
+
+      // Crear nuevo listener
+      const clickHandler = (e) => {
         const categoria = e.currentTarget.getAttribute('data-cat');
         const caracId = parseInt(e.currentTarget.getAttribute('data-carac-id'));
 
-        // Initialize category if needed
+        console.log('🔘 Click en pill:', { categoria, caracId, estadoActual: this.filtrosAdicionales.avanzado });
+
         if (!this.filtrosAdicionales.avanzado[categoria]) {
           this.filtrosAdicionales.avanzado[categoria] = {};
         }
 
-        // Toggle value
         const isActive = this.filtrosAdicionales.avanzado[categoria][caracId] === true;
+
         if (isActive) {
+          // Desactivar
           delete this.filtrosAdicionales.avanzado[categoria][caracId];
+          if (Object.keys(this.filtrosAdicionales.avanzado[categoria]).length === 0) {
+            delete this.filtrosAdicionales.avanzado[categoria];
+          }
         } else {
+          // Activar
           this.filtrosAdicionales.avanzado[categoria][caracId] = true;
         }
 
-        // Update UI
-        e.currentTarget.classList.toggle('active');
-        e.currentTarget.setAttribute('aria-pressed', !isActive ? 'true' : 'false');
+        const nuevoEstadoActivo = this.filtrosAdicionales.avanzado[categoria]?.[caracId] === true;
+        e.currentTarget.classList.toggle('active', nuevoEstadoActivo);
+        e.currentTarget.setAttribute('aria-pressed', nuevoEstadoActivo ? 'true' : 'false');
 
-        // Update counter badge
+        console.log('✅ Nuevo estado:', { categoria, caracId, activo: nuevoEstadoActivo, filtrosCompletos: this.filtrosAdicionales.avanzado });
+
         this.actualizarBadgeCategoria(categoria);
-
-        // Re-render and preview
         this.renderChipsActivos();
-        this.debouncedPreview?.();
-      });
+        if (this.debouncedPreview) this.debouncedPreview();
+      };
+
+      // Guardar referencia y agregar listener
+      pill._avanzadoPillListener = clickHandler;
+      pill.addEventListener('click', clickHandler);
     });
 
-    // Number inputs (compact)
-    document.querySelectorAll('.number-filter-compact input[type="number"]').forEach(inp => {
-      inp.addEventListener('input', (e) => {
+    // Number inputs (compact) - CON PREVENCIÓN DE DUPLICADOS
+    container.querySelectorAll('.number-filter-compact input[type="number"]').forEach(inp => {
+      // Remover listener anterior si existe para evitar duplicados
+      if (inp._avanzadoNumberListener) {
+        inp.removeEventListener('input', inp._avanzadoNumberListener);
+      }
+
+      // Crear nuevo listener
+      const inputHandler = (e) => {
         const categoria = e.currentTarget.getAttribute('data-cat');
         const caracId = parseInt(e.currentTarget.getAttribute('data-carac-id'));
         const value = parseFloat(e.currentTarget.value);
+
+        console.log('🔢 Input numérico avanzado:', { categoria, caracId, value });
 
         // Initialize category if needed
         if (!this.filtrosAdicionales.avanzado[categoria]) {
@@ -719,13 +955,19 @@ class ResultadosPage {
           delete this.filtrosAdicionales.avanzado[categoria][caracId];
         }
 
+        console.log('✅ Estado actualizado:', this.filtrosAdicionales.avanzado);
+
         // Update counter badge
         this.actualizarBadgeCategoria(categoria);
 
         // Re-render and preview
         this.renderChipsActivos();
         this.debouncedPreview?.();
-      });
+      };
+
+      // Guardar referencia y agregar listener
+      inp._avanzadoNumberListener = inputHandler;
+      inp.addEventListener('input', inputHandler);
     });
 
     // Old checkbox structure (for backwards compatibility)
@@ -758,31 +1000,24 @@ class ResultadosPage {
     }
   }
 
-  // Captura UI actual hacia estado y recalcula conteo en imagen
+  // DEPRECADO: Esta función solo debe usarse para sincronización inicial si es necesario
+  // Los event listeners manejan el estado automáticamente, NO llamar esta función en actualizaciones
   capturarDesdeUI() {
-    // Básico
-    this.filtrosAdicionales.basico = {
-      transaccion: document.querySelector('input[name="transaccion_basico"]:checked')?.value,
-      area: document.getElementById('area_basico')?.value,
-      parqueos: document.getElementById('parqueos_basico')?.value,
-      presupuesto_compra: document.getElementById('presupuesto_compra_basico')?.value,
-      presupuesto_alquiler: document.getElementById('presupuesto_alquiler_basico')?.value,
-      antiguedad: document.getElementById('antiguedad_basico')?.value,
-      implementacion: document.getElementById('implementacion_basico')?.value
-    };
+    console.warn('⚠️ capturarDesdeUI() está deprecada - Los event listeners manejan el estado automáticamente');
 
-    // Avanzado
-    const checkboxes = document.querySelectorAll('input[name="caracteristicas_avanzado"]:checked');
-    const caracsChecked = Array.from(checkboxes).map(cb => parseInt(cb.value));
-    const numbers = Array.from(document.querySelectorAll('input[data-carac-id]'))
-      .map(inp => ({ id: parseInt(inp.dataset.caracId), val: parseFloat(inp.value) }))
-      .filter(x => !isNaN(x.val) && x.val > 0);
-    this.filtrosAdicionales.avanzado = { checkboxes: caracsChecked, numbers };
+    // Esta función ya NO debe usarse porque puede sobrescribir el estado
+    // que los event listeners están manejando correctamente.
+    // Se mantiene solo por compatibilidad pero NO debe llamarse.
+
+    // Los filtros básicos y avanzados se actualizan automáticamente via:
+    // - attachBasicoInlineListeners() -> actualiza this.filtrosAdicionales.basico
+    // - attachAvanzadoInlineListeners() -> actualiza this.filtrosAdicionales.avanzado
   }
 
   actualizarPreview() {
     // Recalcular sin salir de la imagen referencial
-    this.capturarDesdeUI();
+    // NO llamamos capturarDesdeUI() aquí porque los event listeners ya actualizaron this.filtrosAdicionales
+    // Capturar desde UI solo debe usarse en la carga inicial, no en cada actualización
     this.aplicarFiltrosIniciales();
     this.aplicarFiltrosBasicos();
     this.aplicarFiltrosAvanzados();
@@ -798,78 +1033,131 @@ class ResultadosPage {
     const bar = document.getElementById('filtrosAplicados');
     if (!bar) return;
 
-    const chips = [];
-    // Básico
-    const b = this.filtrosAdicionales.basico;
-    if (b?.transaccion) chips.push({ label: `Transacción: ${b.transaccion}`, kind: 'basico', key: 'transaccion' });
-    if (b?.area) chips.push({ label: `Área ≥ ${b.area} m²`, kind: 'basico', key: 'area' });
-    if (b?.parqueos) chips.push({ label: `Parqueos ≥ ${b.parqueos}`, kind: 'basico', key: 'parqueos' });
-    if (b?.presupuesto_compra) chips.push({ label: `Compra ≤ ${Number(b.presupuesto_compra).toLocaleString()} USD`, kind: 'basico', key: 'presupuesto_compra' });
-    if (b?.presupuesto_alquiler) chips.push({ label: `Alquiler ≤ ${Number(b.presupuesto_alquiler).toLocaleString()} USD/mes`, kind: 'basico', key: 'presupuesto_alquiler' });
-    if (b?.antiguedad) chips.push({ label: `Antigüedad ≤ ${b.antiguedad} años`, kind: 'basico', key: 'antiguedad' });
-    if (b?.implementacion) chips.push({ label: `Impl.: ${b.implementacion}`, kind: 'basico', key: 'implementacion' });
+    const genericos = [];
+    const basicos = [];
+    const avanzados = [];
 
-    // Avanzado - new category-based structure
-    for (const [categoria, filtros] of Object.entries(this.filtrosAdicionales.avanzado)) {
-      for (const [caracId, value] of Object.entries(filtros)) {
+    // Filtros Genéricos (del popup/modal)
+    const fs = this.filtrosSimplificados || {};
+
+    // Tipo de inmueble
+    if (fs.tipo_inmueble_id) {
+      const tipoInmueble = this.tiposInmuebles.find(t => t.id === fs.tipo_inmueble_id);
+      if (tipoInmueble) genericos.push({ label: `Tipo: ${tipoInmueble.nombre}`, kind: 'generico', key: 'tipo_inmueble_id' });
+    }
+
+    // Distritos
+    if (Array.isArray(fs.distritos_ids) && fs.distritos_ids.length > 0) {
+      const nombres = fs.distritos_ids.map(id => this.distritos.find(d => d.id === id)?.nombre).filter(Boolean);
+      if (nombres.length > 0) genericos.push({ label: `Distrito${nombres.length > 1 ? 's' : ''}: ${nombres.join(', ')}`, kind: 'generico', key: 'distritos_ids' });
+    }
+
+    // Transacción
+    if (fs.transaccion) genericos.push({ label: `Operación: ${fs.transaccion}`, kind: 'generico', key: 'transaccion' });
+
+    // Área
+    if (fs.area) genericos.push({ label: `Área ≥ ${fs.area} m²`, kind: 'generico', key: 'area' });
+
+    // Presupuesto
+    if (fs.presupuesto_compra) genericos.push({ label: `Compra ≤ ${Number(fs.presupuesto_compra).toLocaleString()} USD`, kind: 'generico', key: 'presupuesto_compra' });
+    if (fs.presupuesto_alquiler) genericos.push({ label: `Alquiler ≤ ${Number(fs.presupuesto_alquiler).toLocaleString()} USD/mes`, kind: 'generico', key: 'presupuesto_alquiler' });
+
+    // Básico (solo campos propios, sin duplicar genéricos)
+    const b = this.filtrosAdicionales.basico;
+    if (b?.parqueos) basicos.push({ label: `Parqueos ≥ ${b.parqueos}`, kind: 'basico', key: 'parqueos' });
+    if (b?.antiguedad) basicos.push({ label: `Antigüedad ≤ ${b.antiguedad} años`, kind: 'basico', key: 'antiguedad' });
+    if (b?.implementacion) basicos.push({ label: `Impl.: ${b.implementacion}`, kind: 'basico', key: 'implementacion' });
+
+    // Avanzado - checkboxes y números del estado interno
+    Object.entries(this.filtrosAdicionales.avanzado).forEach(([categoria, filtros]) => {
+      Object.entries(filtros).forEach(([caracId, value]) => {
         const id = parseInt(caracId);
         const carac = this.caracteristicas.find(c => c.id === id);
-
-        if (!carac) continue;
-
-        if (carac.tipo_input === 'checkbox') {
-          chips.push({
+        
+        if (!carac) return;
+        
+        // Checkbox activo (acepta true o cualquier valor truthy)
+        if (carac.tipo_input === 'checkbox' && value) {
+          avanzados.push({
             label: carac.nombre,
             kind: 'avz_check',
             key: `${categoria}_${id}`,
             categoria
           });
-        } else if (carac.tipo_input === 'number') {
-          chips.push({
+        }
+        
+        // Número con valor
+        if (carac.tipo_input === 'number' && typeof value === 'number' && value > 0) {
+          avanzados.push({
             label: `${carac.nombre} ≥ ${value}${carac.unidad ? ' ' + carac.unidad : ''}`,
             kind: 'avz_num',
             key: `${categoria}_${id}`,
             categoria
           });
         }
-      }
-    }
+      });
+    });
 
     // Avanzado - old structure (backwards compatibility)
-    const checked = Array.from(document.querySelectorAll('input[name="caracteristicas_avanzado"]:checked'))
-      .map(cb => parseInt(cb.value));
+    const checked = Array.from(document.querySelectorAll('input[name="caracteristicas_avanzado"]:checked')).map(cb => parseInt(cb.value));
     const nombresChecked = checked.map(id => ({ id, nombre: this.caracteristicas.find(c => c.id === id)?.nombre })).filter(x => x.nombre);
-    nombresChecked.forEach(x => chips.push({ label: x.nombre, kind: 'avz_check', key: String(x.id) }));
+    nombresChecked.forEach(x => avanzados.push({ label: x.nombre, kind: 'avz_check', key: String(x.id) }));
 
-    // Pintar chips
-    if (chips.length === 0) {
-      bar.innerHTML = '<span class="chip muted">Sin filtros adicionales</span>';
-    } else {
-      bar.innerHTML = chips.map(c => `
-        <span class="chip" data-kind="${c.kind}" data-key="${c.key}"${c.categoria ? ` data-categoria="${c.categoria}"` : ''}>
+    // Helper para pintar un grupo
+    const renderGrupo = (titulo, items) => {
+      if (!items || items.length === 0) return '';
+      const tags = items.map(c => `
+        <span class=\"filtro-tag\" data-kind=\"${c.kind}\" data-key=\"${c.key}\"${c.categoria ? ` data-categoria=\"${c.categoria}\"` : ''}>
           ${c.label}
-          <button type="button" class="chip__close" aria-label="Quitar">×</button>
+          <span class=\"remove-tag\" aria-label=\"Quitar\">×</span>
         </span>
       `).join('');
+      return `
+        <div class=\"filtros-group\">
+          <div class=\"filtros-group-title\">${titulo}</div>
+          <div class=\"filtros-tags-compact\">${tags}</div>
+        </div>
+      `;
+    };
+
+    // Pintar grupos en orden
+    const html = [
+      renderGrupo('Genéricos', genericos),
+      renderGrupo('Básico', basicos),
+      renderGrupo('Avanzados', avanzados)
+    ].filter(Boolean).join('');
+
+    bar.innerHTML = html || '<span class="no-filtros">Todos los inmuebles</span>';
+
+    // 📱 También renderizar en el drawer móvil
+    const mobileBar = document.getElementById('filtrosTagsMobile');
+    if (mobileBar) {
+      // Renderizar solo los tags sin títulos de grupo para móvil (más compacto)
+      const allTags = [...genericos, ...basicos, ...avanzados];
+      const mobileTags = allTags.map(c => `
+        <span class="filtro-tag" data-kind="${c.kind}" data-key="${c.key}"${c.categoria ? ` data-categoria="${c.categoria}"` : ''}>
+          ${c.label}
+          <span class="remove-tag" aria-label="Quitar">×</span>
+        </span>
+      `).join('');
+
+      mobileBar.innerHTML = mobileTags || '<span style="color: #6c757d; font-size: 0.75rem;">No hay filtros aplicados</span>';
     }
   }
 
   mostrarResultados() {
     const imagenRef = document.getElementById('imagenReferencial');
     const mainContainer = document.getElementById('mainContainer');
-    const panelFiltros = document.getElementById('panelFiltros');
 
-    // Ocultar imagen y panel de filtros
-    imagenRef.style.display = 'none';
-    panelFiltros.style.display = 'none';
+    // Ocultar imagen referencial
+    if (imagenRef) imagenRef.style.display = 'none';
 
     // Mostrar resultados
-    mainContainer.style.display = 'flex';
+    if (mainContainer) mainContainer.style.display = 'flex';
     this.mostrandoResultados = true;
 
-    // Renderizar resultados y mapa
-    this.renderResultados();
-    this.renderMapa();
+    // Verificar qué acordeón está abierto para mostrar resultados o placeholders
+    this.verificarMostrarResultadosPorAcordeon();
   }
 
   // Mostrar layout 3 columnas (Filtros | Resultados | Mapa)
@@ -888,7 +1176,6 @@ class ResultadosPage {
 
     if (contBasico) contBasico.innerHTML = this.generarHTMLFiltroBasico();
     if (contAvanzado) contAvanzado.innerHTML = this.generarHTMLFiltroAvanzado();
-
     this.attachBasicoInlineListeners();
 
     // Adjuntar listeners de acordeón avanzado DESPUÉS de que el DOM esté listo
@@ -917,43 +1204,461 @@ class ResultadosPage {
     }, 100);
   }
 
-  // Resumen de filtros simplificados en columna izquierda
-  renderResumenGenericos() {
+  // Resumen de filtros simplificados en columna izquierda - CON TOGGLE ELEGANTE
+  renderResumenGenericos(modoEdicion = false) {
     const box = document.getElementById('resumenGenericos');
     if (!box) return;
     const fs = this.filtrosSimplificados || {};
 
-    // Distritos
-    const distritos = Array.isArray(fs.distritos_ids) && fs.distritos_ids.length > 0
-      ? fs.distritos_ids.map(id => this.distritos.find(d => d.id === id)?.nombre).filter(Boolean).join(', ')
-      : (fs.distrito_id ? (this.distritos.find(d => d.id === fs.distrito_id)?.nombre || '') : '—');
+    if (!modoEdicion) {
+      // MODO RESUMEN: Mostrar como texto elegante
+      const distritos = Array.isArray(fs.distritos_ids) && fs.distritos_ids.length > 0
+        ? fs.distritos_ids.map(id => this.distritos.find(d => d.id === id)?.nombre).filter(Boolean).join(', ')
+        : '—';
 
-    // Tipo de inmueble
-    const tipoInmueble = fs.tipo_inmueble_id
-      ? (this.tiposInmuebles.find(t => t.id === fs.tipo_inmueble_id)?.nombre || '—')
-      : '—';
+      const tipoInmueble = fs.tipo_inmueble_id
+        ? (this.tiposInmuebles.find(t => t.id === fs.tipo_inmueble_id)?.nombre || '—')
+        : '—';
 
-    // Área/metraje
-    const metragem = fs.area ? `${fs.area} m²` : '—';
+      const metragem = fs.area ? `${fs.area} m²` : '—';
+      const condicion = fs.transaccion ? (fs.transaccion === 'compra' ? 'Compra' : 'Alquiler') : '—';
 
-    // Condición (compra/alquiler)
-    const condicion = fs.transaccion ? (fs.transaccion === 'compra' ? 'Compra' : 'Alquiler') : '—';
+      let presupuesto = '—';
+      if (fs.transaccion === 'compra' && fs.presupuesto_compra) {
+        presupuesto = `${Number(fs.presupuesto_compra).toLocaleString()} USD`;
+      } else if (fs.transaccion === 'alquiler' && fs.presupuesto_alquiler) {
+        presupuesto = `${Number(fs.presupuesto_alquiler).toLocaleString()} USD/mes`;
+      }
 
-    // Presupuesto (dependiendo de transacción)
-    let presupuesto = '—';
-    if (fs.transaccion === 'compra' && fs.presupuesto_compra) {
-      presupuesto = `${Number(fs.presupuesto_compra).toLocaleString()} USD`;
-    } else if (fs.transaccion === 'alquiler' && fs.presupuesto_alquiler) {
-      presupuesto = `${Number(fs.presupuesto_alquiler).toLocaleString()} USD/mes`;
+      box.innerHTML = `
+        <div class="item"><span>Distrito(s)</span><strong>${distritos}</strong></div>
+        <div class="item"><span>Tipo Inmueble</span><strong>${tipoInmueble}</strong></div>
+        <div class="item"><span>Área</span><strong>${metragem}</strong></div>
+        <div class="item"><span>Transacción</span><strong>${condicion}</strong></div>
+        <div class="item"><span>Presupuesto</span><strong>${presupuesto}</strong></div>
+        <div style="margin-top: 16px;">
+          <button id="btnEditarGenericos" class="btn btn-sm btn-outline" style="width: 100%;">
+            <i class="fa-solid fa-pencil"></i> Editar
+          </button>
+        </div>
+      `;
+
+      // Listener para el botón editar
+      document.getElementById('btnEditarGenericos')?.addEventListener('click', () => {
+        this.renderResumenGenericos(true); // Cambiar a modo edición
+        this.setupAccordion(); // Re-adjuntar listeners del acordeón
+
+        // Verificar si algún acordeón básico/avanzado está abierto y mostrar resultados
+        setTimeout(() => {
+          this.verificarMostrarResultadosPorAcordeon();
+        }, 50);
+      });
+
+    } else {
+      // MODO EDICIÓN: Mostrar formulario con multi-select de checkboxes
+      const distritosSeleccionados = Array.isArray(fs.distritos_ids) ? fs.distritos_ids : [];
+      const distritosNombres = distritosSeleccionados
+        .map(id => this.distritos.find(d => d.id === id)?.nombre)
+        .filter(Boolean);
+
+      // Mostrar máximo 3 tags, el resto como "+N"
+      const visibleTags = distritosNombres.slice(0, 3);
+      const remaining = distritosNombres.length - 3;
+      let tagsHTML = visibleTags.map(n => `<span class="multi-select__tag">${n}</span>`).join('');
+      if (remaining > 0) {
+        tagsHTML += `<span class="multi-select__tag">+${remaining}</span>`;
+      }
+
+      const tiposOptions = this.tiposInmuebles.map(t => {
+        const selected = fs.tipo_inmueble_id === t.id ? 'selected' : '';
+        return `<option value="${t.id}" ${selected}>${t.nombre}</option>`;
+      }).join('');
+
+      box.innerHTML = `
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">Distrito(s)</label>
+          <div id="gen_distritos_multi" class="multi-select">
+            <button type="button" class="multi-select__button" id="gen_distritos_toggle" aria-expanded="false" style="padding: 8px 10px;">
+              <span class="multi-select__placeholder" id="gen_distritos_placeholder" style="${distritosSeleccionados.length > 0 ? 'display:none;' : ''}">Selecciona distritos...</span>
+              <span class="multi-select__tags" id="gen_distritos_tags">
+                ${tagsHTML}
+              </span>
+              <span class="multi-select__arrow">▾</span>
+            </button>
+            <div class="multi-select__panel" id="gen_distritos_panel" hidden>
+              <div class="multi-select__search">
+                <input type="text" id="gen_distritos_search" placeholder="Buscar distrito..." class="multi-select__search-input">
+              </div>
+              <div class="multi-select__options" id="gen_distritos_options">
+                ${this.distritos.map(d => {
+                  const checked = distritosSeleccionados.includes(d.id) ? 'checked' : '';
+                  return `
+                    <div class="multi-option">
+                      <input type="checkbox" id="distrito_${d.id}" value="${d.id}" ${checked}>
+                      <label for="distrito_${d.id}">${d.nombre}</label>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              <div class="multi-select__actions">
+                <button type="button" id="gen_distritos_select_all" class="multi-select__action">Seleccionar todos</button>
+                <button type="button" id="gen_distritos_clear" class="multi-select__action alt">Limpiar</button>
+              </div>
+            </div>
+          </div>
+          <small style="font-size: 10px; color: #999;">Busca y selecciona múltiples distritos</small>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label for="gen_tipo" style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">Tipo Inmueble</label>
+          <select id="gen_tipo" class="form-control" style="padding: 8px 10px; font-size: 13px;">
+            <option value="">Seleccionar...</option>
+            ${tiposOptions}
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label for="gen_area" style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">Área (m²)</label>
+          <input type="number" id="gen_area" class="form-control" style="padding: 8px 10px; font-size: 13px;" placeholder="Ej: 100" value="${fs.area || ''}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">Transacción</label>
+          <div style="display: flex; gap: 6px;">
+            <label style="display: flex; align-items: center; cursor: pointer; flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px;">
+              <input type="radio" name="gen_transaccion" value="compra" ${fs.transaccion === 'compra' ? 'checked' : ''} style="margin-right: 5px;">
+              <span>Compra</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer; flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px;">
+              <input type="radio" name="gen_transaccion" value="alquiler" ${fs.transaccion === 'alquiler' ? 'checked' : ''} style="margin-right: 5px;">
+              <span>Alquiler</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 8px;" id="gen_presupuesto_group">
+          <label for="gen_presupuesto" style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">
+            Presupuesto ${fs.transaccion === 'compra' ? '(USD)' : '(USD/mes)'}
+          </label>
+          <input
+            type="number"
+            id="gen_presupuesto"
+            class="form-control"
+            style="padding: 8px 10px; font-size: 13px;"
+            placeholder="${fs.transaccion === 'compra' ? 'Ej: 200000' : 'Ej: 1500'}"
+            value="${fs.transaccion === 'compra' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '')}"
+          >
+        </div>
+
+        <div style="margin-top: 12px;">
+          <button id="btnVolverResumen" class="btn btn-outline btn-sm" style="width: 100%; padding: 8px;">
+            <i class="fa-solid fa-arrow-left"></i> Volver al Resumen
+          </button>
+        </div>
+      `;
+
+      // Adjuntar listeners después de renderizar
+      this.attachGenericosListeners();
+    }
+  }
+
+  // Listeners para campos genéricos editables - CON MULTI-SELECT DE CHECKBOXES
+  attachGenericosListeners() {
+    // Función para aplicar cambios automáticamente
+    const aplicarCambios = () => {
+      // Obtener distritos seleccionados desde checkboxes
+      const distritosChecked = Array.from(
+        document.querySelectorAll('#gen_distritos_options input[type="checkbox"]:checked')
+      ).map(cb => parseInt(cb.value));
+
+      const tipoSelect = document.getElementById('gen_tipo');
+      const areaInput = document.getElementById('gen_area');
+      const transaccionRadio = document.querySelector('input[name="gen_transaccion"]:checked');
+      const presupuestoInput = document.getElementById('gen_presupuesto');
+
+      if (!tipoSelect) return;
+
+      const tipoId = tipoSelect.value ? parseInt(tipoSelect.value) : null;
+      const area = areaInput?.value ? parseFloat(areaInput.value) : null;
+      const transaccion = transaccionRadio?.value || null;
+      const presupuesto = presupuestoInput?.value ? parseFloat(presupuestoInput.value) : null;
+
+      this.filtrosSimplificados = {
+        ...this.filtrosSimplificados,
+        distritos_ids: distritosChecked.length > 0 ? distritosChecked : [],
+        tipo_inmueble_id: tipoId,
+        area: area,
+        transaccion: transaccion
+      };
+
+      if (transaccion === 'compra') {
+        this.filtrosSimplificados.presupuesto_compra = presupuesto;
+        delete this.filtrosSimplificados.presupuesto_alquiler;
+      } else if (transaccion === 'alquiler') {
+        this.filtrosSimplificados.presupuesto_alquiler = presupuesto;
+        delete this.filtrosSimplificados.presupuesto_compra;
+      }
+
+      localStorage.setItem('filtros_simplificados', JSON.stringify(this.filtrosSimplificados));
+      this.aplicarFiltrosCompletos();
+      this.renderChipsActivos();
+
+      // Actualizar tags visuales del multi-select
+      this.actualizarTagsDistritos();
+    };
+
+    // Setup multi-select de distritos
+    this.setupMultiSelectDistritos(aplicarCambios);
+
+    // Listeners para otros campos
+    document.getElementById('gen_tipo')?.addEventListener('change', aplicarCambios);
+    document.getElementById('gen_area')?.addEventListener('input', aplicarCambios);
+    document.getElementById('gen_presupuesto')?.addEventListener('input', aplicarCambios);
+
+    // Listener para cambio de transacción
+    document.querySelectorAll('input[name="gen_transaccion"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const transaccion = e.target.value;
+        const presupuestoGroup = document.getElementById('gen_presupuesto_group');
+        const presupuestoInput = document.getElementById('gen_presupuesto');
+        const label = presupuestoGroup?.querySelector('label');
+
+        if (label && presupuestoInput) {
+          label.innerHTML = `Presupuesto ${transaccion === 'compra' ? '(USD)' : '(USD/mes)'}`;
+          presupuestoInput.placeholder = transaccion === 'compra' ? 'Ej: 200000' : 'Ej: 1500';
+
+          const fs = this.filtrosSimplificados || {};
+          presupuestoInput.value = transaccion === 'compra' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '');
+        }
+
+        aplicarCambios();
+      });
+    });
+
+    // Botón volver al resumen
+    document.getElementById('btnVolverResumen')?.addEventListener('click', () => {
+      this.renderResumenGenericos(false);
+      this.setupAccordion(); // Re-adjuntar listeners del acordeón
+
+      // Verificar si algún acordeón básico/avanzado está abierto y mostrar resultados
+      setTimeout(() => {
+        this.verificarMostrarResultadosPorAcordeon();
+      }, 50);
+    });
+  }
+
+  // Configurar multi-select de distritos con checkboxes
+  setupMultiSelectDistritos(aplicarCambios) {
+    const toggle = document.getElementById('gen_distritos_toggle');
+    const panel = document.getElementById('gen_distritos_panel');
+    const search = document.getElementById('gen_distritos_search');
+    const selectAll = document.getElementById('gen_distritos_select_all');
+    const clear = document.getElementById('gen_distritos_clear');
+    const container = document.getElementById('gen_distritos_multi');
+
+    if (!toggle || !panel) {
+      console.warn('⚠️ Multi-select distritos: elementos no encontrados');
+      return;
     }
 
-    box.innerHTML = `
-      <div class="item"><span>Distrito(s)</span><strong>${distritos || '—'}</strong></div>
-      <div class="item"><span>Tipo Inmueble</span><strong>${tipoInmueble}</strong></div>
-      <div class="item"><span>Área</span><strong>${metragem}</strong></div>
-      <div class="item"><span>Transacción</span><strong>${condicion}</strong></div>
-      <div class="item"><span>Presupuesto</span><strong>${presupuesto}</strong></div>
-    `;
+    console.log('✅ Configurando multi-select distritos (desktop)');
+
+    // Toggle panel
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = panel.hasAttribute('hidden');
+      if (isHidden) {
+        panel.removeAttribute('hidden');
+        toggle.setAttribute('aria-expanded', 'true');
+        container.classList.add('open');
+      } else {
+        panel.setAttribute('hidden', '');
+        toggle.setAttribute('aria-expanded', 'false');
+        container.classList.remove('open');
+      }
+    });
+
+    // Search filter - buscar solo dentro del panel específico
+    search?.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const options = panel.querySelectorAll('.multi-option');
+      options.forEach(opt => {
+        const label = opt.querySelector('label').textContent.toLowerCase();
+        opt.style.display = label.includes(searchTerm) ? 'flex' : 'none';
+      });
+    });
+
+    // Checkbox changes
+    const checkboxes = document.querySelectorAll('#gen_distritos_options input[type="checkbox"]');
+    console.log(`📌 Encontrados ${checkboxes.length} checkboxes de distritos (desktop)`);
+
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        console.log(`✅ Checkbox cambiado: ${cb.value} -> ${cb.checked}`);
+        aplicarCambios();
+      });
+    });
+
+    // Select all
+    selectAll?.addEventListener('click', () => {
+      const visibleCheckboxes = Array.from(checkboxes).filter(cb =>
+        cb.closest('.multi-option').style.display !== 'none'
+      );
+      visibleCheckboxes.forEach(cb => cb.checked = true);
+      aplicarCambios();
+    });
+
+    // Clear
+    clear?.addEventListener('click', () => {
+      checkboxes.forEach(cb => cb.checked = false);
+      aplicarCambios();
+    });
+
+    // Cerrar al hacer click fuera
+    document.addEventListener('click', (e) => {
+      if (!container.contains(e.target)) {
+        panel.setAttribute('hidden', '');
+        toggle.setAttribute('aria-expanded', 'false');
+        container.classList.remove('open');
+      }
+    });
+  }
+
+  // Actualizar tags visuales del multi-select
+  actualizarTagsDistritos() {
+    const tagsContainer = document.getElementById('gen_distritos_tags');
+    const placeholder = document.getElementById('gen_distritos_placeholder');
+
+    if (!tagsContainer) return;
+
+    const distritosSeleccionados = this.filtrosSimplificados.distritos_ids || [];
+    const nombres = distritosSeleccionados
+      .map(id => this.distritos.find(d => d.id === id)?.nombre)
+      .filter(Boolean);
+
+    if (nombres.length > 0) {
+      // Mostrar máximo 3 tags, el resto como "+N"
+      const visibleTags = nombres.slice(0, 3);
+      const remaining = nombres.length - 3;
+
+      let tagsHTML = visibleTags.map(n => `<span class="multi-select__tag">${n}</span>`).join('');
+      if (remaining > 0) {
+        tagsHTML += `<span class="multi-select__tag">+${remaining}</span>`;
+      }
+
+      tagsContainer.innerHTML = tagsHTML;
+      if (placeholder) placeholder.style.display = 'none';
+    } else {
+      tagsContainer.innerHTML = '';
+      if (placeholder) placeholder.style.display = 'block';
+    }
+  }
+
+  // Configurar multi-select de distritos con checkboxes (MÓVIL)
+  setupMultiSelectDistritosMobile(aplicarCambios) {
+    const toggle = document.getElementById('gen_distritos_toggle_mob');
+    const panel = document.getElementById('gen_distritos_panel_mob');
+    const search = document.getElementById('gen_distritos_search_mob');
+    const selectAll = document.getElementById('gen_distritos_select_all_mob');
+    const clear = document.getElementById('gen_distritos_clear_mob');
+    const container = document.getElementById('gen_distritos_multi_mob');
+
+    if (!toggle || !panel) {
+      console.warn('⚠️ Multi-select distritos mobile: elementos no encontrados');
+      return;
+    }
+
+    console.log('✅ Configurando multi-select distritos (mobile)');
+
+    // Toggle panel
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = panel.hasAttribute('hidden');
+      if (isHidden) {
+        panel.removeAttribute('hidden');
+        toggle.setAttribute('aria-expanded', 'true');
+        container.classList.add('open');
+      } else {
+        panel.setAttribute('hidden', '');
+        toggle.setAttribute('aria-expanded', 'false');
+        container.classList.remove('open');
+      }
+    });
+
+    // Search filter - buscar solo dentro del panel específico
+    search?.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const options = panel.querySelectorAll('.multi-option');
+      options.forEach(opt => {
+        const label = opt.querySelector('label').textContent.toLowerCase();
+        opt.style.display = label.includes(searchTerm) ? 'flex' : 'none';
+      });
+    });
+
+    // Checkbox changes
+    const checkboxes = document.querySelectorAll('#gen_distritos_options_mob input[type="checkbox"]');
+    console.log(`📌 Encontrados ${checkboxes.length} checkboxes de distritos (mobile)`);
+
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        console.log(`✅ Checkbox cambiado (mobile): ${cb.value} -> ${cb.checked}`);
+        aplicarCambios();
+      });
+    });
+
+    // Select all
+    selectAll?.addEventListener('click', () => {
+      const visibleCheckboxes = Array.from(checkboxes).filter(cb =>
+        cb.closest('.multi-option').style.display !== 'none'
+      );
+      visibleCheckboxes.forEach(cb => cb.checked = true);
+      aplicarCambios();
+    });
+
+    // Clear
+    clear?.addEventListener('click', () => {
+      checkboxes.forEach(cb => cb.checked = false);
+      aplicarCambios();
+    });
+
+    // Cerrar al hacer click fuera
+    document.addEventListener('click', (e) => {
+      if (!container.contains(e.target)) {
+        panel.setAttribute('hidden', '');
+        toggle.setAttribute('aria-expanded', 'false');
+        container.classList.remove('open');
+      }
+    });
+  }
+
+  // Actualizar tags visuales del multi-select (MÓVIL)
+  actualizarTagsDistritosMobile() {
+    const tagsContainer = document.getElementById('gen_distritos_tags_mob');
+    const placeholder = document.getElementById('gen_distritos_placeholder_mob');
+
+    if (!tagsContainer) return;
+
+    const distritosSeleccionados = this.filtrosSimplificados.distritos_ids || [];
+    const nombres = distritosSeleccionados
+      .map(id => this.distritos.find(d => d.id === id)?.nombre)
+      .filter(Boolean);
+
+    if (nombres.length > 0) {
+      // Mostrar máximo 3 tags, el resto como "+N"
+      const visibleTags = nombres.slice(0, 3);
+      const remaining = nombres.length - 3;
+
+      let tagsHTML = visibleTags.map(n => `<span class="multi-select__tag">${n}</span>`).join('');
+      if (remaining > 0) {
+        tagsHTML += `<span class="multi-select__tag">+${remaining}</span>`;
+      }
+
+      tagsContainer.innerHTML = tagsHTML;
+      if (placeholder) placeholder.style.display = 'none';
+    } else {
+      tagsContainer.innerHTML = '';
+      if (placeholder) placeholder.style.display = 'block';
+    }
   }
 
   // Acordeón simple sin librerías
@@ -1005,15 +1710,8 @@ class ResultadosPage {
       header.addEventListener('click', newListener);
     });
 
-    // Abrir "Filtros Genéricos" por defecto en desktop
-    const genericosDesktop = document.querySelector('.filters-section .accordion-header[data-accordion="genericos"]');
-    if (genericosDesktop) {
-      genericosDesktop.setAttribute('aria-expanded', 'true');
-      document.querySelector('.filters-section .accordion-content[data-accordion="genericos"]')?.classList.add('open');
-    }
-
-    // Verificar estado inicial
-    this.verificarMostrarResultadosPorAcordeon();
+    // NO abrir ningún acordeón por defecto
+    // El usuario debe seleccionar qué filtros quiere ver
 
     // Deshabilitar botones inicialmente (solo genéricos abiertos)
     this.actualizarEstadoBotones();
@@ -1057,26 +1755,16 @@ class ResultadosPage {
   }
 
   verificarMostrarResultadosPorAcordeon() {
-    // Verificar si Filtro Básico o Filtros Avanzados están abiertos
+    // Verificar si Filtro Básico está abierto para mostrar cards
     const basicoAbierto = document.querySelector('.accordion-header[data-accordion="basico"][aria-expanded="true"]') !== null;
-    const avanzadoAbierto = document.querySelector('.accordion-header[data-accordion="avanzado"][aria-expanded="true"]') !== null;
 
-    const mostrarResultados = basicoAbierto || avanzadoAbierto;
-
-    const placeholderResultados = document.getElementById('placeholderResultados');
     const propertiesList = document.getElementById('propertiesList');
-    const mapPlaceholder = document.getElementById('mapPlaceholder');
     const mapCanvas = document.getElementById('map');
 
-    if (mostrarResultados) {
-      // Mostrar resultados y mapa
-      if (placeholderResultados) placeholderResultados.style.display = 'none';
-      if (propertiesList) propertiesList.style.display = 'flex';
-      if (mapPlaceholder) mapPlaceholder.style.display = 'none';
-      if (mapCanvas) mapCanvas.style.display = 'block';
-
-      // Renderizar resultados y mapa
-      this.renderResultados();
+    // Siempre mostrar el mapa (sin placeholders)
+    if (mapCanvas) {
+      mapCanvas.style.display = 'block';
+      // Renderizar mapa siempre con las propiedades filtradas
       this.renderMapa();
 
       // Forzar que el mapa se redibuje correctamente
@@ -1085,12 +1773,14 @@ class ResultadosPage {
           this.map.invalidateSize();
         }, 100);
       }
+    }
+
+    // Mostrar cards SOLO si Filtro Básico está abierto
+    if (basicoAbierto) {
+      if (propertiesList) propertiesList.style.display = 'flex';
+      this.renderResultados();
     } else {
-      // Mostrar placeholders
-      if (placeholderResultados) placeholderResultados.style.display = 'flex';
       if (propertiesList) propertiesList.style.display = 'none';
-      if (mapPlaceholder) mapPlaceholder.style.display = 'flex';
-      if (mapCanvas) mapCanvas.style.display = 'none';
     }
   }
 
@@ -1163,17 +1853,50 @@ class ResultadosPage {
     // Cargar filtro básico por defecto
     this.mostrarFiltroBasicoInline();
 
+    // Botón Limpiar (solo básicos y avanzados, NO genéricos)
+    document.getElementById('btnLimpiarTodosFiltros')?.addEventListener('click', () => {
+      // ✅ Solo limpiar filtros BÁSICOS y AVANZADOS
+      // Los filtros GENÉRICOS se mantienen intactos
+      this.limpiarFiltrosAdicionales();
+    });
+
+    // 📱 Botón Limpiar Todo del Drawer Móvil
+    document.getElementById('btnLimpiarTodosFiltrosMobile')?.addEventListener('click', () => {
+      this.limpiarFiltrosAdicionales();
+    });
+
     // Delegación: quitar chips
     const chipsBar = document.getElementById('filtrosAplicados');
     chipsBar?.addEventListener('click', (e) => {
-      const btn = e.target.closest('.chip__close');
+      const btn = e.target.closest('.remove-tag');
       if (!btn) return;
-      const chip = btn.closest('.chip');
+      const chip = btn.closest('.filtro-tag');
       const kind = chip?.dataset.kind;
       const key = chip?.dataset.key;
       if (!kind) return;
 
-      if (kind === 'basico') {
+      if (kind === 'generico') {
+        // Filtros genéricos (del popup/modal)
+        if (key === 'tipo_inmueble_id') {
+          delete this.filtrosSimplificados.tipo_inmueble_id;
+        } else if (key === 'distritos_ids') {
+          delete this.filtrosSimplificados.distritos_ids;
+        } else if (key === 'transaccion') {
+          delete this.filtrosSimplificados.transaccion;
+        } else if (key === 'area') {
+          delete this.filtrosSimplificados.area;
+        } else if (key === 'presupuesto_compra') {
+          delete this.filtrosSimplificados.presupuesto_compra;
+        } else if (key === 'presupuesto_alquiler') {
+          delete this.filtrosSimplificados.presupuesto_alquiler;
+        }
+        // Guardar en localStorage
+        localStorage.setItem('filtros_simplificados', JSON.stringify(this.filtrosSimplificados));
+        // Aplicar filtros
+        this.aplicarFiltros();
+        this.renderChipsActivos();
+        return;
+      } else if (kind === 'basico') {
         // Campos básicos
         if (key === 'transaccion') {
           document.querySelectorAll('input[name="transaccion_basico"]').forEach(r => r.checked = false);
@@ -1231,6 +1954,72 @@ class ResultadosPage {
       this.renderChipsActivos();
       this.debouncedPreview?.();
     });
+
+    // 📱 Delegación para quitar chips desde el drawer móvil
+    const mobileChipsBar = document.getElementById('filtrosTagsMobile');
+    mobileChipsBar?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.remove-tag');
+      if (!btn) return;
+      const chip = btn.closest('.filtro-tag');
+      const kind = chip?.dataset.kind;
+      const key = chip?.dataset.key;
+      if (!kind) return;
+
+      // Reutilizar la misma lógica que el desktop
+      if (kind === 'generico') {
+        if (key === 'tipo_inmueble_id') {
+          delete this.filtrosSimplificados.tipo_inmueble_id;
+        } else if (key === 'distritos_ids') {
+          delete this.filtrosSimplificados.distritos_ids;
+        } else if (key === 'transaccion') {
+          delete this.filtrosSimplificados.transaccion;
+        } else if (key === 'area') {
+          delete this.filtrosSimplificados.area;
+        } else if (key === 'presupuesto_compra') {
+          delete this.filtrosSimplificados.presupuesto_compra;
+        } else if (key === 'presupuesto_alquiler') {
+          delete this.filtrosSimplificados.presupuesto_alquiler;
+        }
+        localStorage.setItem('filtros_simplificados', JSON.stringify(this.filtrosSimplificados));
+        this.aplicarFiltros();
+        this.renderChipsActivos();
+        return;
+      } else if (kind === 'basico') {
+        if (key === 'transaccion') {
+          document.querySelectorAll('input[name="transaccion_basico"]').forEach(r => r.checked = false);
+          delete this.filtrosAdicionales.basico.transaccion;
+        } else if (key === 'implementacion') {
+          const sel = document.getElementById('implementacion_basico');
+          if (sel) sel.value = '';
+          delete this.filtrosAdicionales.basico.implementacion;
+        } else {
+          const idMap = {
+            area: 'area_basico',
+            parqueos: 'parqueos_basico',
+            presupuesto_compra: 'presupuesto_compra_basico',
+            presupuesto_alquiler: 'presupuesto_alquiler_basico',
+            antiguedad: 'antiguedad_basico'
+          };
+          const inputId = idMap[key];
+          const el = document.getElementById(inputId);
+          if (el) el.value = '';
+          delete this.filtrosAdicionales.basico[key];
+        }
+      } else if (kind === 'avz_check' || kind === 'avz_num') {
+        const categoria = chip?.dataset.categoria;
+        const caracId = parseInt(key.split('_').pop());
+        if (categoria && !isNaN(caracId)) {
+          delete this.filtrosAdicionales.avanzado[categoria][caracId];
+          const inp = document.querySelector(`input[name="caracteristicas_avanzado"][value="${caracId}"]`);
+          if (inp) inp.checked = false;
+          const numInp = document.getElementById(`car_num_${caracId}`);
+          if (numInp) numInp.value = '';
+        }
+      }
+
+      this.renderChipsActivos();
+      this.debouncedPreview?.();
+    });
   }
 
   mostrarFiltroBasico() {
@@ -1247,37 +2036,8 @@ class ResultadosPage {
   }
 
   generarHTMLFiltroBasico() {
-    // Los filtros básicos no vienen del JSON, se generan dinámicamente
+    // Solo mostrar los 3 campos del Básico
     const filtros = [
-      {
-        id: 'transaccion',
-        nombre: 'Transacción',
-        tipo_input: 'pills',
-        opciones: [
-          { value: 'compra', label: 'Compra' },
-          { value: 'alquiler', label: 'Alquiler' }
-        ]
-      },
-      {
-        id: 'precio_compra',
-        nombre: 'Precio Compra (USD)',
-        tipo_input: 'number',
-        placeholder: 'Ej: 500000',
-        visible_cuando: 'transaccion=compra'
-      },
-      {
-        id: 'precio_alquiler',
-        nombre: 'Precio Alquiler (USD/mes)',
-        tipo_input: 'number',
-        placeholder: 'Ej: 5000',
-        visible_cuando: 'transaccion=alquiler'
-      },
-      {
-        id: 'area',
-        nombre: 'Área Requerida (m²)',
-        tipo_input: 'number',
-        placeholder: 'Ej: 300'
-      },
       {
         id: 'parqueos',
         nombre: 'Parqueos Requeridos',
@@ -1304,23 +2064,7 @@ class ResultadosPage {
       }
     ];
 
-    // Inicializar transacción desde filtros simplificados si existe
-    if (this.filtrosSimplificados?.transaccion && !this.filtrosAdicionales.basico.transaccion) {
-      this.filtrosAdicionales.basico.transaccion = this.filtrosSimplificados.transaccion;
-    }
-
-    // Inicializar área desde filtros simplificados si existe
-    if (this.filtrosSimplificados?.area && !this.filtrosAdicionales.basico.area) {
-      this.filtrosAdicionales.basico.area = this.filtrosSimplificados.area;
-    }
-
-    // Inicializar presupuesto desde filtros simplificados si existe
-    if (this.filtrosSimplificados?.presupuesto_compra && !this.filtrosAdicionales.basico.precio_compra) {
-      this.filtrosAdicionales.basico.precio_compra = this.filtrosSimplificados.presupuesto_compra;
-    }
-    if (this.filtrosSimplificados?.presupuesto_alquiler && !this.filtrosAdicionales.basico.precio_alquiler) {
-      this.filtrosAdicionales.basico.precio_alquiler = this.filtrosSimplificados.presupuesto_alquiler;
-    }
+    // Nota: No copiar filtros genéricos dentro de "básico" para evitar duplicados en los chips
 
     return `
       <div class="filtro-section">
@@ -1364,13 +2108,14 @@ class ResultadosPage {
 
     if (filtro.tipo_input === 'number') {
       return `
-        <div class="form-group" data-filtro-group="${filtro.id}">
-          <label for="${filtro.id}_basico">${filtro.nombre}</label>
-          <input 
-            type="number" 
-            id="${filtro.id}_basico" 
-            class="form-control" 
-            placeholder="${filtro.placeholder || ''}" 
+        <div class="form-group" data-filtro-group="${filtro.id}" style="margin-bottom: 10px;">
+          <label for="${filtro.id}_basico" style="font-size: 11px; color: #666; margin-bottom: 4px; display: block; font-weight: 500;">${filtro.nombre}</label>
+          <input
+            type="number"
+            id="${filtro.id}_basico"
+            class="form-control"
+            style="padding: 8px 10px; font-size: 13px;"
+            placeholder="${filtro.placeholder || ''}"
             value="${value}"
             data-filtro-id="${filtro.id}"
           >
@@ -1380,11 +2125,12 @@ class ResultadosPage {
 
     if (filtro.tipo_input === 'select') {
       return `
-        <div class="form-group">
-          <label for="${filtro.id}_basico">${filtro.nombre}</label>
-          <select 
-            id="${filtro.id}_basico" 
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label for="${filtro.id}_basico" style="font-size: 11px; color: #666; margin-bottom: 4px; display: block; font-weight: 500;">${filtro.nombre}</label>
+          <select
+            id="${filtro.id}_basico"
             class="form-control"
+            style="padding: 8px 10px; font-size: 13px;"
             data-filtro-id="${filtro.id}"
           >
             ${filtro.opciones.map(opt => `
@@ -1701,19 +2447,19 @@ class ResultadosPage {
   }
 
   aplicarFiltrosCompletos() {
-    // Los valores ya están en this.filtrosAdicionales.basico gracias a los listeners
-    // Solo necesitamos aplicar los filtros
-
-    // Aplicar filtros
+    // Aplicar filtros en orden
     this.aplicarFiltrosIniciales();
     this.aplicarFiltrosBasicos();
     this.aplicarFiltrosAvanzados();
 
-    // Guardar estado
+    // Guardar estado en localStorage
     this.guardarFiltrosAdicionales();
 
-    // Mostrar resultados
-    this.mostrarResultados();
+    // Solo re-renderizar si ya estamos mostrando resultados
+    // NO llamar mostrarResultados() porque resetea la UI
+    if (this.mostrandoResultados) {
+      this.verificarMostrarResultadosPorAcordeon();
+    }
   }
 
   aplicarFiltrosBasicos() {
@@ -1833,18 +2579,49 @@ class ResultadosPage {
   }
 
   limpiarFiltrosAdicionales() {
+    // ✅ IMPORTANTE: Solo limpia filtros BÁSICOS y AVANZADOS
+    // Los filtros GENÉRICOS se mantienen intactos
+    console.log('🧹 Limpiando solo filtros básicos y avanzados (genéricos se mantienen)');
+
     this.filtrosAdicionales = {
       basico: {},
       avanzado: {}
     };
 
-    // Recargar el panel actual
-    const titulo = document.getElementById('tituloFiltro').textContent;
-    if (titulo.includes('Básico')) {
-      this.mostrarFiltroBasico();
-    } else {
-      this.mostrarFiltroAvanzado();
+    // Guardar en localStorage
+    this.guardarFiltrosAdicionales();
+
+    // ✅ Re-renderizar acordeones básico y avanzado vacíos (Desktop)
+    const contBasico = document.getElementById('contenedorBasico');
+    const contAvanzado = document.getElementById('contenedorAvanzado');
+    if (contBasico) {
+      contBasico.innerHTML = this.generarHTMLFiltroBasico();
+      this.attachBasicoInlineListeners();
     }
+    if (contAvanzado) {
+      contAvanzado.innerHTML = this.generarHTMLFiltroAvanzado();
+      this.attachAvanzadoInlineListeners();
+    }
+
+    // ✅ Re-renderizar acordeones básico y avanzado vacíos (Mobile)
+    const contBasicoMob = document.getElementById('contenedorBasicoMobile');
+    const contAvanzadoMob = document.getElementById('contenedorAvanzadoMobile');
+    if (contBasicoMob) {
+      contBasicoMob.innerHTML = this.generarHTMLFiltroBasico();
+    }
+    if (contAvanzadoMob) {
+      contAvanzadoMob.innerHTML = this.generarHTMLFiltroAvanzado();
+    }
+
+    // Re-aplicar filtros (solo genéricos + iniciales ahora)
+    this.aplicarFiltrosIniciales();
+    this.renderChipsActivos();
+
+    console.log('✅ Filtros adicionales limpiados. Estado:', {
+      genericos: this.filtrosSimplificados,
+      basico: this.filtrosAdicionales.basico,
+      avanzado: this.filtrosAdicionales.avanzado
+    });
   }
 
   mostrarFavoritos() {
@@ -1918,15 +2695,14 @@ class ResultadosPage {
         </div>
         <div class="property-info">
           <h3 class="property-title">${prop.titulo}</h3>
-          <div class="property-location">📍 ${prop.direccion}</div>
           <div class="property-price">${this.renderPrecio(prop)}</div>
           <div class="property-features">
-            <span class="feature">📐 ${prop.area} m²</span>
-            <span class="feature">🚗 ${prop.parqueos} parqueos</span>
-            <span class="feature">⏱️ ${prop.antiguedad} años</span>
-            <span class="feature">🔧 ${prop.implementacion}</span>
+            ${prop.area ? `<span class="feature">📐 ${prop.area} m²</span>` : ''}
+            ${prop.parqueos ? `<span class="feature">🚗 ${prop.parqueos} parqueos</span>` : ''}
+            ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
+            ${prop.implementacion ? `<span class="feature">🔧 ${prop.implementacion}</span>` : ''}
           </div>
-          <p class="property-description">${prop.descripcion}</p>
+          ${prop.descripcion ? `<p class="property-description">${prop.descripcion}</p>` : ''}
           ${!this.usuarioLogueado ? `
             <div class="contact-locked">
               🔒 <a href="#" class="login-link" data-property-id="${prop.id}">Inicia sesión para ver contacto</a>
@@ -2281,7 +3057,17 @@ class ResultadosPage {
     // Inicializar mapa si no existe
     if (!this.map && mapCanvas) {
       try {
-        this.map = L.map('map').setView([-12.0464, -77.0428], 13);
+        this.map = L.map('map', {
+          scrollWheelZoom: true,   // Habilitar zoom con scroll (limitado)
+          doubleClickZoom: false,  // Deshabilitar zoom con doble click
+          touchZoom: true,         // Habilitar zoom táctil (limitado)
+          boxZoom: false,          // Deshabilitar zoom con caja
+          dragging: true,          // Permitir arrastrar el mapa
+          zoomControl: true,       // Mostrar controles de zoom
+          minZoom: 11,             // Zoom mínimo (más alejado para ver más área)
+          maxZoom: 15              // Zoom máximo (no permite ver direcciones exactas)
+        }).setView([-12.0464, -77.0428], 12); // Zoom inicial 12 para ver más propiedades
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19
@@ -2330,7 +3116,6 @@ class ResultadosPage {
         .bindPopup(`
           <div class="marker-popup">
             <strong>${prop.titulo}</strong><br>
-            <small>📍 ${prop.direccion}</small><br>
             <strong class="popup-price">USD ${prop.precio_venta?.toLocaleString() || prop.precio_alquiler?.toLocaleString()}</strong>
           </div>
         `);

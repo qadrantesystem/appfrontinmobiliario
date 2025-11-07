@@ -13,9 +13,15 @@ class FavoritesActionService {
   async agregarFavorito(propiedadId, notas = "") {
     try {
       const token = authService.getToken();
-      
+
       if (!token) {
-        showNotification('⚠️ Debes iniciar sesión para agregar favoritos', 'warning');
+        Swal.fire({
+          icon: 'info',
+          title: 'Suscripción Requerida',
+          text: 'Esta opción está disponible si te suscribes',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#D4AF37'
+        });
         return null;
       }
 
@@ -62,9 +68,15 @@ class FavoritesActionService {
   async quitarFavorito(propiedadId) {
     try {
       const token = authService.getToken();
-      
+
       if (!token) {
-        showNotification('⚠️ Debes iniciar sesión', 'warning');
+        Swal.fire({
+          icon: 'info',
+          title: 'Suscripción Requerida',
+          text: 'Esta opción está disponible si te suscribes',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#D4AF37'
+        });
         return false;
       }
 

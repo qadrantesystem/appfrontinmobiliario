@@ -24,12 +24,6 @@
                         <img src="assets/images/logos/logo.jpg" alt="Quadrante" class="logo-img">
                     </a>
                 </div>
-                <div class="header-info">
-                    <h1 id="resultadosCount">Cargando...</h1>
-                    <div id="filtrosAplicados" class="filtros-aplicados">
-                        <!-- Se carga dinámicamente -->
-                    </div>
-                </div>
                 <!-- Botón de filtros móvil (siempre visible) -->
                 <button id="btnToggleMobileFilters" class="btn-filter-mobile" aria-label="Abrir filtros">
                     <i class="fa-solid fa-sliders"></i>
@@ -47,6 +41,29 @@
             </div>
         </div>
     </header>
+
+    <!-- Sección Compacta de Resultados -->
+    <section class="resultados-compact-section">
+        <div class="container-fluid">
+            <!-- Fila 1: Contador (delgada) -->
+            <div class="resultados-counter-row">
+                <h1 id="resultadosCount" class="counter-text">Cargando propiedades...</h1>
+            </div>
+            
+            <!-- Fila 2: Filtros Aplicados (estética) -->
+            <div class="filtros-aplicados-row">
+                <div class="filtros-wrapper">
+                    <span class="filtros-label">Filtros:</span>
+                    <div id="filtrosAplicados" class="filtros-tags-compact">
+                        <!-- Se carga dinámicamente -->
+                    </div>
+                    <button id="btnLimpiarTodosFiltros" class="btn-limpiar-compact">
+                        <i class="fa-solid fa-xmark"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Imagen Referencial Inicial -->
     <div id="imagenReferencial" class="imagen-referencial">
@@ -90,12 +107,12 @@
             <div class="filters-inner">
                 <!-- Filtros Genéricos (Resumen) -->
                 <div class="accordion-item">
-                    <button class="accordion-header" type="button" data-accordion="genericos" aria-expanded="true">
+                    <button class="accordion-header" type="button" data-accordion="genericos" aria-expanded="false">
                         <i class="fa-solid fa-filter"></i>
                         <span>Filtros Genéricos</span>
                         <i class="fa-solid fa-chevron-down accordion-arrow"></i>
                     </button>
-                    <div class="accordion-content open" data-accordion="genericos">
+                    <div class="accordion-content" data-accordion="genericos">
                         <div id="resumenGenericos" class="resumen-genericos">
                             <!-- Se carga dinámicamente -->
                         </div>
@@ -144,16 +161,6 @@
 
         <!-- Columna Centro: Lista de Propiedades -->
         <section class="listings-section" id="listingsSection">
-            <div id="placeholderResultados" class="placeholder-resultados">
-                <div class="placeholder-image-container">
-                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&h=1080&fit=crop" alt="Oficina moderna" class="placeholder-image">
-                    <div class="placeholder-overlay">
-                        <i class="fa-solid fa-building-circle-check"></i>
-                        <h3>Resultados de Búsqueda</h3>
-                        <p>Despliega el <strong>Filtro Básico</strong> o <strong>Filtros Avanzados</strong> para ver los resultados</p>
-                    </div>
-                </div>
-            </div>
             <div id="propertiesList" class="properties-list" style="display: none;">
                 <!-- Se carga dinámicamente -->
             </div>
@@ -161,17 +168,7 @@
 
         <!-- Columna Derecha: Mapa (Sticky) -->
         <section class="map-section">
-            <div id="mapPlaceholder" class="map-placeholder">
-                <div class="placeholder-image-container">
-                    <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1920&h=1080&fit=crop" alt="Edificio corporativo" class="placeholder-image">
-                    <div class="placeholder-overlay">
-                        <i class="fa-solid fa-map-location-dot"></i>
-                        <h3>Mapa de Resultados</h3>
-                        <p>Despliega el <strong>Filtro Básico</strong> o <strong>Filtros Avanzados</strong> para ver el mapa</p>
-                    </div>
-                </div>
-            </div>
-            <div id="map" class="map-canvas" style="display: none;"></div>
+            <div id="map" class="map-canvas"></div>
         </section>
     </div>
 
@@ -184,15 +181,29 @@
             <h3>Filtros</h3>
             <button id="btnCloseMobileFilters" class="drawer-close" aria-label="Cerrar filtros">×</button>
         </div>
+
+        <!-- Filtros Aplicados dentro del Drawer (Móvil) -->
+        <div id="filtrosAplicadosMobileDrawer" class="filtros-aplicados-mobile-drawer">
+            <div class="filtros-aplicados-header">
+                <span class="filtros-label-mobile">📋 Filtros Aplicados</span>
+                <button id="btnLimpiarTodosFiltrosMobile" class="btn-limpiar-mobile-drawer">
+                    <i class="fa-solid fa-xmark"></i> Limpiar Todo
+                </button>
+            </div>
+            <div id="filtrosTagsMobile" class="filtros-tags-mobile-drawer">
+                <!-- Se carga dinámicamente igual que desktop -->
+            </div>
+        </div>
+
         <div class="drawer-body">
             <!-- Filtros Genéricos -->
             <div class="accordion-item">
-                <button class="accordion-header" type="button" data-accordion="genericos-mobile" aria-expanded="true">
+                <button class="accordion-header" type="button" data-accordion="genericos-mobile" aria-expanded="false">
                     <i class="fa-solid fa-filter"></i>
                     <span>Filtros Genéricos</span>
                     <i class="fa-solid fa-chevron-down accordion-arrow"></i>
                 </button>
-                <div class="accordion-content open" data-accordion="genericos-mobile">
+                <div class="accordion-content" data-accordion="genericos-mobile">
                     <div id="resumenGenericosMobile" class="resumen-genericos"></div>
                 </div>
             </div>
@@ -246,6 +257,8 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Scripts de servicios -->
     <script src="js/config/api.js?v=7"></script>
     <script src="js/services/auth.service.js?v=7"></script>
