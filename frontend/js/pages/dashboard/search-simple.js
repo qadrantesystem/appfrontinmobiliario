@@ -31,7 +31,7 @@ class SearchSimpleModule {
   async loadCatalogos() {
     const token = authService.getToken();
     const [tiposRes, distritosRes] = await Promise.all([
-      fetch(`${API_CONFIG.BASE_URL}/tipos-inmuebles`, {
+      fetch(`${API_CONFIG.BASE_URL}/tipos-inmueble`, {
         headers: { 'Authorization': `Bearer ${token}` }
       }),
       fetch(`${API_CONFIG.BASE_URL}/distritos`, {
