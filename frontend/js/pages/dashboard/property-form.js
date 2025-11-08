@@ -12,10 +12,10 @@ class PropertyForm {
     
     // Estado del formulario
     this.formData = {
-      propietario_real_nombre: '',
-      propietario_real_dni: '',
-      propietario_real_telefono: '',
-      propietario_real_email: '',
+      // 🆕 NUEVO: propietario_id en lugar de propietario_real_*
+      propietario_id: null,
+      // 🆕 NUEVO: padre_registro_cab_id para oficinas (self-referencing FK)
+      padre_registro_cab_id: null,
       tipo_inmueble_id: null,
       distrito_id: null,
       nombre_inmueble: '',
@@ -23,9 +23,7 @@ class PropertyForm {
       latitud: null,
       longitud: null,
       area: null,
-      habitaciones: null,
-      banos: null,
-      parqueos: null,
+      // ❌ REMOVIDO: habitaciones, banos, parqueos (van a caracteristicas dinámicas)
       antiguedad: null,
       transaccion: 'venta',
       precio_venta: null,
@@ -37,6 +35,11 @@ class PropertyForm {
       imagenes_galeria: [],
       caracteristicas: []
     };
+
+    // 🆕 Componentes reutilizables
+    this.autoFillDNI = null;
+    this.selectorEdificio = null;
+    this.modalMasivo = null;
     
     // Catálogos
     this.tiposInmuebles = [];
@@ -801,25 +804,47 @@ class PropertyForm {
         👤 Información del Propietario
       </h3>
       <div style="display: grid; gap: var(--spacing-md);">
-        ${this.renderInput('propietario_nombre', 'Nombre Completo', 'text', true, 'Juan Pérez García')}
+        <!-- 🆕 DNI PRIMERO para auto-fill -->
         ${this.renderInput('propietario_dni', 'DNI', 'text', true, '12345678', { maxlength: 8, pattern: '[0-9]{8}' })}
+        ${this.renderInput('propietario_nombre', 'Nombre Completo', 'text', true, 'Juan Pérez García')}
         ${this.renderInput('propietario_telefono', 'Teléfono', 'tel', true, '+51 999 888 777')}
         ${this.renderInput('propietario_email', 'Email', 'email', false, 'juan.perez@email.com')}
+        <!-- Campo oculto para propietario_id (si existe) -->
+        <input type="hidden" id="propietario_id_hidden" value="">
       </div>
     `;
   }
 
   renderStep2() {
+    // Verificar si el tipo seleccionado es "Oficina"
+    const tipoSeleccionado = this.tiposInmuebles.find(t => t.tipo_inmueble_id === this.formData.tipo_inmueble_id);
+    const esOficina = tipoSeleccionado && tipoSeleccionado.nombre_tipo.toLowerCase() === 'oficina';
+
     return `
       <h3 style="margin-bottom: var(--spacing-lg); color: var(--azul-corporativo);">
         🏠 Información Básica del Inmueble
       </h3>
       <div style="display: grid; gap: var(--spacing-md);">
         ${this.renderSelect('tipo_inmueble_id', 'Tipo de Inmueble', this.tiposInmuebles, true)}
+
+        <!-- 🆕 Selector de Edificio Padre (solo para Oficinas) -->
+        <div id="edificio-padre-container" style="display: ${esOficina ? 'block' : 'none'};">
+          <div class="form-group">
+            <label for="edificio-padre-select">
+              🏢 Edificio Padre <span style="color: red;">*</span>
+            </label>
+            <select id="edificio-padre-select" class="form-control">
+              <option value="">Seleccionar edificio...</option>
+            </select>
+          </div>
+          <!-- Contenedor para características del edificio -->
+          <div id="edificio-caracteristicas-container" style="margin-top: var(--spacing-md);"></div>
+        </div>
+
         ${this.renderSelect('distrito_id', 'Distrito', this.distritos, true)}
         ${this.renderInput('nombre_inmueble', 'Nombre del Inmueble', 'text', true, 'Departamento Vista al Mar')}
         ${this.renderInput('direccion', 'Dirección', 'text', true, 'Av. La Marina 2000')}
-        
+
         <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: var(--spacing-sm);">
           ${this.renderInput('latitud', 'Latitud', 'number', false, '-12.0975', { step: '0.000001' })}
           ${this.renderInput('longitud', 'Longitud', 'number', false, '-77.0305', { step: '0.000001' })}
@@ -842,11 +867,11 @@ class PropertyForm {
         <h4 style="margin-bottom: var(--spacing-sm); color: var(--azul-corporativo); font-size: 0.95rem;">Datos Básicos</h4>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--spacing-sm);">
           ${this.renderInputCompact('area', 'Área (m²)', 'number', true, '120', { step: '0.01', min: '1' })}
-          ${this.renderInputCompact('habitaciones', 'Habitaciones', 'number', false, '3', { min: '0' })}
-          ${this.renderInputCompact('banos', 'Baños', 'number', false, '2', { min: '1' })}
-          ${this.renderInputCompact('parqueos', 'Parqueos', 'number', false, '1', { min: '0' })}
           ${this.renderInputCompact('antiguedad', 'Años', 'number', false, '5', { min: '0' })}
         </div>
+        <p style="color: var(--gris-medio); margin-top: var(--spacing-sm); font-size: 0.85rem;">
+          ℹ️ Habitaciones, baños y parqueos se agregan en "Características Adicionales" abajo
+        </p>
       </div>
 
       <!-- Características Adicionales (Acordeón) -->
@@ -1189,6 +1214,16 @@ class PropertyForm {
     document.getElementById('btnAnterior')?.addEventListener('click', () => this.previousStep());
     document.getElementById('btnSiguiente')?.addEventListener('click', () => this.nextStep());
 
+    // 🆕 STEP 1: Inicializar AutoFillDNI (si estamos en step 1)
+    if (this.currentStep === 1) {
+      this.initAutoFillDNI();
+    }
+
+    // 🆕 STEP 2: Inicializar SelectorEdificio (si es tipo Oficina)
+    if (this.currentStep === 2) {
+      this.initSelectorEdificio();
+    }
+
     // ✅ Transaction Cards (Paso 4)
     document.querySelectorAll('.transaction-card').forEach(card => {
       card.addEventListener('click', () => {
@@ -1216,15 +1251,29 @@ class PropertyForm {
       });
     });
 
-    // ✅ Tipo inmueble change (cargar características)
+    // ✅ Tipo inmueble change (cargar características + mostrar selector edificio si es oficina)
     document.getElementById('tipo_inmueble_id')?.addEventListener('change', async (e) => {
       const tipoId = e.target.value;
       this.formData.tipo_inmueble_id = tipoId;
-      
+
       if (tipoId) {
         showNotification('Cargando características...', 'info');
         await this.loadCaracteristicasPorTipo(tipoId);
         showNotification('✅ Características cargadas', 'success');
+      }
+
+      // 🆕 Mostrar/ocultar selector de edificio si es Oficina
+      const tipoSeleccionado = this.tiposInmuebles.find(t => t.tipo_inmueble_id == tipoId);
+      const esOficina = tipoSeleccionado && tipoSeleccionado.nombre_tipo.toLowerCase() === 'oficina';
+      const edificioContainer = document.getElementById('edificio-padre-container');
+
+      if (edificioContainer) {
+        edificioContainer.style.display = esOficina ? 'block' : 'none';
+
+        // Si es oficina, inicializar selector de edificio
+        if (esOficina && !this.selectorEdificio) {
+          this.initSelectorEdificio();
+        }
       }
     });
 
@@ -1497,7 +1546,7 @@ class PropertyForm {
   async submitForm() {
     try {
       const isEdit = !!this.propId;
-      
+
       // Validar imagen principal SOLO en modo CREAR
       if (!isEdit && !this.formData.imagen_principal) {
         showNotification('⚠️ Debes agregar una imagen principal', 'warning');
@@ -1507,35 +1556,66 @@ class PropertyForm {
       }
 
       showNotification(isEdit ? '📤 Actualizando propiedad...' : '📤 Publicando propiedad...', 'info');
-      
-      // Construir JSON para la API
+
+      // 🆕 PASO 1: Crear/obtener propietario_id
+      let propietarioId = this.formData.propietario_id;
+
+      if (!propietarioId && !isEdit) {
+        // Verificar si AutoFillDNI encontró un propietario
+        const propietarioData = this.autoFillDNI?.getPropietarioData();
+
+        if (propietarioData) {
+          // Propietario existente
+          propietarioId = propietarioData.propietario_id;
+          console.log('✅ Usando propietario existente:', propietarioId);
+        } else {
+          // Crear nuevo propietario
+          console.log('🆕 Creando nuevo propietario...');
+          const propietarioPayload = {
+            dni: document.getElementById('propietario_dni').value.trim(),
+            nombre: document.getElementById('propietario_nombre').value.trim(),
+            telefono: document.getElementById('propietario_telefono').value.trim(),
+            email: document.getElementById('propietario_email').value.trim() || null
+          };
+
+          const propietarioCreado = await propietarioService.crear(propietarioPayload);
+          propietarioId = propietarioCreado.propietario_id;
+          console.log('✅ Propietario creado:', propietarioId);
+          showNotification('✅ Propietario registrado', 'success');
+        }
+      }
+
+      // 🆕 PASO 2: Obtener padre_registro_cab_id si es Oficina
+      let padreRegistroCabId = null;
+      if (this.selectorEdificio) {
+        padreRegistroCabId = this.selectorEdificio.getEdificioId();
+        console.log('🏢 Edificio padre seleccionado:', padreRegistroCabId);
+      }
+
+      // 🆕 PASO 3: Construir JSON para la API (NUEVO ESQUEMA)
       const propiedadJson = {
-        propietario_real_nombre: this.formData.propietario_real_nombre,
-        propietario_real_dni: this.formData.propietario_real_dni,
-        propietario_real_telefono: this.formData.propietario_real_telefono,
-        propietario_real_email: this.formData.propietario_real_email || null,
-        
+        propietario_id: propietarioId,
+        padre_registro_cab_id: padreRegistroCabId,
+
         tipo_inmueble_id: parseInt(this.formData.tipo_inmueble_id),
         distrito_id: parseInt(this.formData.distrito_id),
         nombre_inmueble: this.formData.nombre_inmueble,
         direccion: this.formData.direccion,
         latitud: this.formData.latitud ? parseFloat(this.formData.latitud) : null,
         longitud: this.formData.longitud ? parseFloat(this.formData.longitud) : null,
-        
+
         area: this.formData.area ? parseFloat(this.formData.area) : 0,
-        habitaciones: this.formData.habitaciones ? parseInt(this.formData.habitaciones) : 0,
-        banos: this.formData.banos ? parseInt(this.formData.banos) : 1,
-        parqueos: this.formData.parqueos ? parseInt(this.formData.parqueos) : 0,
+        // ❌ REMOVIDO: habitaciones, banos, parqueos (van a características)
         antiguedad: this.formData.antiguedad ? parseInt(this.formData.antiguedad) : null,
-        
+
         transaccion: this.formData.transaccion,
         precio_venta: this.formData.transaccion === 'venta' && this.formData.precio_venta ? parseFloat(this.formData.precio_venta) : null,
         precio_alquiler: this.formData.transaccion === 'alquiler' && this.formData.precio_alquiler ? parseFloat(this.formData.precio_alquiler) : null,
         moneda: this.formData.moneda,
-        
+
         titulo: this.formData.titulo,
         descripcion: this.formData.descripcion || '',
-        
+
         caracteristicas: this.formData.caracteristicas || []
       };
 
@@ -1615,10 +1695,38 @@ class PropertyForm {
       }
 
       showNotification(
-        isEdit ? '✅ Propiedad actualizada exitosamente' : '✅ Propiedad publicada exitosamente', 
+        isEdit ? '✅ Propiedad actualizada exitosamente' : '✅ Propiedad publicada exitosamente',
         'success'
       );
-      
+
+      // 🆕 PASO 4: Si es Edificio (tipo_inmueble_id == 1), preguntar si quiere generar oficinas masivas
+      if (!isEdit && result.data) {
+        const tipoSeleccionado = this.tiposInmuebles.find(t => t.tipo_inmueble_id == this.formData.tipo_inmueble_id);
+        const esEdificio = tipoSeleccionado && tipoSeleccionado.nombre_tipo.toLowerCase() === 'edificio';
+
+        if (esEdificio) {
+          console.log('🏢 Es un Edificio - preguntar si quiere generar oficinas masivas');
+
+          // Mostrar pregunta con SweetAlert2
+          const respuesta = await Swal.fire({
+            icon: 'question',
+            title: '🏢 Edificio Creado',
+            text: '¿Deseas generar oficinas masivamente para este edificio?',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, generar oficinas',
+            cancelButtonText: 'No, ahora no',
+            confirmButtonColor: '#0066cc',
+            cancelButtonColor: '#6c757d'
+          });
+
+          if (respuesta.isConfirmed) {
+            // Mostrar modal de generación masiva
+            await this.showModalGeneracionMasiva(result.data);
+            return; // No redirigir todavía
+          }
+        }
+      }
+
       // Volver a la lista y recargar
       setTimeout(async () => {
         await this.dashboard.loadTabContent('propiedades', this.dashboard.currentUser.perfil_id);
@@ -1628,10 +1736,72 @@ class PropertyForm {
       console.error('❌ Error:', error);
       const isEdit = !!this.propId;
       showNotification(
-        `❌ Error al ${isEdit ? 'actualizar' : 'publicar'}: ${error.message}`, 
+        `❌ Error al ${isEdit ? 'actualizar' : 'publicar'}: ${error.message}`,
         'error'
       );
     }
+  }
+
+  /**
+   * 🆕 Inicializar componente AutoFillDNI (Step 1)
+   */
+  initAutoFillDNI() {
+    console.log('🔧 Inicializando AutoFillDNI...');
+
+    if (!this.autoFillDNI) {
+      this.autoFillDNI = new AutoFillDNI(
+        '#propietario_dni',
+        '#propietario_nombre',
+        '#propietario_telefono',
+        '#propietario_email',
+        '#propietario_id_hidden'
+      );
+      this.autoFillDNI.init();
+      console.log('✅ AutoFillDNI inicializado');
+    }
+  }
+
+  /**
+   * 🆕 Inicializar componente SelectorEdificio (Step 2 - solo si es Oficina)
+   */
+  initSelectorEdificio() {
+    console.log('🔧 Inicializando SelectorEdificio...');
+
+    const selectElement = document.querySelector('#edificio-padre-select');
+    const containerElement = document.querySelector('#edificio-caracteristicas-container');
+
+    if (selectElement && containerElement && !this.selectorEdificio) {
+      this.selectorEdificio = new SelectorEdificio(
+        '#edificio-padre-select',
+        '#edificio-caracteristicas-container'
+      );
+      this.selectorEdificio.init();
+      console.log('✅ SelectorEdificio inicializado');
+    }
+  }
+
+  /**
+   * 🆕 Mostrar modal de generación masiva (después de crear edificio)
+   */
+  async showModalGeneracionMasiva(edificioCreado) {
+    console.log('🔧 Mostrando modal generación masiva...', edificioCreado);
+
+    if (!this.modalMasivo) {
+      this.modalMasivo = new ModalGeneracionMasiva();
+    }
+
+    // Configurar datos del edificio recién creado
+    const config = {
+      edificio_id: edificioCreado.registro_cab_id,
+      propietario_id: edificioCreado.propietario_id,
+      distrito_id: edificioCreado.distrito_id,
+      nombre_edificio: edificioCreado.nombre_inmueble
+    };
+
+    // Mostrar modal
+    this.modalMasivo.show(config);
+
+    console.log('✅ Modal generación masiva mostrado');
   }
 }
 
