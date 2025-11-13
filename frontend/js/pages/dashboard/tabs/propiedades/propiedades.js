@@ -146,6 +146,12 @@ class PropiedadesTab {
       await window.favoritesHandler.init();
     }
 
+    // 🖼️ CRÍTICO: Inicializar Image Viewer
+    if (window.imageViewer) {
+      window.imageViewer.attachToImages('.property-image');
+      console.log('✅ Image Viewer inicializado en Propiedades');
+    }
+
     this.renderPropertiesPage();
     this.setupPropertyListeners();
   }
@@ -267,7 +273,7 @@ class PropiedadesTab {
             <div class="carousel-images" data-current="0">
               ${imagenes.map((img, i) => `
                 <img src="${img}" alt="${prop.titulo} - imagen ${i+1}"
-                     class="carousel-image ${i === 0 ? 'active' : ''}" data-index="${i}"
+                     class="carousel-image property-image ${i === 0 ? 'active' : ''}" data-index="${i}"
                      onerror="this.style.display='none'">
               `).join('')}
             </div>

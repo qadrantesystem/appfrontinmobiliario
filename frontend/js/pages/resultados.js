@@ -406,6 +406,12 @@ class ResultadosPage {
     this.setupEventListeners();
     this.setupHamburgerMenu();
     this.setupPresupuesto();
+    
+    // 🖼️ Inicializar Image Viewer
+    if (window.imageViewer) {
+      window.imageViewer.attachToImages('.search-result-image');
+      console.log('✅ Image Viewer inicializado en Resultados');
+    }
 
     // 5. Mostrar layout de 3 columnas
     this.mostrarLayoutTresColumnas();
@@ -478,23 +484,101 @@ class ResultadosPage {
       const API_BASE = 'https://appbackimmobiliaria-production.up.railway.app/api/v1';
       const tipoInmuebleId = this.filtrosSimplificados?.tipo_inmueble_id || 1;
 
+      console.log(`🔍 Cargando datos con tipo_inmueble_id: ${tipoInmuebleId}`);
+      console.log(`📋 Filtros simplificados:`, this.filtrosSimplificados);
+      
+      // ✅ Construir query params con filtros del modal
+      const params = new URLSearchParams();
+      params.append('limit', '100');
+      
+      if (this.filtrosSimplificados?.tipo_inmueble_id) {
+        params.append('tipo_inmueble_id', this.filtrosSimplificados.tipo_inmueble_id);
+        console.log('🔍 Filtrando por tipo_inmueble_id:', this.filtrosSimplificados.tipo_inmueble_id);
+      }
+      
+      if (this.filtrosSimplificados?.distritos_ids?.length > 0) {
+        // Backend espera distrito_id (singular), enviar el primero
+        params.append('distrito_id', this.filtrosSimplificados.distritos_ids[0]);
+        console.log('🔍 Filtrando por distrito_id:', this.filtrosSimplificados.distritos_ids[0]);
+      }
+      
+      if (this.filtrosSimplificados?.transaccion) {
+        params.append('transaccion', this.filtrosSimplificados.transaccion);
+        console.log('🔍 Filtrando por transacción:', this.filtrosSimplificados.transaccion);
+      }
+      
+      if (this.filtrosSimplificados?.area) {
+        const area = parseInt(this.filtrosSimplificados.area);
+        const tolerancia = area * 0.15; // ±15%
+        params.append('area_min', Math.floor(area - tolerancia));
+        params.append('area_max', Math.ceil(area + tolerancia));
+        console.log('🔍 Filtrando por área:', area, '±15%');
+      }
+      
+      if (this.filtrosSimplificados?.presupuesto_compra) {
+        const presupuesto = parseInt(this.filtrosSimplificados.presupuesto_compra);
+        const tolerancia = presupuesto * 0.15; // ±15%
+        params.append('precio_min', Math.floor(presupuesto - tolerancia));
+        params.append('precio_max', Math.ceil(presupuesto + tolerancia));
+        console.log('🔍 Filtrando por precio compra:', presupuesto, '±15%');
+      }
+      
+      if (this.filtrosSimplificados?.presupuesto_alquiler) {
+        const presupuesto = parseInt(this.filtrosSimplificados.presupuesto_alquiler);
+        const tolerancia = presupuesto * 0.15; // ±15%
+        params.append('precio_min', Math.floor(presupuesto - tolerancia));
+        params.append('precio_max', Math.ceil(presupuesto + tolerancia));
+        console.log('🔍 Filtrando por precio alquiler:', presupuesto, '±15%');
+      }
+      
+      console.log('🌐 URL final:', `${API_BASE}/propiedades?${params.toString()}`);
+      
       const [propiedadesRes, caracteristicasRes, tiposRes, distritosRes, configFiltrosRes] = await Promise.all([
-        fetch(`${API_BASE}/propiedades?limit=100`),
+        fetch(`${API_BASE}/propiedades?${params.toString()}`),  // ✅ Con filtros del modal
         fetch(`${API_BASE}/caracteristicas`),
         fetch(`${API_BASE}/tipos-inmueble`),
         fetch(`${API_BASE}/distritos`),
-        fetch(`${API_BASE}/caracteristicas-x-inmueble/tipo-inmueble/${tipoInmuebleId}/agrupadas`)
+        fetch(`${API_BASE}/caracteristicas-x-inmueble/tipo-inmueble/${tipoInmuebleId}/agrupadas`)  // ✅ Filtros avanzados según tipo
       ]);
 
-      if (!propiedadesRes.ok || !caracteristicasRes.ok || !tiposRes.ok || !distritosRes.ok || !configFiltrosRes.ok) {
-        throw new Error('Error en alguna respuesta de la API');
+      // ✅ Mejor manejo de errores - identificar cuál endpoint falló
+      const responses = [
+        { name: 'propiedades', res: propiedadesRes, url: `/propiedades/publicas` },
+        { name: 'caracteristicas', res: caracteristicasRes, url: `/caracteristicas` },
+        { name: 'tipos', res: tiposRes, url: `/tipos-inmueble` },
+        { name: 'distritos', res: distritosRes, url: `/distritos` },
+        { name: 'configFiltros', res: configFiltrosRes, url: `/caracteristicas-x-inmueble/tipo-inmueble/${tipoInmuebleId}` }
+      ];
+
+      for (const { name, res, url } of responses) {
+        if (!res.ok) {
+          console.error(`❌ Error en ${name} (${url}): ${res.status} ${res.statusText}`);
+          const errorText = await res.text();
+          console.error(`📄 Respuesta: ${errorText}`);
+          
+          // ⚠️ Si falla configFiltros, continuar sin él (no crítico)
+          if (name === 'configFiltros') {
+            console.warn(`⚠️ Continuando sin configuración de filtros para tipo ${tipoInmuebleId}`);
+            continue;
+          }
+          
+          throw new Error(`Error en endpoint ${name}: ${res.status}`);
+        }
       }
 
       const propiedadesData = await propiedadesRes.json();
       const caracteristicasData = await caracteristicasRes.json();
       const tiposData = await tiposRes.json();
       const distritosData = await distritosRes.json();
-      const configFiltrosData = await configFiltrosRes.json();
+      
+      // ✅ Manejar configFiltros que puede fallar
+      let configFiltrosData = null;
+      if (configFiltrosRes.ok) {
+        configFiltrosData = await configFiltrosRes.json();
+      } else {
+        console.warn('⚠️ No se pudo cargar configuración de filtros, usando valores por defecto');
+        configFiltrosData = { categorias: [] };
+      }
 
       // Mapear respuesta de propiedades
       this.propiedades = propiedadesData.data || propiedadesData;
@@ -2680,7 +2764,7 @@ class ResultadosPage {
         <div class="property-image-carousel">
           <div class="carousel-images" data-current="0">
             ${prop.imagenes.map((img, i) => `
-              <img src="${img}" alt="${prop.titulo} - imagen ${i + 1}" class="carousel-image ${i === 0 ? 'active' : ''}" data-index="${i}">
+              <img src="${img}" alt="${prop.titulo} - imagen ${i + 1}" class="carousel-image search-result-image ${i === 0 ? 'active' : ''}" data-index="${i}">
             `).join('')}
           </div>
           ${prop.imagenes.length > 1 ? `

@@ -1257,12 +1257,12 @@ class PropertyForm {
         Información del Propietario
       </h3>
       <div style="display: grid; gap: var(--spacing-md);">
-        <!-- 🆕 Fila compacta: DNI, Nombre, Teléfono -->
-        <div style="display: grid; grid-template-columns: 150px 1fr 200px; gap: var(--spacing-sm);">
+        <!-- ✅ Layout responsive: DNI y Teléfono en una fila, Nombre completo -->
+        <div id="propietarioBasicosContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
           ${this.renderInput('propietario_dni', 'DNI', 'text', true, '12345678', { maxlength: 8, pattern: '[0-9]{8}' })}
-          ${this.renderInput('propietario_nombre', 'Nombre Completo', 'text', true, 'Juan Pérez García')}
           ${this.renderInput('propietario_telefono', 'Teléfono', 'tel', true, '999 888 777')}
         </div>
+        ${this.renderInput('propietario_nombre', 'Nombre Completo', 'text', true, 'Juan Pérez García')}
         ${this.renderInput('propietario_email', 'Email', 'email', false, 'juan.perez@email.com')}
         <!-- Campo oculto para propietario_id (si existe) -->
         <input type="hidden" id="propietario_id_hidden" value="">
@@ -1321,7 +1321,8 @@ class PropertyForm {
             📍 Dirección <span style="color: red;">*</span>
           </label>
           
-          <div style="display: grid; grid-template-columns: 120px 1fr 120px; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
+          <!-- ✅ Layout responsive para dirección -->
+          <div id="direccionPrincipalContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
             <div class="form-group">
               <label for="tipo_via" style="font-size: 0.85rem;">Tipo de Vía</label>
               <select id="tipo_via" class="form-control">
@@ -1334,17 +1335,18 @@ class PropertyForm {
             </div>
             
             <div class="form-group">
-              <label for="nombre_via" style="font-size: 0.85rem;">Nombre de la Vía *</label>
-              <input type="text" id="nombre_via" class="form-control" placeholder="Ej: Angamos Este" required>
-            </div>
-            
-            <div class="form-group">
               <label for="numero_direccion" style="font-size: 0.85rem;">Número</label>
               <input type="text" id="numero_direccion" class="form-control" placeholder="2520">
             </div>
           </div>
           
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+          <!-- Nombre de vía en fila separada -->
+          <div class="form-group" style="margin-bottom: var(--spacing-sm);">
+            <label for="nombre_via" style="font-size: 0.85rem;">Nombre de la Vía *</label>
+            <input type="text" id="nombre_via" class="form-control" placeholder="Ej: Angamos Este" required>
+          </div>
+          
+          <div id="direccionSecundariaContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
             <div class="form-group">
               <label for="urbanizacion" style="font-size: 0.85rem;">Urbanización / Conjunto</label>
               <input type="text" id="urbanizacion" class="form-control" placeholder="Opcional">
@@ -1389,7 +1391,8 @@ class PropertyForm {
       <!-- Características Físicas Básicas -->
       <div style="background: #f8f9fa; padding: var(--spacing-md); border-radius: 8px; margin-bottom: var(--spacing-lg);">
         <h4 style="margin-bottom: var(--spacing-sm); color: var(--azul-corporativo); font-size: 0.95rem;">Datos Básicos</h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--spacing-sm);">
+        <!-- ✅ Contenedor con ID para CSS responsive -->
+        <div id="datosBasicosContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--spacing-sm);">
           ${this.renderInputCompact('area', 'Área (m²)', 'number', true, '120', { step: '0.01', min: '1' })}
           ${this.renderInputCompact('antiguedad', 'Años', 'number', false, '5', { min: '0' })}
           ${this.renderSelectCompact('implementacion', 'Implementación', [
@@ -1465,28 +1468,27 @@ class PropertyForm {
   }
 
   renderStep4() {
-    // 🆕 NUEVO PASO: Configurar Oficinas (solo para Edificio Completo o Casa)
-    const tipoSeleccionado = this.tiposInmuebles.find(t =>
-      parseInt(t.tipo_inmueble_id) === parseInt(this.formData.tipo_inmueble_id)
-    );
-
-    // Usar 'nombre' en lugar de 'nombre_tipo' (según estructura del backend)
-    const nombreTipo = (tipoSeleccionado?.nombre || tipoSeleccionado?.nombre_tipo || '').toLowerCase();
-
-    // ✅ CORRECCIÓN: Detectar edificios completos (oficinas o departamentos)
-    const esEdificioCompleto = nombreTipo.includes('edificio') && nombreTipo.includes('completo');
-    const esCasa = nombreTipo.includes('casa') && !nombreTipo.includes('departamento');
+    // 🆕 NUEVO PASO: Configurar Oficinas (solo para Edificio Completo)
+    const tipoInmuebleId = parseInt(this.formData.tipo_inmueble_id);
     
-    console.log('🏢 renderStep4 - Tipo:', nombreTipo, '| Es Edificio Completo:', esEdificioCompleto);
+    // ✅ DETECCIÓN CORRECTA: Solo IDs 12 y 13 son edificios completos
+    const esEdificioCompleto = tipoInmuebleId === 12 || tipoInmuebleId === 13;
+    
+    const tipoSeleccionado = this.tiposInmuebles.find(t =>
+      parseInt(t.tipo_inmueble_id) === tipoInmuebleId
+    );
+    const nombreTipo = tipoSeleccionado?.nombre || '';
+    
+    console.log('🏢 renderStep4 - ID:', tipoInmuebleId, '| Nombre:', nombreTipo, '| Es Edificio Completo:', esEdificioCompleto);
 
-    // Si NO es Edificio Completo ni Casa, saltar este paso
-    if (!esEdificioCompleto && !esCasa) {
+    // Si NO es Edificio Completo (IDs 12 o 13), mostrar mensaje y permitir continuar
+    if (!esEdificioCompleto) {
       return `
-        <div style="text-align: center; padding: var(--spacing-xl);">
-          <div style="font-size: 3rem; margin-bottom: var(--spacing-md);">⏭️</div>
-          <h3 style="color: var(--azul-corporativo);">Paso opcional</h3>
-          <p style="color: var(--gris-medio);">Este paso solo aplica para Edificios y Casas</p>
-          <p style="color: var(--gris-medio); font-size: 0.9rem;">Haz click en "Siguiente" para continuar</p>
+        <div class="paso-opcional-message">
+          <div style="font-size: 3rem; margin-bottom: 16px;">⏭️</div>
+          <h3>Paso opcional</h3>
+          <p>Este paso solo aplica para<br><strong>Edificios de Oficinas Completo</strong> y <strong>Edificios de Departamentos Completo</strong></p>
+          <p style="margin-top: 12px; font-size: 0.9rem;">Haz click en <strong>"Siguiente"</strong> para continuar</p>
         </div>
       `;
     }
@@ -1915,17 +1917,40 @@ class PropertyForm {
 
   renderNavigationButtons() {
     return `
-      <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px 0; margin-top: 24px; border-top: 2px solid #e9ecef;">
         <button 
           type="button" 
           id="btnAnterior" 
           class="btn btn-secondary"
-          style="visibility: ${this.currentStep === 1 ? 'hidden' : 'visible'};"
+          style="
+            visibility: ${this.currentStep === 1 ? 'hidden' : 'visible'};
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 12px 24px;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #495057;
+          "
         >
           ← Anterior
         </button>
         
-        <div style="color: var(--gris-medio); font-size: 0.9rem;">
+        <div style="
+          font-weight: 600;
+          color: var(--azul-corporativo, #2c5282);
+          font-size: 0.85rem;
+          padding: 8px 16px;
+          background: rgba(44, 82, 130, 0.08);
+          border-radius: 20px;
+          white-space: nowrap;
+        ">
           Paso ${this.currentStep} de ${this.totalSteps}
         </div>
         
@@ -1933,6 +1958,21 @@ class PropertyForm {
           type="button" 
           id="btnSiguiente" 
           class="btn btn-primary"
+          style="
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 12px 24px;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--azul-corporativo, #2c5282) 0%, #1e3a5f 100%);
+            color: white;
+          "
         >
           ${this.currentStep === this.totalSteps ? '✅ Publicar Propiedad' : 'Siguiente →'}
         </button>
@@ -2495,6 +2535,18 @@ class PropertyForm {
     if (this.currentStep > 1) {
       this.collectStepData();
       this.currentStep--;
+      
+      // ✅ SALTAR PASO 4 si NO es edificio completo (IDs 12 o 13) al retroceder
+      if (this.currentStep === 4) {
+        const tipoInmuebleId = parseInt(this.formData.tipo_inmueble_id);
+        const esEdificioCompleto = tipoInmuebleId === 12 || tipoInmuebleId === 13;
+        
+        if (!esEdificioCompleto) {
+          console.log('⏮️ Saltando Paso 4 (retroceso) - No es edificio completo (ID:', tipoInmuebleId, ')');
+          this.currentStep = 3; // Retroceder al paso 3 (Características)
+        }
+      }
+      
       this.render();
       
       // ✅ Re-llenar campos después de renderizar
@@ -2524,6 +2576,18 @@ class PropertyForm {
 
     if (this.currentStep < this.totalSteps) {
       this.currentStep++;
+      
+      // ✅ SALTAR PASO 4 si NO es edificio completo (IDs 12 o 13)
+      if (this.currentStep === 4) {
+        const tipoInmuebleId = parseInt(this.formData.tipo_inmueble_id);
+        const esEdificioCompleto = tipoInmuebleId === 12 || tipoInmuebleId === 13;
+        
+        if (!esEdificioCompleto) {
+          console.log('⏭️ Saltando Paso 4 - No es edificio completo (ID:', tipoInmuebleId, ')');
+          this.currentStep = 5; // Saltar al paso 5 (Precio)
+        }
+      }
+      
       this.render();
       
       // ✅ Re-llenar campos después de renderizar
