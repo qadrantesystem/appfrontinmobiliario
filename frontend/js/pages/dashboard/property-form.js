@@ -282,6 +282,8 @@ class PropertyForm {
       
       // Mapear datos a formData (ajustado a estructura real del backend)
       this.formData = {
+        // ✅ CRÍTICO: Guardar propietario_id para modo EDITAR
+        propietario_id: prop.propietario?.propietario_id || prop.propietario_id || null,
         propietario_real_nombre: prop.propietario?.nombre || '',
         propietario_real_dni: prop.propietario?.dni || '',
         propietario_real_telefono: prop.propietario?.telefono || '',
@@ -1580,31 +1582,36 @@ class PropertyForm {
               </div>
             </div>
 
-            <!-- Input para asignar metraje + Botón Equipar -->
-            <div style="background: #f0f9ff; padding: var(--spacing-sm); border-radius: 8px; margin-bottom: var(--spacing-md); display: flex; gap: var(--spacing-sm); align-items: center;">
-              <input
-                type="number"
-                id="metraje-batch-input"
-                class="form-input"
-                placeholder="m²"
-                step="0.01"
-                min="1"
-                value="50"
-                style="width: 100px; padding: 8px; font-size: 0.9rem;"
-              />
-              <button
-                type="button"
-                id="btn-equipar"
-                class="btn-secondary"
-                style="padding: 8px 16px; font-size: 0.9rem; white-space: nowrap; background: var(--dorado); color: white; border: none;"
-              >
-                <i class="fas fa-cog"></i> Equipar
-              </button>
+            <!-- Input para asignar metraje + Botones (responsive) -->
+            <div id="oficinasControlPanel" style="background: #f0f9ff; padding: var(--spacing-sm); border-radius: 8px; margin-bottom: var(--spacing-md);">
+              <!-- Fila 1: Input + Equipar -->
+              <div style="display: flex; gap: var(--spacing-sm); align-items: center; margin-bottom: var(--spacing-sm);">
+                <input
+                  type="number"
+                  id="metraje-batch-input"
+                  class="form-input"
+                  placeholder="m²"
+                  step="0.01"
+                  min="1"
+                  value="50"
+                  style="flex: 1; padding: 8px; font-size: 0.9rem;"
+                />
+                <button
+                  type="button"
+                  id="btn-equipar"
+                  class="btn-secondary"
+                  style="padding: 8px 16px; font-size: 0.9rem; white-space: nowrap; background: var(--dorado); color: white; border: none; flex-shrink: 0;"
+                >
+                  <i class="fas fa-cog"></i> Equipar
+                </button>
+              </div>
+              
+              <!-- Fila 2: Aplicar (ancho completo) -->
               <button
                 type="button"
                 id="btn-aplicar-metraje"
                 class="btn-primary"
-                style="padding: 8px 16px; font-size: 0.9rem; white-space: nowrap;"
+                style="width: 100%; padding: 10px 16px; font-size: 0.9rem; white-space: nowrap;"
               >
                 <i class="fas fa-check"></i> Aplicar
               </button>
@@ -2625,6 +2632,13 @@ class PropertyForm {
 
       // 🆕 PASO 1: Crear/obtener propietario_id
       let propietarioId = this.formData.propietario_id;
+      
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🔍 VERIFICANDO PROPIETARIO_ID:');
+      console.log('  isEdit:', isEdit);
+      console.log('  propietarioId inicial:', propietarioId);
+      console.log('  formData.propietario_id:', this.formData.propietario_id);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       if (!propietarioId && !isEdit) {
         // ✅ PRIMERO: Buscar propietario por DNI
@@ -4067,6 +4081,13 @@ class PropertyForm {
     console.log('👤 Datos del propietario a enviar:', propietarioData);
     
     // Datos del edificio principal
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔍 PREPARANDO EDIFICIO - PROPIETARIO_ID:');
+    console.log('  this.formData.propietario_id:', this.formData.propietario_id);
+    console.log('  parseInt(this.formData.propietario_id):', parseInt(this.formData.propietario_id));
+    console.log('  Resultado final:', parseInt(this.formData.propietario_id) || null);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
     const edificio = {
       propietario_id: parseInt(this.formData.propietario_id) || null,
       propietario_dni: propietarioData.dni,
