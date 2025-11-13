@@ -1,0 +1,129 @@
+{
+  "edificio": {
+    "propietario_id": 1,
+    "tipo_inmueble_id": 2,
+    "distrito_id": 5,
+    "nombre_inmueble": "Edificio Torre Empresarial",
+    "direccion": "Av. Javier Prado 123",
+    "latitud": -12.0931,
+    "longitud": -77.0465,
+    "area": 5000.50,
+    "antiguedad": 5,
+    "implementacion": 1,
+    "transaccion": "venta",
+    "precio_venta": 10000000.00,
+    "precio_alquiler": null,
+    "moneda": "PEN",
+    "titulo": "Torre Empresarial - Oficinas Premium",
+    "descripcion": "Moderno edificio de 9 pisos con 36 oficinas equipadas",
+    "caracteristicas": [
+      {
+        "caracteristica_id": 110,
+        "valor": "9"
+      },
+      {
+        "caracteristica_id": 120,
+        "valor": "4"
+      },
+      {
+        "caracteristica_id": 121,
+        "valor": "2"
+      },
+      {
+        "caracteristica_id": 25,
+        "valor": "true"
+      }
+    ]
+  },
+  "oficinas": [
+    {
+      "piso": 1,
+      "numero_oficina": 101,
+      "nombre": "Oficina 101",
+      "area": 85.50,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 116,
+          "valor": "true"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "true"
+        }
+      ]
+    },
+    {
+      "piso": 1,
+      "numero_oficina": 102,
+      "nombre": "Oficina 102",
+      "area": 90.00,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 116,
+          "valor": "true"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "true"
+        }
+      ]
+    },
+    {
+      "piso": 1,
+      "numero_oficina": 103,
+      "nombre": "Oficina 103",
+      "area": 85.50,
+      "caracteristicas": []
+    },
+    {
+      "piso": 1,
+      "numero_oficina": 104,
+      "nombre": "Oficina 104",
+      "area": 120.00,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 116,
+          "valor": "true"
+        }
+      ]
+    },
+    {
+      "piso": 2,
+      "numero_oficina": 201,
+      "nombre": "Oficina 201",
+      "area": 85.50,
+      "caracteristicas": []
+    },
+    {
+      "piso": 2,
+      "numero_oficina": 202,
+      "nombre": "Oficina 202",
+      "area": 90.00,
+      "caracteristicas": []
+    },
+    {
+      "piso": 2,
+      "numero_oficina": 203,
+      "nombre": "Oficina 203",
+      "area": 85.50,
+      "caracteristicas": []
+    },
+    {
+      "piso": 2,
+      "numero_oficina": 204,
+      "nombre": "Oficina 204",
+      "area": 120.00,
+      "caracteristicas": []
+    }
+  ],
+  "sotanos": [
+    {
+      "nivel": 1,
+      "parqueos": 20
+    },
+    {
+      "nivel": 2,
+      "parqueos": 25
+    }
+  ]
+}

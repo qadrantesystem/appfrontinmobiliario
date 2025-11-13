@@ -146,14 +146,27 @@
 
     async loadOptions() {
       try {
+        console.log('🔄 Cargando opciones de filtros...');
         const token = this.dashboard.authService?.getToken() || authService.getToken();
         
-        // Cargar tipos desde API
-        const tiposRes = await fetch(`${API_CONFIG.BASE_URL}/tipos-inmueble`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        // Cargar tipos desde API (sin autenticación, es público)
+        const tiposRes = await fetch(`${API_CONFIG.BASE_URL}/tipos-inmueble`);
+        
+        if (!tiposRes.ok) {
+          throw new Error(`Error ${tiposRes.status} al cargar tipos`);
+        }
+        
         const tiposData = await tiposRes.json();
-        const tipos = tiposData.data?.map(t => t.nombre) || this.getTiposFallback();
+        console.log('📊 Tipos recibidos:', tiposData);
+        
+        // ✅ Ordenar por campo 'orden' y extraer solo nombres
+        let tiposArray = tiposData.data || tiposData || [];
+        console.log('📊 Tipos array antes de ordenar:', tiposArray.length);
+        
+        tiposArray.sort((a, b) => (a.orden || 999) - (b.orden || 999));
+        const tipos = tiposArray.length > 0 ? tiposArray.map(t => t.nombre) : this.getTiposFallback();
+        
+        console.log('✅ Tipos procesados:', tipos);
         
         // Cargar distritos desde API
         const distritosRes = await fetch(`${API_CONFIG.BASE_URL}/distritos`, {
@@ -174,7 +187,23 @@
     }
 
     getTiposFallback() {
-      return ['Oficina en Edificio', 'Casa', 'Departamento', 'Local Comercial', 'Terreno', 'Almacén', 'Cochera', 'Habitación', 'Oficina Independiente', 'Consultorio', 'Depósito', 'Edificio Completo'];
+      // ✅ Orden actualizado según BD
+      return [
+        'Edificio de oficinas completo',
+        'Oficina en Edificio',
+        'Oficina Independiente',
+        'Edificio de departamentos completo',
+        'Departamento',
+        'Condominio',
+        'Casa',
+        'Local Comercial',
+        'Consultorio',
+        'Terreno',
+        'Almacén',
+        'Cochera',
+        'Depósito',
+        'Habitación'
+      ];
     }
 
     getDistritosFallback() {

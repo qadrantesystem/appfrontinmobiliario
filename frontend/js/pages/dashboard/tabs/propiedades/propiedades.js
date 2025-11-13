@@ -28,14 +28,43 @@ class PropiedadesTab {
    */
   async getPropiedadesContent() {
     try {
-      // Obtener MIS propiedades
+      // Obtener MIS propiedades con el nuevo backend mejorado
       const token = authService.getToken();
-      const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/mis-propiedades?limit=50`, {
+      const currentUser = authService.getCurrentUser();
+      
+      // ✅ NUEVO BACKEND: Llamar con más propiedades por página
+      const url = `${API_CONFIG.BASE_URL}/propiedades/mis-propiedades?limit=100`;
+      
+      console.log(`🔍 ${currentUser?.perfil_id === 4 ? 'ADMIN:' : 'USUARIO:'} Obteniendo propiedades (nuevo backend)`);
+      
+      const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
 
       const propiedades = data.data || [];
+      const pagination = data.pagination || {};
+      const estadisticas = data.estadisticas || {};
+      
+      console.log(`📊 Total propiedades recibidas: ${propiedades.length}`);
+      console.log(`📊 Paginación:`, pagination);
+      console.log(`📊 Estadísticas:`, estadisticas);
+      
+      // Si hay más propiedades, obtener la siguiente página
+      if (pagination.total_pages > 1 && pagination.page === 1) {
+        console.log(`🔄 Obteniendo página 2 de ${pagination.total_pages}...`);
+        try {
+          const page2Response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/mis-propiedades?page=2&limit=100`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const page2Data = await page2Response.json();
+          const page2Propiedades = page2Data.data || [];
+          propiedades.push(...page2Propiedades);
+          console.log(`📊 Total después de página 2: ${propiedades.length}`);
+        } catch (error) {
+          console.log(`⚠️ No se pudo obtener página 2: ${error.message}`);
+        }
+      }
 
       // Ordenar: Última creada primero
       this.allProperties = propiedades.sort((a, b) => {
@@ -55,8 +84,12 @@ class PropiedadesTab {
             <h2 style="color: var(--azul-corporativo); margin: 0;">
               Mis Propiedades (<span id="propCount">${this.allProperties.length}</span>)
             </h2>
-            <button id="btnNuevaPropiedad" class="btn btn-primary">
-              ➕ Nueva Propiedad
+            <button id="btnNuevaPropiedad" class="btn" style="background: var(--dorado); color: white; border: none; padding: var(--spacing-md) var(--spacing-xl); border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: var(--transition-fast); box-shadow: var(--shadow-sm);">
+              <span style="display: inline-block; width: 16px; height: 16px; border: 2px solid white; border-radius: 50%; position: relative; margin-right: 8px; vertical-align: middle;">
+                <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 8px; height: 2px;"></span>
+                <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(90deg); background: white; width: 8px; height: 2px;"></span>
+              </span>
+              Nueva Propiedad
             </button>
           </div>
 
@@ -93,7 +126,9 @@ class PropiedadesTab {
    * Lifecycle hook: Después de renderizar
    */
   async afterRender() {
-    console.log('🎨 PropiedadesTab afterRender');
+    console.log('✅ PropiedadesTab renderizado');
+    window.currentPropiedadesTab = this;
+    window.propiedadesTab = this; // 🔥 NUEVO: Exponer globalmente para onclick
 
     // ✅ CRÍTICO: Registrar este tab como el activo para los filtros
     this.app.filters.setActiveTab(this);
@@ -124,29 +159,56 @@ class PropiedadesTab {
     const filtered = this.app.filters.getFiltered(this.allProperties);
     const pageData = this.app.pagination.getPageData(filtered);
 
-    console.log('🔍 Propiedades filtradas:', filtered.length);
-    console.log('📄 Propiedades en página:', pageData.items.length);
+    console.log(`🔍 Propiedades filtradas: ${filtered.length}`);
+    console.log(`📄 Propiedades en página: ${pageData.length}`);
 
-    // Actualizar contador
-    const countEl = document.getElementById('propCount');
-    if (countEl) countEl.textContent = filtered.length;
+    // ✅ ACTUALIZAR CONTADOR con propiedades filtradas
+    const propCountElement = document.getElementById('propCount');
+    if (propCountElement) {
+      propCountElement.textContent = filtered.length;
+    }
 
-    // Renderizar propiedades
-    const grid = document.getElementById('propertiesGrid');
-    if (!grid) {
+    const container = document.getElementById('propertiesGrid');
+    if (!container) {
       console.error('❌ No se encontró #propertiesGrid');
       return;
     }
 
     if (pageData.items.length === 0) {
-      grid.innerHTML = '<div class="empty-state"><p>No se encontraron propiedades con los filtros aplicados.</p></div>';
+      container.innerHTML = '<div class="empty-state"><p>No se encontraron propiedades con los filtros aplicados.</p></div>';
       const paginadorContainer = document.getElementById('paginadorContainer');
       if (paginadorContainer) paginadorContainer.innerHTML = '';
       return;
     }
 
-    grid.innerHTML = pageData.items.map((prop, index) => {
-      const baseUrl = 'https://ik.imagekit.io/quadrante/';
+    container.innerHTML = this.generatePropertiesHTML(pageData);
+    
+    // ✅ IMPORTANTE: Re-configurar listeners después de renderizar
+    setTimeout(() => {
+      this.setupPropertyListeners();
+    }, 50);
+
+    // Renderizar paginador
+    const paginadorContainer = document.getElementById('paginadorContainer');
+    if (paginadorContainer) {
+      const paginadorHTML = this.app.pagination.render(filtered.length);
+      paginadorContainer.innerHTML = paginadorHTML;
+      this.app.pagination.setupListeners();
+      console.log('✅ Paginador renderizado');
+    }
+
+    // Setup carousel
+    this.app.carousel.setup();
+    console.log('✅ Renderizado completo');
+  }
+
+  /**
+   * Generar HTML para las propiedades
+   */
+  generatePropertiesHTML(pageData) {
+    const baseUrl = 'https://ik.imagekit.io/quadrante/';
+    
+    return pageData.items.map((prop, index) => {
       let imagenes = [];
 
       if (prop.imagenes && prop.imagenes.length > 0) {
@@ -167,20 +229,20 @@ class PropiedadesTab {
         'Precio no disponible';
 
       const estadoBadge = {
-        'publicado': { color: '#10b981', text: 'PUBLICADO' },
-        'borrador': { color: '#f59e0b', text: 'BORRADOR' },
-        'pausado': { color: '#6366f1', text: 'PAUSADO' },
-        'vendido': { color: '#8b5cf6', text: 'VENDIDO' }
-      }[prop.estado] || { color: '#6b7280', text: 'BORRADOR' };
+        'publicado': { color: 'var(--azul-corporativo)', text: 'PUBLICADO' },
+        'borrador': { color: 'var(--dorado)', text: 'BORRADOR' },
+        'pausado': { color: 'var(--azul-medio)', text: 'PAUSADO' },
+        'vendido': { color: 'var(--azul-claro)', text: 'VENDIDO' }
+      }[prop.estado] || { color: 'var(--gris-medio)', text: 'BORRADOR' };
 
       const estadoCRMBadge = {
-        'lead': { bg: 'transparent', border: 'transparent', color: '#6b7280', text: '🔍 Lead', noBorder: true },
-        'contactado': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '📞 Contactado' },
-        'visita_programada': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '📅 Visita' },
-        'negociacion': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '💼 Negociación' },
-        'cerrado_ganado': { bg: 'white', border: '#22c55e', color: '#22c55e', text: '✅ Ganado' },
-        'cerrado_perdido': { bg: 'white', border: '#ef4444', color: '#ef4444', text: '❌ Perdido' }
-      }[prop.estado_crm] || { bg: 'transparent', border: 'transparent', color: '#6b7280', text: '', noBorder: true };
+        'lead': { bg: 'transparent', border: 'transparent', color: 'var(--gris-medio)', text: '🔍 Lead', noBorder: true },
+        'contactado': { bg: 'white', border: 'var(--azul-corporativo)', color: 'var(--azul-corporativo)', text: '📞 Contactado' },
+        'visita_programada': { bg: 'white', border: 'var(--azul-corporativo)', color: 'var(--azul-corporativo)', text: '📅 Visita' },
+        'negociacion': { bg: 'white', border: 'var(--azul-corporativo)', color: 'var(--azul-corporativo)', text: '💼 Negociación' },
+        'cerrado_ganado': { bg: 'white', border: 'var(--dorado)', color: 'var(--dorado)', text: '✅ Ganado' },
+        'cerrado_perdido': { bg: 'white', border: 'var(--dorado-hover)', color: 'var(--dorado-hover)', text: '❌ Perdido' }
+      }[prop.estado_crm] || { bg: 'transparent', border: 'transparent', color: 'var(--gris-medio)', text: '', noBorder: true };
 
       return `
         <div class="property-card" data-property-id="${prop.registro_cab_id}">
@@ -206,7 +268,7 @@ class PropiedadesTab {
               ${imagenes.map((img, i) => `
                 <img src="${img}" alt="${prop.titulo} - imagen ${i+1}"
                      class="carousel-image ${i === 0 ? 'active' : ''}" data-index="${i}"
-                     onerror="this.src='https://via.placeholder.com/400x300?text=Sin+Imagen'">
+                     onerror="this.style.display='none'">
               `).join('')}
             </div>
             ${imagenes.length > 1 ? `
@@ -248,22 +310,22 @@ class PropiedadesTab {
 
             <!-- Información de Contacto -->
             ${(prop.telefono || prop.email || prop.propietario_real_telefono || prop.propietario_real_email) ? `
-              <div class="property-contact" style="background: white; border-left: 3px solid #0066CC; border-radius: 6px; padding: 6px 8px; margin: 0.4rem 0;">
+              <div class="property-contact" style="background: white; border-left: 3px solid var(--azul-corporativo); border-radius: 6px; padding: 6px 8px; margin: 0.4rem 0;">
                 <div style="font-size: 0.7rem; color: var(--gris-medio); margin-bottom: 3px; font-weight: 600;">👤 Contacto</div>
 
                 <div style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
                   ${this.app.currentUser?.perfil_id === 4 && (prop.propietario_real_nombre || prop.propietario_nombre) ? `
-                    <span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: #0066CC; border: 2px solid #0066CC; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
+                    <span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: var(--azul-corporativo); border: 2px solid var(--azul-corporativo); border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
                       👤 ${prop.propietario_real_nombre || prop.propietario_nombre}
                     </span>
                   ` : ''}
                   ${(prop.telefono || prop.propietario_real_telefono) ? `
-                    <a href="tel:${prop.telefono || prop.propietario_real_telefono}" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: #0066CC; border: 2px solid #0066CC; border-radius: 4px; text-decoration: none; font-size: 0.7rem; font-weight: 600; transition: all 0.2s;">
+                    <a href="tel:${prop.telefono || prop.propietario_real_telefono}" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: var(--azul-corporativo); border: 2px solid var(--azul-corporativo); border-radius: 4px; text-decoration: none; font-size: 0.7rem; font-weight: 600; transition: all 0.2s;">
                       📱 ${prop.telefono || prop.propietario_real_telefono}
                     </a>
                   ` : ''}
                   ${(prop.email || prop.propietario_real_email) ? `
-                    <a href="mailto:${prop.email || prop.propietario_real_email}" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: #0066CC; border: 2px solid #0066CC; border-radius: 4px; text-decoration: none; font-size: 0.7rem; font-weight: 600; transition: all 0.2s;">
+                    <a href="mailto:${prop.email || prop.propietario_real_email}" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: var(--azul-corporativo); border: 2px solid var(--azul-corporativo); border-radius: 4px; text-decoration: none; font-size: 0.7rem; font-weight: 600; transition: all 0.2s;">
                       📧 ${prop.email || prop.propietario_real_email}
                     </a>
                   ` : ''}
@@ -280,7 +342,14 @@ class PropiedadesTab {
               ` : `
                 <button class="btn-admin" disabled style="opacity: 0.5; cursor: not-allowed;" title="Sin coordenadas de ubicación">🗺️ Mapa</button>
               `}
-              <button class="btn-admin" data-edit-property="${prop.registro_cab_id}">✏️ Editar</button>
+              <button class="btn-admin" data-edit-property="${prop.registro_cab_id || prop.id}" style="background: var(--azul-corporativo); color: white;" title="Editar propiedad ID: ${prop.registro_cab_id || prop.id}" onclick="console.log('🔥🔥🔥 CLICK DIRECTO EN EDITAR!!!', this.dataset.editProperty); window.propiedadesTab.editarPropiedad(this.dataset.editProperty)">
+              ✏️ Editar
+            </button>
+              ${prop.estado === 'borrador' && this.app.currentUser?.perfil_id === 4 ? `
+                <button class="btn-admin" data-publish-property="${prop.registro_cab_id}" style="background: #28a745; color: white; border: 2px solid #28a745;" title="Publicar propiedad" onclick="console.log('🚀 PUBLICANDO PROPIEDAD!!!', this.dataset.publishProperty); window.propiedadesTab.publicarPropiedad(this.dataset.publishProperty)">
+                  🚀 Publicar
+                </button>
+              ` : ''}
               ${this.app.currentUser?.perfil_id === 4 ? `
                 <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}" style="background: var(--dorado); color: white;">👤 Asignar</button>
               ` : ''}
@@ -289,19 +358,6 @@ class PropiedadesTab {
         </div>
       `;
     }).join('');
-
-    // Renderizar paginador
-    const paginadorContainer = document.getElementById('paginadorContainer');
-    if (paginadorContainer) {
-      const paginadorHTML = this.app.pagination.render(filtered.length);
-      paginadorContainer.innerHTML = paginadorHTML;
-      this.app.pagination.setupListeners();
-      console.log('✅ Paginador renderizado');
-    }
-
-    // Setup carousel
-    this.app.carousel.setup();
-    console.log('✅ Renderizado completo');
   }
 
   /**
@@ -349,8 +405,12 @@ class PropiedadesTab {
 
     editBtns.forEach((btn, index) => {
       console.log(`✏️ Agregando listener a botón editar ${index}:`, btn);
+      console.log(`🆔 ID del botón ${index}:`, btn.dataset.editProperty);
+      
       btn.addEventListener('click', async (e) => {
         console.log('🔥🔥🔥 CLICK EN EDITAR!!!', e.currentTarget.dataset.editProperty);
+        console.log('🏢 Datos completos de la propiedad:', e.currentTarget.closest('.property-card')?.dataset.propertyId);
+        
         e.stopPropagation();
         e.preventDefault();
         const propId = parseInt(e.currentTarget.dataset.editProperty);
@@ -404,6 +464,210 @@ class PropiedadesTab {
     }
 
     console.log('✅ Listeners configurados');
+  }
+
+  /**
+   * 🔥 NUEVO: Método directo para editar propiedad
+   */
+  editarPropiedad(propId) {
+    console.log('🔥🔥🔥 MÉTODO DIRECTO EDITAR PROPIEDAD!!!', propId);
+    
+    const propIdNum = parseInt(propId);
+    if (!propIdNum || isNaN(propIdNum)) {
+      console.error('❌ ID inválido:', propId);
+      showNotification('❌ Error: ID de propiedad inválido', 'error');
+      return;
+    }
+
+    console.log('✏️ Abriendo formulario de edición para propId:', propIdNum);
+    const propertyForm = new PropertyForm(this.app, propIdNum);
+    propertyForm.init();
+  }
+
+  /**
+   * 🔄 FORZAR RECARGA COMPLETA de propiedades
+   */
+  async forceReloadProperties() {
+    try {
+      console.log('🔄 Forzando recarga completa de propiedades...');
+      
+      // Limpiar cache actual
+      this.allProperties = [];
+      
+      // Recargar datos frescos desde API
+      await this.getPropiedadesContent();
+      
+      // Re-renderizar toda la vista
+      this.renderPropertiesPage();
+      
+      // ✅ IMPORTANTE: Re-configurar listeners después de re-renderizar
+      setTimeout(() => {
+        this.setupPropertyListeners();
+      }, 100);
+      
+      console.log('✅ Recarga completa finalizada');
+      
+    } catch (error) {
+      console.error('❌ Error en recarga completa:', error);
+    }
+  }
+
+  /**
+   * 🚀 NUEVO: Método para publicar propiedad (solo admin) con SweetAlert2
+   */
+  async publicarPropiedad(propId) {
+    console.log('🚀 MÉTODO PUBLICAR PROPIEDAD!!!', propId);
+    
+    const propIdNum = parseInt(propId);
+    if (!propIdNum || isNaN(propIdNum)) {
+      console.error('❌ ID inválido:', propId);
+      
+      Swal.fire({
+        icon: 'error',
+        title: '❌ Error',
+        text: 'ID de propiedad inválido',
+        confirmButtonColor: '#dc3545',
+        background: '#FFFFFF',
+        color: '#333333'
+      });
+      return;
+    }
+
+    // SweetAlert2 de confirmación con diseño corporativo
+    const result = await Swal.fire({
+      title: '🚀 Publicar Propiedad',
+      html: `
+        <div style="text-align: left; padding: 10px 0;">
+          <p style="margin: 10px 0; color: #333333;">
+            ¿Estás seguro de publicar esta propiedad?
+          </p>
+          <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <p style="margin: 5px 0; font-size: 14px; color: #666666;">
+              <strong>Cambio:</strong> 
+              <span style="color: #ffc107; font-weight: bold;">BORRADOR</span>
+              → 
+              <span style="color: #28a745; font-weight: bold;">PUBLICADO</span>
+            </p>
+            <p style="margin: 5px 0; font-size: 14px; color: #666666;">
+              <strong>ID:</strong> ${propIdNum}
+            </p>
+          </div>
+          <p style="margin: 10px 0; font-size: 13px; color: #666666;">
+            La propiedad será visible para todos los usuarios
+          </p>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: '🚀 Sí, Publicar',
+      cancelButtonText: '❌ Cancelar',
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#666666',
+      background: '#FFFFFF',
+      color: '#333333',
+      customClass: {
+        popup: 'swal-publicar-popup',
+        header: 'swal-publicar-header',
+        title: 'swal-publicar-title',
+        content: 'swal-publicar-content'
+      }
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    // Mostrar loading
+    Swal.fire({
+      title: '🚀 Publicando...',
+      text: 'Por favor espera mientras se publica la propiedad',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      background: '#FFFFFF',
+      color: '#333333'
+    });
+
+    try {
+      const token = authService.getToken();
+      const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propIdNum}/publicar`, {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ estado: 'publicado' })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Propiedad publicada:', result);
+      
+      // Success con diseño corporativo
+      Swal.fire({
+        icon: 'success',
+        title: '✅ ¡Propiedad Publicada!',
+        html: `
+          <div style="text-align: center; padding: 10px 0;">
+            <p style="margin: 10px 0; color: #333333;">
+              La propiedad ha sido publicada exitosamente
+            </p>
+            <div style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 10px; border-radius: 6px; margin: 15px 0;">
+              <p style="margin: 5px 0; font-size: 14px;">
+                <strong>Estado:</strong> PUBLICADO
+              </p>
+              <p style="margin: 5px 0; font-size: 14px;">
+                <strong>ID:</strong> ${propIdNum}
+              </p>
+            </div>
+            <p style="margin: 10px 0; font-size: 13px; color: #666666;">
+              Ahora es visible para todos los usuarios
+            </p>
+          </div>
+        `,
+        confirmButtonColor: '#28a745',
+        confirmButtonText: '🎉 Entendido',
+        background: '#FFFFFF',
+        color: '#333333',
+        timer: 4000,
+        timerProgressBar: true
+      });
+      
+      // ✅ CORREGIDO: Recargar la lista de propiedades correctamente
+      console.log('🔄 Recargando lista de propiedades después de publicar...');
+      await this.forceReloadProperties();
+      
+    } catch (error) {
+      console.error('❌ Error al publicar propiedad:', error);
+      
+      Swal.fire({
+        icon: 'error',
+        title: '❌ Error al Publicar',
+        html: `
+          <div style="text-align: left; padding: 10px 0;">
+            <p style="margin: 10px 0; color: #333333;">
+              No se pudo publicar la propiedad
+            </p>
+            <div style="background: #f0f0f0; padding: 10px; border-radius: 6px; margin: 10px 0;">
+              <p style="margin: 5px 0; font-size: 13px; color: #dc3545;">
+                <strong>Error:</strong> ${error.message}
+              </p>
+            </div>
+            <p style="margin: 10px 0; font-size: 13px; color: #666666;">
+              Por favor, intenta nuevamente más tarde
+            </p>
+          </div>
+        `,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: '❌ Cerrar',
+        background: '#FFFFFF',
+        color: '#333333'
+      });
+    }
   }
 
   /**
@@ -502,7 +766,7 @@ class PropiedadesTab {
               <path d="M12 16v-4"></path>
               <path d="M12 8h.01"></path>
             </svg>
-            Click fuera o presiona <kbd style="background: white; border: 1px solid #ccc; padding: 2px 6px; border-radius: 4px; font-family: monospace;">ESC</kbd>
+            Click fuera o presiona <kbd style="background: white; border: 1px solid var(--borde); padding: 2px 6px; border-radius: 4px; font-family: monospace;">ESC</kbd>
           </small>
           <button class="btn-close-modal" style="padding: 10px 20px; background: var(--gris-medio); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition-fast);" onmouseover="this.style.background='var(--gris-oscuro)'" onmouseout="this.style.background='var(--gris-medio)'">Cerrar</button>
         </div>
@@ -732,20 +996,20 @@ class PropiedadesTab {
       modal.className = 'modal-overlay';
       modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;';
 
-      // 4️⃣ Crear contenido
+      // 4️⃣ Crear contenido del modal
       const modalContent = document.createElement('div');
       modalContent.className = 'modal-content';
-      modalContent.style.cssText = 'background: white; border-radius: 16px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.4);';
+      modalContent.style.cssText = 'background: white; border-radius: 16px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.4);';
 
       // Estados CRM
       const estadosCRM = [
-        { value: 'nuevo_lead', label: 'Nuevo Lead', color: '#17a2b8' },
-        { value: 'contactado', label: 'Contactado', color: '#007bff' },
-        { value: 'en_negociacion', label: 'En Negociación', color: '#ffc107' },
-        { value: 'calificado', label: 'Calificado', color: '#28a745' },
-        { value: 'propuesta_enviada', label: 'Propuesta Enviada', color: '#6f42c1' },
-        { value: 'cerrado_ganado', label: 'Cerrado Ganado', color: '#28a745' },
-        { value: 'cerrado_perdido', label: 'Cerrado Perdido', color: '#dc3545' }
+        { value: 'nuevo_lead', label: 'Nuevo Lead', color: 'var(--azul-claro)' },
+        { value: 'contactado', label: 'Contactado', color: 'var(--azul-corporativo)' },
+        { value: 'en_negociacion', label: 'En Negociación', color: 'var(--dorado)' },
+        { value: 'calificado', label: 'Calificado', color: 'var(--azul-medio)' },
+        { value: 'propuesta_enviada', label: 'Propuesta Enviada', color: 'var(--dorado-hover)' },
+        { value: 'cerrado_ganado', label: 'Cerrado Ganado', color: 'var(--azul-corporativo)' },
+        { value: 'cerrado_perdido', label: 'Cerrado Perdido', color: 'var(--dorado-hover)' }
       ];
 
       modalContent.innerHTML = `
@@ -787,7 +1051,7 @@ class PropiedadesTab {
                 style="width: 100%; padding: 12px; border: 2px solid var(--borde); border-radius: 8px; font-size: 1rem; transition: var(--transition-fast);"
                 onfocus="this.style.borderColor='var(--azul-corporativo)'"
                 onblur="this.style.borderColor='var(--borde)'"
-              >
+              />
               <div id="brokerList" style="margin-top: var(--spacing-sm); max-height: 250px; overflow-y: auto; border: 2px solid var(--borde); border-radius: 8px; background: white;">
                 ${corredores.map(corredor => `
                   <div
@@ -864,7 +1128,7 @@ class PropiedadesTab {
                   style="width: 100%; padding: 12px 40px 12px 12px; border: 2px solid var(--borde); border-radius: 8px; font-size: 1rem; transition: var(--transition-fast);"
                   onfocus="this.style.borderColor='var(--azul-corporativo)'"
                   onblur="this.style.borderColor='var(--borde)'"
-                >
+                />
                 <span style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--gris-medio); font-weight: 600; font-size: 1.1rem;">%</span>
               </div>
               <small style="color: var(--gris-medio); display: block; margin-top: 6px;">Ingresa el porcentaje de comisión (0 - 100)</small>

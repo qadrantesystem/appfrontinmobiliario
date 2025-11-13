@@ -916,6 +916,158 @@
   box-shadow: 0 4px 12px rgba(0, 51, 102, 0.2);
 }
 
+/* Botón dorado (Nueva Propiedad) */
+.btn-admin[style*="var(--dorado)"],
+#btnNuevaPropiedad {
+  background: var(--dorado) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-admin[style*="var(--dorado)"]:hover,
+#btnNuevaPropiedad:hover {
+  background: var(--dorado-hover) !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
+}
+
+/* Botón azul corporativo (Editar) */
+.btn-admin[style*="var(--azul-corporativo)"] {
+  background: var(--azul-corporativo) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-admin[style*="var(--azul-corporativo)"]:hover {
+  background: var(--azul-medio) !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44, 82, 130, 0.3);
+}
+
+/* Botón success (Publicar) */
+.btn-admin[style*="var(--success)"],
+.btn-admin[data-publish-property] {
+  background: var(--success) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-admin[style*="var(--success)"]:hover,
+.btn-admin[data-publish-property]:hover {
+  background: #218838 !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* 🚀 SweetAlert2 Personalizado con Paleta Corporativa */
+.swal-publicar-popup {
+  border-radius: 12px !important;
+  border: 2px solid #e0e0e0 !important;
+  box-shadow: 0 10px 30px rgba(44, 82, 130, 0.15) !important;
+}
+
+.swal-publicar-header {
+  background: linear-gradient(135deg, #2c5282, #3d6ba3) !important;
+  color: white !important;
+  border-radius: 10px 10px 0 0 !important;
+  padding: 20px !important;
+}
+
+.swal-publicar-title {
+  color: #2c5282 !important;
+  font-weight: 700 !important;
+  font-size: 1.5rem !important;
+}
+
+.swal-publicar-content {
+  padding: 20px !important;
+}
+
+/* Estilos generales para SweetAlert2 en el dashboard */
+.swal2-popup {
+  border-radius: 12px !important;
+  border: 2px solid #e0e0e0 !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.swal2-title {
+  color: #2c5282 !important;
+  font-weight: 700 !important;
+}
+
+.swal2-html-container {
+  color: #333333 !important;
+}
+
+.swal2-confirm {
+  background: #28a745 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 10px 20px !important;
+  transition: all 0.3s ease !important;
+}
+
+.swal2-confirm:hover {
+  background: #218838 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3) !important;
+}
+
+.swal2-cancel {
+  background: #666666 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 10px 20px !important;
+  transition: all 0.3s ease !important;
+}
+
+.swal2-cancel:hover {
+  background: #333333 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(102, 102, 102, 0.3) !important;
+}
+
+.swal2-icon {
+  border: 3px solid #2c5282 !important;
+}
+
+.swal2-success {
+  border-color: #28a745 !important;
+}
+
+.swal2-success-ring {
+  border-color: #28a745 !important;
+}
+
+.swal2-error {
+  border-color: #dc3545 !important;
+}
+
+.swal2-question {
+  border-color: #2c5282 !important;
+}
+
+/* Loading spinner con colores corporativos */
+.swal2-loader {
+  border-color: #2c5282 transparent !important;
+}
+
+/* Timer progress bar */
+.swal2-timer-progress-bar {
+  background: #28a745 !important;
+}
+
+/* Asegurar que clicks en SVG dentro de botones funcionen */
+.btn-admin svg,
+#btnNuevaPropiedad span {
+  pointer-events: none;
+}
+
 /* ========================================
    RESPONSIVE
    ======================================== */

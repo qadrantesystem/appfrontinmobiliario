@@ -20,7 +20,7 @@ class FavoritesActionService {
           title: 'Suscripción Requerida',
           text: 'Esta opción está disponible si te suscribes',
           confirmButtonText: 'Entendido',
-          confirmButtonColor: '#D4AF37'
+          confirmButtonColor: '#2c5282'
         });
         return null;
       }
@@ -75,7 +75,7 @@ class FavoritesActionService {
           title: 'Suscripción Requerida',
           text: 'Esta opción está disponible si te suscribes',
           confirmButtonText: 'Entendido',
-          confirmButtonColor: '#D4AF37'
+          confirmButtonColor: '#2c5282'
         });
         return false;
       }

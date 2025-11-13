@@ -34,6 +34,14 @@ class AutoFillDNI {
     // Evento onChange para limpiar si se modifica el DNI
     this.dniInput.addEventListener('input', () => this.handleDNIChange());
 
+    // Evento Enter para buscar propietario
+    this.dniInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this.handleDNIBlur();
+      }
+    });
+
     console.log('✅ AutoFillDNI inicializado');
   }
 

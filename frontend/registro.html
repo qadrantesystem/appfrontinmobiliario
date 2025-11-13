@@ -48,6 +48,26 @@
                 </div>
 
                 <form id="registroForm" class="auth-form">
+                    <!-- Selección de Perfil -->
+                    <div class="form-group">
+                        <label for="perfil">¿Qué deseas hacer en Cuadrante?</label>
+                        <select id="perfil" name="perfil" class="form-control" required>
+                            <option value="">Selecciona tu perfil</option>
+                            <option value="1">▸ Demandante - Busco inmuebles para comprar/alquilar</option>
+                            <option value="2">▸ Ofertante - Quiero publicar mis propiedades</option>
+                            <option value="3">▸ Corredor - Soy agente inmobiliario profesional</option>
+                        </select>
+                    </div>
+
+                    <!-- Mensaje de Advertencia -->
+                    <div id="perfilWarning" class="alert-info" style="display: none;">
+                        <div class="alert-icon">ⓘ</div>
+                        <div class="alert-content">
+                            <strong id="warningTitle">Información importante</strong>
+                            <p id="warningMessage">Tu cuenta requiere aprobación del administrador.</p>
+                        </div>
+                    </div>
+
                     <!-- Tipo de Persona -->
                     <div class="form-group">
                         <label for="tipoPersona">Tipo de Persona</label>
@@ -74,6 +94,34 @@
                         <div class="form-group">
                             <label for="representanteLegal">Representante Legal</label>
                             <input type="text" id="representanteLegal" class="form-control" placeholder="Nombre completo del representante">
+                        </div>
+                    </div>
+
+                    <!-- Datos Profesionales Corredor (solo si es corredor) -->
+                    <div id="datosCorredor" class="conditional-section" style="display: none;">
+                        <h4 style="color: var(--azul-corporativo); margin-bottom: 16px;">▪ Información Profesional</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="licenciaCorredor">Número de Licencia</label>
+                                <input type="text" id="licenciaCorredor" class="form-control" placeholder="Ej: LIC-2024-001">
+                                <small class="form-help">Tu licencia será verificada por el administrador</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="aniosExperiencia">Años de Experiencia</label>
+                                <select id="aniosExperiencia" class="form-control">
+                                    <option value="">Selecciona</option>
+                                    <option value="0-1">Menos de 1 año</option>
+                                    <option value="1-3">1 a 3 años</option>
+                                    <option value="3-5">3 a 5 años</option>
+                                    <option value="5-10">5 a 10 años</option>
+                                    <option value="10+">Más de 10 años</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="especialidades">Especialidades (opcional)</label>
+                            <input type="text" id="especialidades" class="form-control" placeholder="Ej: Residencial, Comercial, Industrial">
+                            <small class="form-help">Separa con comas tus áreas de especialización</small>
                         </div>
                     </div>
 

@@ -8,7 +8,14 @@ class RegistroPage {
     this.form = document.getElementById('registroForm');
     this.tipoPersonaSelect = document.getElementById('tipoPersona');
     this.datosEmpresa = document.getElementById('datosEmpresa');
+    this.datosCorredor = document.getElementById('datosCorredor');
     this.registroBtn = document.getElementById('registroBtn');
+    
+    // Profile selector
+    this.perfilSelect = document.getElementById('perfil');
+    this.perfilWarning = document.getElementById('perfilWarning');
+    this.warningTitle = document.getElementById('warningTitle');
+    this.warningMessage = document.getElementById('warningMessage');
 
     // Modal elements
     this.modal = document.getElementById('verificacionModal');
@@ -26,9 +33,72 @@ class RegistroPage {
 
   init() {
     this.setupHamburgerMenu();
+    this.setupPerfilSelector();
     this.setupTipoPersonaToggle();
     this.setupRegistroForm();
     this.setupVerificacionModal();
+  }
+
+  setupPerfilSelector() {
+    const licenciaCorredor = document.getElementById('licenciaCorredor');
+    const aniosExperiencia = document.getElementById('aniosExperiencia');
+    
+    this.perfilSelect.addEventListener('change', (e) => {
+      const perfil = e.target.value;
+      
+      if (!perfil) {
+        this.perfilWarning.style.display = 'none';
+        this.datosCorredor.style.display = 'none';
+        return;
+      }
+      
+      // Ocultar/mostrar sección de corredor
+      if (perfil === '3') {
+        this.datosCorredor.style.display = 'block';
+        licenciaCorredor.required = true;
+        aniosExperiencia.required = true;
+      } else {
+        this.datosCorredor.style.display = 'none';
+        licenciaCorredor.required = false;
+        aniosExperiencia.required = false;
+      }
+      
+      // Mostrar advertencias según el perfil
+      switch(perfil) {
+        case '1': // Demandante
+          this.perfilWarning.style.display = 'block';
+          this.perfilWarning.className = 'alert-info alert-success';
+          this.warningTitle.textContent = 'Acceso Inmediato';
+          this.warningMessage.innerHTML = 'Como <strong>Demandante</strong> tendrás acceso inmediato para:<br>' +
+            '• Buscar inmuebles en todo el portal<br>' +
+            '• Guardar favoritos y búsquedas<br>' +
+            '• Recibir notificaciones de nuevas propiedades<br>' +
+            '• Contactar con corredores y ofertantes';
+          break;
+          
+        case '2': // Ofertante
+          this.perfilWarning.style.display = 'block';
+          this.perfilWarning.className = 'alert-info alert-warning';
+          this.warningTitle.textContent = '► Requiere Aprobación del Administrador';
+          this.warningMessage.innerHTML = 'Como <strong>Ofertante</strong> podrás publicar tus propiedades.<br><br>' +
+            '<strong>Importante:</strong> Para poder registrar tu primera propiedad, tu cuenta debe ser aprobada por un administrador.<br>' +
+            'Este proceso suele tomar entre 24-48 horas hábiles.<br><br>' +
+            'Mientras tanto, podrás buscar propiedades y usar las funciones básicas del portal.';
+          break;
+          
+        case '3': // Corredor
+          this.perfilWarning.style.display = 'block';
+          this.perfilWarning.className = 'alert-info alert-warning';
+          this.warningTitle.textContent = '■ Registro Profesional - Requiere Aprobación';
+          this.warningMessage.innerHTML = 'Como <strong>Corredor Inmobiliario</strong> tendrás acceso a herramientas profesionales:<br>' +
+            '• Registrar propiedades de terceros<br>' +
+            '• Gestionar comisiones<br>' +
+            '• Pipeline CRM completo<br>' +
+            '• Dashboard de ventas<br><br>' +
+            '<strong>Importante:</strong> Necesitarás presentar tu licencia de corredor y tu cuenta será verificada por un administrador (24-48 horas).';
+          break;
+      }
+    });
   }
 
   setupHamburgerMenu() {
@@ -111,6 +181,7 @@ class RegistroPage {
 
   async handleRegistro() {
     // Obtener valores del formulario
+    const perfil = this.perfilSelect.value;
     const tipoPersona = this.tipoPersonaSelect.value;
     const nombre = document.getElementById('nombre').value.trim();
     const apellido = document.getElementById('apellido').value.trim();
@@ -120,6 +191,13 @@ class RegistroPage {
     const tipoDoc = document.getElementById('tipoDoc').value;
     const password = document.getElementById('passwordReg').value;
     const passwordConfirm = document.getElementById('passwordConfirm').value;
+
+    // Validar perfil seleccionado
+    if (!perfil) {
+      showNotification('Por favor selecciona tu perfil (Demandante, Ofertante o Corredor)', 'warning');
+      this.perfilSelect.focus();
+      return;
+    }
 
     // Validar datos
     if (!this.validateForm(email, password, passwordConfirm, nombre, apellido)) {
@@ -135,7 +213,8 @@ class RegistroPage {
       telefono: telefono || null,
       dni: numDoc || null,
       tipo_persona: tipoPersona,
-      tipo_documento: tipoDoc
+      tipo_documento: tipoDoc,
+      perfil_id: parseInt(perfil) // Agregar el perfil seleccionado
     };
 
     // Si es persona jurídica, agregar datos de empresa
@@ -143,6 +222,13 @@ class RegistroPage {
       userData.razon_social = document.getElementById('razonSocial').value.trim();
       userData.ruc = document.getElementById('ruc').value.trim();
       userData.representante_legal = document.getElementById('representanteLegal').value.trim();
+    }
+    
+    // Si es corredor (perfil 3), agregar datos profesionales
+    if (perfil === '3') {
+      userData.licencia_corredor = document.getElementById('licenciaCorredor').value.trim();
+      userData.anios_experiencia = document.getElementById('aniosExperiencia').value;
+      userData.especialidades = document.getElementById('especialidades').value.trim();
     }
 
     // Mostrar loading
@@ -157,13 +243,21 @@ class RegistroPage {
       // Guardar email para verificación
       this.registeredEmail = email;
 
-      // Mostrar éxito
-      showNotification(
-        '¡Registro exitoso! Revisa tu email.',
-        'success'
-      );
+      // Mostrar mensaje de éxito según el perfil
+      let successMessage = 'Registro exitoso. Revisa tu email para verificar tu cuenta.';
+      
+      if (perfil === '1') {
+        successMessage = 'Bienvenido. Tu cuenta de Demandante está activa. Revisa tu email para verificar.';
+      } else if (perfil === '2') {
+        successMessage = 'Registro completado. Tu cuenta de Ofertante está pendiente de aprobación administrativa.';
+      } else if (perfil === '3') {
+        successMessage = 'Registro profesional completado. Tu cuenta de Corredor está pendiente de verificación.';
+      }
+      
+      showNotification(successMessage, 'success');
 
-      console.log('✅ Usuario registrado:', response);
+      console.log('[REGISTRO] Usuario registrado:', response);
+      console.log('[PERFIL] Tipo seleccionado:', perfil === '1' ? 'Demandante' : perfil === '2' ? 'Ofertante' : 'Corredor');
 
       // Mostrar modal de verificación
       setTimeout(() => {
@@ -187,7 +281,7 @@ class RegistroPage {
       }
 
       showNotification(errorMessage, 'error');
-      console.error('❌ Error en registro:', error);
+      console.error('[ERROR] Registro:', error);
     }
   }
 
@@ -224,11 +318,11 @@ class RegistroPage {
 
       // Mostrar éxito
       showNotification(
-        '¡Email verificado! Redirigiendo al login...',
+        'Email verificado correctamente. Redirigiendo al login...',
         'success'
       );
 
-      console.log('✅ Email verificado:', response);
+      console.log('[VERIFICACION] Email verificado:', response);
 
       // Redirigir al login después de 1.5 segundos
       setTimeout(() => {
@@ -253,7 +347,7 @@ class RegistroPage {
       }
 
       showNotification(errorMessage, 'error');
-      console.error('❌ Error en verificación:', error);
+      console.error('[ERROR] Verificación:', error);
     }
   }
 
@@ -271,7 +365,7 @@ class RegistroPage {
         'success'
       );
 
-      console.log('✅ Código reenviado:', response);
+      console.log('[REENVIO] Código reenviado:', response);
 
       // Ocultar loading después de 2 segundos
       setTimeout(() => {
@@ -296,7 +390,7 @@ class RegistroPage {
       }
 
       showNotification(errorMessage, 'error');
-      console.error('❌ Error al reenviar:', error);
+      console.error('[ERROR] Reenvío:', error);
     }
   }
 

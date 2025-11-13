@@ -217,6 +217,37 @@ class HeaderComponent {
 
     console.log('✅ Event delegation configurado para userMenuBtn');
 
+    // 🧹 Limpiar caché al hacer click en logo/inicio
+    document.addEventListener('click', async (e) => {
+      const homeLink = e.target.closest('.logo-link, a[href="/"], a[href="index.html"], a[href="/index.html"]');
+      
+      if (homeLink) {
+        e.preventDefault();
+        console.log('🏠 Click en Inicio detectado - limpiando caché...');
+        
+        // Mostrar loading
+        Swal.fire({
+          title: '🧹 Limpiando caché...',
+          text: 'Esto mejorará el rendimiento del sistema',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+        
+        // Limpiar toda la caché
+        await authService.clearAllCache();
+        
+        // Redirigir a inicio después de limpiar
+        setTimeout(() => {
+          window.location.href = '/index.html';
+        }, 500);
+      }
+    });
+
+    console.log('✅ Event listener configurado para limpiar caché en inicio');
+
     // 🔥 Toggle del menú móvil acordeón
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const mobileMenu = document.getElementById('mobileMenu');

@@ -33,7 +33,8 @@ class PropietarioService {
       });
 
       if (response.status === 404) {
-        // Propietario no existe - retornar null
+        // Propietario no existe - retornar null (NO es un error)
+        console.log('ℹ️ Propietario con DNI', dni, 'no encontrado');
         return null;
       }
 
@@ -53,8 +54,9 @@ class PropietarioService {
       };
 
     } catch (error) {
-      console.error('❌ Error al buscar propietario por DNI:', error);
-      throw error;
+      // Si es un error de red o 500, retornar null en lugar de lanzar error
+      console.warn('⚠️ Error al buscar propietario por DNI (se creará uno nuevo):', error.message);
+      return null;
     }
   }
 

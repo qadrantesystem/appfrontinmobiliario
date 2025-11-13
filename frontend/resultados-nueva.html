@@ -9,7 +9,7 @@
     <!-- Styles -->
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/components/header.css?v=16">
+    <link rel="stylesheet" href="css/pages/header-guest.css">
     <link rel="stylesheet" href="css/pages/search-system.css?v=1">
 
     <!-- Font Awesome -->
@@ -33,11 +33,11 @@
     <script src="js/utils/helpers.js?v=6"></script>
 </head>
 <body>
-    <!-- Header Principal -->
-    <header class="dashboard-header">
-        <div class="header-container">
+    <!-- Header Épico y Pilim Limpio para Invitados -->
+    <header class="header-guest-results">
+        <div class="header-guest-container">
             <!-- Logo -->
-            <div class="header-left">
+            <div class="header-guest-left">
                 <div class="logo">
                     <a href="index.html">
                         <img src="assets/images/logos/logo.jpg" alt="Quadrante" class="logo-img">
@@ -45,89 +45,30 @@
                 </div>
             </div>
 
-            <!-- Usuario y Menú -->
-            <div class="header-right">
-                <!-- Notificaciones -->
-                <button class="icon-btn" id="notificationsBtn" title="Notificaciones">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                </button>
-
-                <!-- Avatar y Menú Usuario -->
-                <div class="user-menu">
-                    <button class="user-avatar-btn" id="userMenuBtn">
-                        <div class="user-avatar" id="userAvatar">
-                            <span id="avatarInitials">U</span>
-                        </div>
-                        <div class="user-info">
-                            <span class="user-name" id="userName">Usuario</span>
-                            <span class="user-role" id="userRole">Cargando...</span>
-                        </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </button>
-
-                    <!-- Dropdown Menu -->
-                    <div class="dropdown-menu" id="userDropdown">
-                        <a href="dashboard.html" class="dropdown-item">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="14" width="7" height="7"></rect>
-                                <rect x="3" y="14" width="7" height="7"></rect>
-                            </svg>
-                            Dashboard
-                        </a>
-                        <a href="perfil.html" class="dropdown-item">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                            Mi Perfil
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item" id="logoutBtn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                <polyline points="16 17 21 12 16 7"></polyline>
-                                <line x1="21" y1="12" x2="9" y2="12"></line>
-                            </svg>
-                            Cerrar Sesión
-                        </a>
+            <!-- Info Central -->
+            <div class="header-guest-center">
+                <div class="results-info">
+                    <h1 id="resultsCounter" class="results-counter">Cargando resultados...</h1>
+                    <div id="activeFilters" class="active-filters">
+                        <!-- Filtros activos se muestran aquí -->
                     </div>
                 </div>
+            </div>
+
+            <!-- Acciones Derecha -->
+            <div class="header-guest-right">
+                <button class="btn btn-outline btn-sm" onclick="window.location.href='index.html?openModal=true'">
+                    ← Nueva Búsqueda
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="window.location.href='login.html'">
+                    Iniciar Sesión
+                </button>
             </div>
         </div>
     </header>
 
     <!-- Contenido Principal -->
     <main class="search-results-main" style="padding: 20px; max-width: 1400px; margin: 0 auto;">
-        <!-- Header de Resultados -->
-        <div class="results-header" style="margin-bottom: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h1 style="margin: 0 0 8px 0; color: var(--azul-corporativo);">
-                        🔍 Resultados de Búsqueda
-                    </h1>
-                    <p id="resultsCounter" style="margin: 0; color: var(--gris-medio); font-size: 0.95rem;">
-                        Cargando...
-                    </p>
-                </div>
-                <div style="display: flex; gap: 12px;">
-                    <!-- Botón Guardar Búsqueda -->
-                    <button class="btn btn-secondary" data-save-search>
-                        💾 Guardar Búsqueda
-                    </button>
-                    <!-- Botón Nueva Búsqueda -->
-                    <button class="btn btn-primary" data-search-trigger>
-                        🔍 Nueva Búsqueda
-                    </button>
-                </div>
-            </div>
-        </div>
 
         <!-- Acordeón de Filtros -->
         <div id="searchFiltersAccordion"></div>
@@ -176,14 +117,10 @@
         </div>
     </main>
 
-    <!-- Scripts del Sistema de Búsqueda -->
-    <script src="js/components/header.js?v=4"></script>
-    <script src="js/pages/search-system/components/search-modal.js?v=1"></script>
-    <script src="js/pages/search-system/components/search-filters.js?v=1"></script>
-    <script src="js/pages/search-system/components/image-viewer.js?v=1"></script>
-    <script src="js/pages/search-system/components/results-map.js?v=1"></script>
-    <script src="js/pages/search-system/services/pdf-generator.service.js?v=1"></script>
-    <script src="js/pages/search-system/services/email.service.js?v=1"></script>
+    <!-- Scripts Esenciales para Modo Invitado -->
+    <script src="js/config/api.js?v=7"></script>
+    <script src="js/services/search.service.js?v=6"></script>
+    <script src="js/utils/helpers.js?v=6"></script>
     <script src="js/pages/search-system/search-main.js?v=1"></script>
 
     <!-- Inicializar -->

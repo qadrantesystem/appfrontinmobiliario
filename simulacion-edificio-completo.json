@@ -1,0 +1,925 @@
+{
+  "descripcion": "Simulación de guardado de Edificio Completo con 9 pisos, 3 oficinas/piso, 3 sótanos y 15 oficinas con equipamiento",
+  "edificio": {
+    "propietario_id": 5,
+    "tipo_inmueble_id": 5,
+    "distrito_id": 10,
+    "nombre_inmueble": "Edificio San Isidro Tower",
+    "direccion": "Av. Javier Prado Este 456, San Isidro",
+    "latitud": -12.0918,
+    "longitud": -77.0349,
+    "area": 5000,
+    "antiguedad": 5,
+    "implementacion": 80,
+    "transaccion": "venta",
+    "precio_venta": 2500000,
+    "precio_alquiler": null,
+    "moneda": "PEN",
+    "titulo": "Edificio Corporativo Premium en San Isidro",
+    "descripcion": "Edificio de oficinas clase A+ con acabados de lujo, ubicado en zona empresarial de San Isidro. 9 pisos de oficinas modernas y 3 sótanos de estacionamiento.",
+    "caracteristicas": [
+      {
+        "caracteristica_id": 110,
+        "valor": "9"
+      },
+      {
+        "caracteristica_id": 120,
+        "valor": "3"
+      },
+      {
+        "caracteristica_id": 121,
+        "valor": "3"
+      }
+    ]
+  },
+  "oficinas": [
+    {
+      "piso": 1,
+      "numero_oficina": 1,
+      "nombre": "Oficina 1",
+      "area": 85.5,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 1,
+      "numero_oficina": 2,
+      "nombre": "Oficina 2",
+      "area": 120,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        }
+      ]
+    },
+    {
+      "piso": 1,
+      "numero_oficina": 3,
+      "nombre": "Oficina 3",
+      "area": 95,
+      "caracteristicas": []
+    },
+    {
+      "piso": 2,
+      "numero_oficina": 4,
+      "nombre": "Oficina 4",
+      "area": 85.5,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        }
+      ]
+    },
+    {
+      "piso": 2,
+      "numero_oficina": 5,
+      "nombre": "Oficina 5",
+      "area": 120,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 2,
+      "numero_oficina": 6,
+      "nombre": "Oficina 6",
+      "area": 95,
+      "caracteristicas": []
+    },
+    {
+      "piso": 3,
+      "numero_oficina": 7,
+      "nombre": "Oficina 7",
+      "area": 85.5,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 3,
+      "numero_oficina": 8,
+      "nombre": "Oficina 8",
+      "area": 120,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        }
+      ]
+    },
+    {
+      "piso": 3,
+      "numero_oficina": 9,
+      "nombre": "Oficina 9",
+      "area": 95,
+      "caracteristicas": []
+    },
+    {
+      "piso": 4,
+      "numero_oficina": 10,
+      "nombre": "Oficina 10",
+      "area": 85.5,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 4,
+      "numero_oficina": 11,
+      "nombre": "Oficina 11",
+      "area": 120,
+      "caracteristicas": []
+    },
+    {
+      "piso": 4,
+      "numero_oficina": 12,
+      "nombre": "Oficina 12",
+      "area": 95,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 5,
+      "numero_oficina": 13,
+      "nombre": "Oficina 13",
+      "area": 85.5,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 5,
+      "numero_oficina": 14,
+      "nombre": "Oficina 14",
+      "area": 120,
+      "caracteristicas": []
+    },
+    {
+      "piso": 5,
+      "numero_oficina": 15,
+      "nombre": "Oficina 15",
+      "area": 95,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 6,
+      "numero_oficina": 16,
+      "nombre": "Oficina 16",
+      "area": 85.5,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 6,
+      "numero_oficina": 17,
+      "nombre": "Oficina 17",
+      "area": 120,
+      "caracteristicas": []
+    },
+    {
+      "piso": 6,
+      "numero_oficina": 18,
+      "nombre": "Oficina 18",
+      "area": 95,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        }
+      ]
+    },
+    {
+      "piso": 7,
+      "numero_oficina": 19,
+      "nombre": "Oficina 19",
+      "area": 85.5,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 7,
+      "numero_oficina": 20,
+      "nombre": "Oficina 20",
+      "area": 120,
+      "caracteristicas": []
+    },
+    {
+      "piso": 7,
+      "numero_oficina": 21,
+      "nombre": "Oficina 21",
+      "area": 95,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 8,
+      "numero_oficina": 22,
+      "nombre": "Oficina 22",
+      "area": 85.5,
+      "caracteristicas": []
+    },
+    {
+      "piso": 8,
+      "numero_oficina": 23,
+      "nombre": "Oficina 23",
+      "area": 120,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 8,
+      "numero_oficina": 24,
+      "nombre": "Oficina 24",
+      "area": 95,
+      "caracteristicas": []
+    },
+    {
+      "piso": 9,
+      "numero_oficina": 25,
+      "nombre": "Oficina 25",
+      "area": 85.5,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    },
+    {
+      "piso": 9,
+      "numero_oficina": 26,
+      "nombre": "Oficina 26",
+      "area": 120,
+      "caracteristicas": []
+    },
+    {
+      "piso": 9,
+      "numero_oficina": 27,
+      "nombre": "Oficina 27",
+      "area": 95,
+      "caracteristicas": [
+        {
+          "caracteristica_id": 122,
+          "valor": "Sí",
+          "nombre": "Falsos techos"
+        },
+        {
+          "caracteristica_id": 123,
+          "valor": "Sí",
+          "nombre": "Luminarias"
+        },
+        {
+          "caracteristica_id": 124,
+          "valor": "Sí",
+          "nombre": "AAC (Aire Acondicionado Central)"
+        },
+        {
+          "caracteristica_id": 125,
+          "valor": "Sí",
+          "nombre": "Sprinklers"
+        },
+        {
+          "caracteristica_id": 126,
+          "valor": "Sí",
+          "nombre": "Fibra Óptica"
+        },
+        {
+          "caracteristica_id": 127,
+          "valor": "Sí",
+          "nombre": "Tabiques Mamparas"
+        },
+        {
+          "caracteristica_id": 128,
+          "valor": "Sí",
+          "nombre": "Mobiliario"
+        },
+        {
+          "caracteristica_id": 129,
+          "valor": "Sí",
+          "nombre": "Sillas"
+        },
+        {
+          "caracteristica_id": 130,
+          "valor": "Sí",
+          "nombre": "Rollers"
+        }
+      ]
+    }
+  ],
+  "sotanos": [
+    {
+      "nivel": 1,
+      "parqueos": 18
+    },
+    {
+      "nivel": 2,
+      "parqueos": 10
+    },
+    {
+      "nivel": 3,
+      "parqueos": 10
+    }
+  ],
+  "resumen": {
+    "total_pisos": 9,
+    "total_oficinas": 27,
+    "oficinas_con_equipamiento_completo": 11,
+    "oficinas_con_equipamiento_parcial": 4,
+    "oficinas_sin_equipamiento": 12,
+    "total_sotanos": 3,
+    "total_parqueos": 38,
+    "area_total_oficinas": 2817.0
+  },
+  "guardado_en_bd": {
+    "tabla_cabecera": "registro_x_inmueble_cab",
+    "registros_creados": {
+      "edificio_principal": 1,
+      "oficinas_hijas": 27
+    },
+    "tabla_detalle": "registro_x_inmueble_det",
+    "caracteristicas_guardadas": {
+      "edificio": 3,
+      "oficinas": 109,
+      "total": 112
+    }
+  }
+}

@@ -610,3 +610,66 @@ select.form-control:focus {
     font-size: 1rem;
   }
 }
+
+/* Alert Messages for Profile Selection */
+.alert-info {
+  background: linear-gradient(135deg, #fff9e6 0%, #fffdf7 100%);
+  border: 1px solid #ffc107;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+  animation: slideDown 0.3s ease;
+}
+
+.alert-info.alert-warning {
+  background: linear-gradient(135deg, #fff3e6 0%, #fff9f2 100%);
+  border-color: #ff9800;
+}
+
+.alert-info.alert-success {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+  border-color: #4caf50;
+}
+
+.alert-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-content strong {
+  display: block;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.alert-content p {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.alert-content ul {
+  margin: 8px 0 0 20px;
+  padding: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

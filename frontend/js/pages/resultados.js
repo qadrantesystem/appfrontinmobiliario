@@ -3073,6 +3073,25 @@ class ResultadosPage {
           maxZoom: 19
         }).addTo(this.map);
 
+        // 🔒 Protección de ubicación para usuarios invitados
+        // Aplicar blur y desaturación cuando hacen zoom muy cerca
+        this.map.on('zoomend', () => {
+          const currentZoom = this.map.getZoom();
+          const tiles = document.querySelector('.leaflet-tile-pane');
+
+          // Solo aplicar blur si NO está logueado Y el zoom es >= 15
+          if (!this.usuarioLogueado && currentZoom >= 15) {
+            if (tiles) {
+              tiles.style.filter = 'blur(3px) saturate(50%)';
+              tiles.style.transition = 'filter 0.3s ease';
+            }
+          } else {
+            if (tiles) {
+              tiles.style.filter = 'none';
+            }
+          }
+        });
+
         // Forzar redimensionamiento
         setTimeout(() => {
           if (this.map) {

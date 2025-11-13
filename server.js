@@ -36,10 +36,11 @@ app.use((req, res, next) => {
 });
 
 // Rutas limpias - servir archivos HTML sin extensión (ANTES de archivos estáticos)
-const routes = ['index', 'busqueda', 'resultados', 'login', 'registro', 'recuperar', 'dashboard', 'verificar'];
+const routes = ['index', 'busqueda', 'resultados', 'resultados-nueva', 'login', 'registro', 'recuperar', 'dashboard', 'verificar'];
 
 routes.forEach(route => {
   app.get(`/${route === 'index' ? '' : route}`, (req, res) => {
+    console.log(`🔄 Ruta solicitada: ${req.path} → Sirviendo: ${route}.html`);
     res.sendFile(path.join(__dirname, 'frontend', `${route}.html`));
   });
 });
@@ -47,6 +48,12 @@ routes.forEach(route => {
 // ✅ Ruta para sobre-nosotros (redirige a index con anchor)
 app.get('/sobre-nosotros', (req, res) => {
   res.redirect('/#sobre-nosotros');
+});
+
+// ✅ Ruta explícita para resultados-nueva
+app.get('/resultados-nueva', (req, res) => {
+  console.log('🎯 Sirviendo resultados-nueva.html');
+  res.sendFile(path.join(__dirname, 'frontend', 'resultados-nueva.html'));
 });
 
 // ✅ Servir JS con cache moderada (5 minutos para permitir actualizaciones)

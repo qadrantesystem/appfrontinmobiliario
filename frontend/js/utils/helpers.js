@@ -210,8 +210,19 @@ function debounce(func, wait) {
     };
 }
 
+/**
+ * Formatear número con separadores de miles
+ * @param {number} number - Número a formatear
+ * @returns {string} - Número formateado
+ */
+function formatNumber(number) {
+  if (!number || number === 0) return '0';
+  return new Intl.NumberFormat('es-PE').format(number);
+}
+
 // Exportar funciones globalmente
 window.showNotification = showNotification;
+window.formatNumber = formatNumber;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
 window.isValidEmail = isValidEmail;

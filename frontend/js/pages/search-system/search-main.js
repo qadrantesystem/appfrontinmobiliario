@@ -41,11 +41,19 @@ class SearchSystemMain {
     console.log('🚀 Inicializando Sistema de Búsqueda...');
 
     try {
+      // Cargar filtros guardados desde index (modo invitado)
+      this.loadFiltersFromStorage();
+      
       // Inicializar componentes
       await this.initializeComponents();
 
       // Setup UI
       this.setupEventListeners();
+
+      // Ejecutar búsqueda automáticamente si hay filtros
+      if (Object.keys(this.currentFilters).length > 0) {
+        await this.executeSearch(this.currentFilters);
+      }
 
       console.log('✅ Sistema de Búsqueda listo');
     } catch (error) {
@@ -54,38 +62,101 @@ class SearchSystemMain {
   }
 
   /**
-   * Inicializar componentes
+   * Cargar filtros desde localStorage (viene del index)
+   */
+  loadFiltersFromStorage() {
+    try {
+      const savedFilters = localStorage.getItem('filtros_simplificados');
+      if (savedFilters) {
+        this.currentFilters = JSON.parse(savedFilters);
+        console.log('📋 Filtros cargados desde localStorage:', this.currentFilters);
+        
+        // Actualizar header con filtros activos
+        this.updateHeaderWithFilters();
+        
+        // Limpiar localStorage después de cargar
+        localStorage.removeItem('filtros_simplificados');
+      }
+    } catch (error) {
+      console.error('❌ Error cargando filtros:', error);
+    }
+  }
+
+  /**
+   * Actualizar header con filtros activos
+   */
+  updateHeaderWithFilters() {
+    const activeFiltersDiv = document.getElementById('activeFilters');
+    if (!activeFiltersDiv) return;
+
+    activeFiltersDiv.innerHTML = '';
+
+    if (Object.keys(this.currentFilters).length === 0) {
+      activeFiltersDiv.innerHTML = '<span style="color: #6c757d; font-size: 0.9rem;">Todos los inmuebles</span>';
+      return;
+    }
+
+    // Mostrar filtros activos como tags
+    const filterLabels = {
+      'tipo_inmueble_id': 'Tipo',
+      'transaccion': 'Operación',
+      'area': 'Área',
+      'presupuesto_compra': 'Presupuesto',
+      'presupuesto_alquiler': 'Alquiler',
+      'distritos_ids': 'Distritos'
+    };
+
+    Object.entries(this.currentFilters).forEach(([key, value]) => {
+      if (!value) return;
+      
+      let label = filterLabels[key] || key;
+      let displayValue = value;
+
+      // Formatear valores especiales
+      if (key === 'tipo_inmueble_id' && typeof value === 'number') {
+        const tipos = {1: 'Casa', 2: 'Departamento', 3: 'Oficina', 4: 'Local', 5: 'Terreno'};
+        displayValue = tipos[value] || value;
+      }
+      
+      if (key === 'transaccion') {
+        displayValue = value === 'compra' ? 'Compra' : 'Alquiler';
+      }
+      
+      if (key === 'area' && typeof value === 'number') {
+        displayValue = `${value}m²`;
+      }
+      
+      if ((key === 'presupuesto_compra' || key === 'presupuesto_alquiler') && typeof value === 'number') {
+        displayValue = `USD ${value.toLocaleString()}`;
+      }
+
+      const tag = document.createElement('div');
+      tag.className = 'filter-tag';
+      tag.innerHTML = `
+        ${label}: ${displayValue}
+        <span class="remove-filter" onclick="window.searchSystem.removeFilter('${key}')">×</span>
+      `;
+      activeFiltersDiv.appendChild(tag);
+    });
+  }
+
+  /**
+   * Inicializar componentes (solo esenciales para modo invitado)
    */
   async initializeComponents() {
-    // Modal de búsqueda
-    if (window.SearchModal) {
-      this.searchModal = new SearchModal(this);
-      await this.searchModal.init();
-    }
+    try {
+      // Mapa de resultados (si está disponible)
+      if (window.ResultsMap) {
+        this.resultsMap = new ResultsMap(this);
+        await this.resultsMap.init();
+      } else {
+        console.log('⚠️ Mapa no disponible - modo invitado');
+      }
 
-    // Filtros de resultados (acordeón)
-    if (window.SearchFilters) {
-      this.searchFilters = new SearchFilters(this);
-      await this.searchFilters.init();
+      console.log('✅ Componentes esenciales inicializados');
+    } catch (error) {
+      console.error('❌ Error inicializando componentes:', error);
     }
-
-    // Mapa de resultados
-    if (window.ResultsMap) {
-      this.resultsMap = new ResultsMap(this);
-      await this.resultsMap.init();
-    }
-
-    // Generador de PDF
-    if (window.PDFGenerator) {
-      this.pdfGenerator = new PDFGenerator(this);
-    }
-
-    // Servicio de Email
-    if (window.EmailService) {
-      this.emailService = new EmailService(this);
-    }
-
-    console.log('✅ Componentes inicializados');
   }
 
   /**
@@ -218,58 +289,105 @@ class SearchSystemMain {
   }
 
   /**
-   * Renderizar card de propiedad
+   * Renderizar card de propiedad (versión simple para invitados)
    */
   renderPropertyCard(property) {
-    const isSelected = this.selectedProperties.has(property.id);
+    const precio = property.precio ? `$${Number(property.precio).toLocaleString()}` : 'Consultar';
+    const imagen = property.imagenes && property.imagenes.length > 0 
+      ? property.imagenes[0].url 
+      : 'assets/images/no-image.jpg';
 
     return `
-      <div class="property-card" data-property-id="${property.id}">
-        <div class="property-card-header">
-          <input
-            type="checkbox"
-            data-select-property="${property.id}"
-            ${isSelected ? 'checked' : ''}
-            class="property-checkbox"
-          >
-          <span class="property-code">${property.codigo || 'N/A'}</span>
-        </div>
-
-        <div class="property-carousel" data-carousel="${property.id}">
-          ${this.renderCarousel(property.imagenes || [])}
-        </div>
-
-        <div class="property-info">
-          <h3 class="property-title">${property.titulo || 'Sin título'}</h3>
-          <p class="property-description">${property.descripcion || ''}</p>
-
-          <div class="property-details">
-            <div class="detail-item">
-              <strong>Distrito:</strong> ${property.distrito || 'N/A'}
-            </div>
-            <div class="detail-item">
-              <strong>Área:</strong> ${property.area || 'N/A'} m²
-            </div>
-            <div class="detail-item">
-              <strong>Precio:</strong> $ ${formatNumber(property.precio || 0)}
-            </div>
-            <div class="detail-item">
-              <strong>Estado:</strong>
-              <span class="status-badge status-${property.estado_nombre?.toLowerCase()?.replace(/\s+/g, '-')}">
-                ${property.estado_nombre || 'N/A'}
-              </span>
-            </div>
+      <div class="property-card" style="
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+      ">
+        <div style="position: relative;">
+          <img src="${imagen}" alt="${property.titulo || 'Propiedad'}" style="
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+          ">
+          <div style="
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+          ">
+            ${property.codigo || 'N/A'}
           </div>
         </div>
 
-        <div class="property-actions">
-          <button
-            class="btn-view-details"
-            data-view-details="${property.id}"
-            title="Ver detalles"
-          >
-            Ver Detalles
-          </button>
+        <div style="padding: 20px;">
+          <h3 style="
+            margin: 0 0 10px 0;
+            color: #1e3a8a;
+            font-size: 1.2rem;
+            font-weight: 600;
+          ">
+            ${property.titulo || 'Sin título'}
+          </h3>
+
+          <p style="
+            margin: 0 0 15px 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.4;
+          ">
+            ${property.descripcion || 'Sin descripción disponible'}
+          </p>
+
+          <div style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+          ">
+            <div>
+              <strong style="color: #495057;">Distrito:</strong>
+              <span style="color: #1e3a8a;"> ${property.distrito || 'N/A'}</span>
+            </div>
+            <div>
+              <strong style="color: #495057;">Área:</strong>
+              <span style="color: #1e3a8a;"> ${property.area || 'N/A'} m²</span>
+            </div>
+          </div>
+
+          <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+          ">
+            <div style="
+              font-size: 1.3rem;
+              font-weight: 700;
+              color: #28a745;
+            ">
+              ${precio}
+            </div>
+            <button onclick="window.location.href='login.html'" style="
+              background: #1e3a8a;
+              color: white;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 6px;
+              font-size: 0.9rem;
+              cursor: pointer;
+              transition: background 0.3s ease;
+            " onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#1e3a8a'">
+              Ver Detalles
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -316,70 +434,78 @@ class SearchSystemMain {
    */
   renderPagination() {
     const container = document.getElementById('searchPagination');
-    if (!container) return;
-
-    const maxButtons = 5;
-    const startPage = Math.max(1, this.currentPage - Math.floor(maxButtons / 2));
-    const endPage = Math.min(this.totalPages, startPage + maxButtons - 1);
+    if (!container || this.totalPages <= 1) {
+      if (container) container.innerHTML = '';
+      return;
+    }
 
     let html = `
-      <div class="pagination">
-        <button
-          class="pagination-btn"
-          data-page="1"
-          ${this.currentPage === 1 ? 'disabled' : ''}
-        >
-          ««
-        </button>
-        <button
-          class="pagination-btn"
-          data-page="${this.currentPage - 1}"
-          ${this.currentPage === 1 ? 'disabled' : ''}
-        >
-          ‹
-        </button>
+      <div style="
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+      ">
     `;
 
-    for (let i = startPage; i <= endPage; i++) {
+    // Botón anterior
+    html += `
+      <button
+        onclick="window.searchSystem.goToPage(${Math.max(1, this.currentPage - 1)})"
+        style="
+          padding: 8px 12px;
+          border: 1px solid #dee2e6;
+          background: ${this.currentPage === 1 ? '#f8f9fa' : 'white'};
+          color: ${this.currentPage === 1 ? '#6c757d' : '#1e3a8a'};
+          border-radius: 6px;
+          cursor: ${this.currentPage === 1 ? 'not-allowed' : 'pointer'};
+        "
+        ${this.currentPage === 1 ? 'disabled' : ''}
+      >
+        ← Anterior
+      </button>
+    `;
+
+    // Números de página
+    for (let i = 1; i <= Math.min(this.totalPages, 5); i++) {
       html += `
         <button
-          class="pagination-btn ${i === this.currentPage ? 'active' : ''}"
-          data-page="${i}"
+          onclick="window.searchSystem.goToPage(${i})"
+          style="
+            padding: 8px 12px;
+            border: 1px solid ${i === this.currentPage ? '#1e3a8a' : '#dee2e6'};
+            background: ${i === this.currentPage ? '#1e3a8a' : 'white'};
+            color: ${i === this.currentPage ? 'white' : '#1e3a8a'};
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: ${i === this.currentPage ? '600' : 'normal'};
+          "
         >
           ${i}
         </button>
       `;
     }
 
+    // Botón siguiente
     html += `
-        <button
-          class="pagination-btn"
-          data-page="${this.currentPage + 1}"
-          ${this.currentPage === this.totalPages ? 'disabled' : ''}
-        >
-          ›
-        </button>
-        <button
-          class="pagination-btn"
-          data-page="${this.totalPages}"
-          ${this.currentPage === this.totalPages ? 'disabled' : ''}
-        >
-          »»
-        </button>
-      </div>
+      <button
+        onclick="window.searchSystem.goToPage(${Math.min(this.totalPages, this.currentPage + 1)})"
+        style="
+          padding: 8px 12px;
+          border: 1px solid #dee2e6;
+          background: ${this.currentPage === this.totalPages ? '#f8f9fa' : 'white'};
+          color: ${this.currentPage === this.totalPages ? '#6c757d' : '#1e3a8a'};
+          border-radius: 6px;
+          cursor: ${this.currentPage === this.totalPages ? 'not-allowed' : 'pointer'};
+        "
+        ${this.currentPage === this.totalPages ? 'disabled' : ''}
+      >
+        Siguiente →
+      </button>
     `;
 
+    html += '</div>';
     container.innerHTML = html;
-
-    // Event listeners
-    container.querySelectorAll('[data-page]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const page = parseInt(btn.dataset.page);
-        if (page >= 1 && page <= this.totalPages) {
-          this.goToPage(page);
-        }
-      });
-    });
   }
 
   /**
@@ -401,12 +527,29 @@ class SearchSystemMain {
    */
   updateResultsCounter() {
     const counter = document.getElementById('resultsCounter');
-    if (!counter) return;
+    const headerCounter = document.getElementById('resultsCounter');
+    
+    if (!counter && !headerCounter) return;
 
+    const total = this.currentResults.length;
     const start = (this.currentPage - 1) * this.itemsPerPage + 1;
-    const end = Math.min(start + this.itemsPerPage - 1, this.currentResults.length);
+    const end = Math.min(start + this.itemsPerPage - 1, total);
 
-    counter.textContent = `Mostrando ${start}-${end} de ${this.currentResults.length} resultados`;
+    const text = total > 0 
+      ? `${total} propiedades encontradas`
+      : 'No se encontraron propiedades';
+
+    // Actualizar header principal
+    if (headerCounter) {
+      headerCounter.textContent = text;
+    }
+
+    // Actualizar contador secundario si existe
+    if (counter) {
+      counter.textContent = total > 0 
+        ? `Mostrando ${start}-${end} de ${total} resultados`
+        : 'No hay resultados';
+    }
   }
 
   /**
@@ -476,6 +619,27 @@ class SearchSystemMain {
     });
 
     return value;
+  }
+
+  /**
+   * Remover filtro específico
+   */
+  async removeFilter(filterKey) {
+    console.log('🗑️ Removiendo filtro:', filterKey);
+    
+    // Eliminar filtro
+    delete this.currentFilters[filterKey];
+    
+    // Actualizar header
+    this.updateHeaderWithFilters();
+    
+    // Ejecutar búsqueda con filtros actualizados
+    if (Object.keys(this.currentFilters).length > 0) {
+      await this.executeSearch(this.currentFilters);
+    } else {
+      // Si no hay filtros, mostrar todos
+      await this.executeSearch({});
+    }
   }
 
   /**

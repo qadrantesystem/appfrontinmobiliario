@@ -210,6 +210,54 @@ class AuthService {
     }
 
     /**
+     * 🧹 Limpiar TODA la caché del navegador
+     */
+    async clearAllCache() {
+        try {
+            console.log('🧹 Limpiando caché del navegador...');
+            
+            // 1. Limpiar Service Workers y caché
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                    console.log('✅ Service Worker eliminado');
+                }
+            }
+            
+            // 2. Limpiar Cache Storage
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                await Promise.all(
+                    cacheNames.map(cacheName => caches.delete(cacheName))
+                );
+                console.log('✅ Cache Storage limpiado');
+            }
+            
+            // 3. Limpiar localStorage
+            localStorage.clear();
+            console.log('✅ localStorage limpiado');
+            
+            // 4. Limpiar sessionStorage
+            sessionStorage.clear();
+            console.log('✅ sessionStorage limpiado');
+            
+            // 5. Limpiar cookies
+            document.cookie.split(";").forEach(cookie => {
+                const name = cookie.split("=")[0].trim();
+                document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+            });
+            console.log('✅ Cookies limpiadas');
+            
+            console.log('✅ Caché completamente limpiada');
+            return true;
+        } catch (error) {
+            console.error('❌ Error limpiando caché:', error);
+            return false;
+        }
+    }
+
+    /**
      * 🚪 Cerrar sesión
      */
     logout(message = null) {
@@ -267,6 +315,23 @@ class AuthService {
             // Forzar redirección aunque haya errores
             const fallbackUrl = window.location.origin + '/login';
             window.location.replace(fallbackUrl);
+        }
+    }
+
+    /**
+     * 🧹 Cerrar sesión Y limpiar TODO el caché
+     */
+    async logoutAndClearCache(message = 'Sesión cerrada y caché limpiada') {
+        try {
+            // Primero limpiar toda la caché
+            await this.clearAllCache();
+            
+            // Luego hacer logout normal
+            this.logout(message);
+        } catch (error) {
+            console.error('❌ Error en logout con limpieza:', error);
+            // Forzar logout aunque falle la limpieza
+            this.logout(message);
         }
     }
 

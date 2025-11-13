@@ -103,8 +103,18 @@ class SelectorEdificio {
 
     console.log('🏢 Edificio seleccionado:', this.edificioSeleccionado);
 
-    // Cargar y mostrar características
-    await this.cargarCaracteristicas(edificioId);
+    // 🚫 CARACTERÍSTICAS DESHABILITADAS (por ahora)
+    // await this.cargarCaracteristicas(edificioId);
+    
+    // Solo mostrar info básica del edificio
+    if (this.caracteristicasContainer) {
+      this.caracteristicasContainer.innerHTML = `
+        <div class="alert alert-info mt-3">
+          <i class="fas fa-building me-2"></i>
+          <strong>Edificio seleccionado:</strong> ${this.edificioSeleccionado.nombre_inmueble}
+        </div>
+      `;
+    }
   }
 
   /**
@@ -147,53 +157,64 @@ class SelectorEdificio {
       return;
     }
 
-    // Crear card con características
-    const card = document.createElement('div');
-    card.className = 'card border-primary mb-3';
-    card.innerHTML = `
-      <div class="card-header bg-primary text-white">
-        <i class="fas fa-building me-2"></i>
-        Características del Edificio: ${this.edificioSeleccionado.nombre_inmueble}
-      </div>
-      <div class="card-body">
-        <div id="caracteristicas-accordion" class="accordion">
+    // ✅ Usar mismo HTML que el formulario de propiedades (Paso 3)
+    const html = `
+      <div class="caracteristicas-edificio-readonly mt-3">
+        <h6 class="text-muted mb-3">
+          <i class="fas fa-building me-2"></i>
+          Características del Edificio: ${this.edificioSeleccionado.nombre_inmueble}
+        </h6>
+        
+        <div class="accordion" id="accordion-caracteristicas-edificio">
           ${this.renderAccordion()}
         </div>
       </div>
     `;
 
-    this.caracteristicasContainer.appendChild(card);
+    this.caracteristicasContainer.innerHTML = html;
 
-    console.log('✅ Características renderizadas');
+    console.log('✅ Características renderizadas en formato acordeón');
   }
 
   /**
-   * 🎨 Renderizar accordion con categorías
+   * 🎨 Renderizar accordion con categorías (estilo visual mejorado)
    */
   renderAccordion() {
     let html = '';
     let index = 0;
 
+    // Mapa de iconos por categoría
+    const iconos = {
+      'Edificio - Estructura': '🏢',
+      'Áreas Comunes del Edificio': '🏛️',
+      'Ascensores': '📋',
+      'Soporte del Edificio': '🏢',
+      'Cercanía Estratégica': '📍'
+    };
+
     for (const [categoria, caracteristicas] of Object.entries(this.caracteristicas)) {
-      const collapseId = `collapse-cat-${index}`;
-      const headingId = `heading-cat-${index}`;
+      const collapseId = `collapse-edificio-cat-${index}`;
+      const icono = iconos[categoria] || '📌';
 
       html += `
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="${headingId}">
-            <button class="accordion-button ${index > 0 ? 'collapsed' : ''}"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#${collapseId}">
-              <strong>${categoria}</strong>
-              <span class="badge bg-secondary ms-2">${caracteristicas.length}</span>
-            </button>
-          </h2>
-          <div id="${collapseId}"
-               class="accordion-collapse collapse ${index === 0 ? 'show' : ''}"
-               data-bs-parent="#caracteristicas-accordion">
-            <div class="accordion-body">
-              <div class="row g-2">
+        <div class="categoria-item" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; margin-bottom: 10px; overflow: hidden;">
+          <button class="categoria-header" 
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#${collapseId}"
+                  style="width: 100%; padding: 12px 16px; background: white; border: none; display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: left;">
+            <span style="display: flex; align-items: center; gap: 10px; font-weight: 500;">
+              <span style="font-size: 1.2em;">${icono}</span>
+              <span>${categoria}</span>
+            </span>
+            <span style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 0.85em; color: #6c757d;">${caracteristicas.length} características</span>
+              <span class="dropdown-arrow" style="transition: transform 0.2s;">▼</span>
+            </span>
+          </button>
+          <div id="${collapseId}" class="collapse ${index === 0 ? 'show' : ''}" data-bs-parent="#accordion-caracteristicas-edificio">
+            <div style="padding: 16px; background: white;">
+              <div class="row g-3">
                 ${this.renderCaracteristicasItems(caracteristicas)}
               </div>
             </div>
@@ -313,5 +334,43 @@ class SelectorEdificio {
    */
   async reload() {
     await this.cargarEdificios();
+  }
+
+  /**
+   * 🎯 Pre-seleccionar un edificio por ID
+   * @param {number} edificioId - ID del edificio a seleccionar
+   */
+  async setEdificio(edificioId) {
+    if (!edificioId) {
+      console.warn('⚠️ setEdificio: No se proporcionó edificioId');
+      return;
+    }
+
+    console.log('🎯 Pre-seleccionando edificio:', edificioId);
+    console.log('📋 Edificios disponibles en memoria:', this.edificios.map(e => e.registro_cab_id));
+
+    // Verificar que el edificio existe en la lista
+    const edificioExiste = this.edificios.find(e => e.registro_cab_id == edificioId);
+    if (!edificioExiste) {
+      console.error(`❌ EDIFICIO ${edificioId} NO ESTÁ EN LA LISTA DE DISPONIBLES`);
+      console.error('🔍 IDs disponibles:', this.edificios.map(e => `${e.registro_cab_id} (${e.nombre_inmueble})`));
+      return;
+    }
+
+    // Asignar valor al select (convertir a string por si acaso)
+    if (this.selectElement) {
+      this.selectElement.value = String(edificioId);
+      
+      // Disparar evento change para cargar características
+      const event = new Event('change', { bubbles: true });
+      this.selectElement.dispatchEvent(event);
+      
+      console.log('✅ Edificio pre-seleccionado:', edificioId, '- Valor del select:', this.selectElement.value);
+      
+      // ✅ Llamar directamente al handler para asegurar que se ejecute
+      await this.handleEdificioChange();
+    } else {
+      console.error('❌ Select element no encontrado');
+    }
   }
 }
