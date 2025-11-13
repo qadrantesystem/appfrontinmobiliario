@@ -280,10 +280,26 @@ class PropertyForm {
       console.log('🔍 padre_registro_cab_id:', prop.padre_registro_cab_id);  // ✅ DEBUG
       console.log('🔍 TODOS LOS CAMPOS:', Object.keys(prop));
       
+      // ✅ BUSCAR propietario_id por DNI si no viene en la respuesta
+      let propietarioId = prop.propietario?.propietario_id || prop.propietario_id || null;
+      
+      if (!propietarioId && prop.propietario?.dni) {
+        console.log('🔍 propietario_id no viene en respuesta, buscando por DNI:', prop.propietario.dni);
+        try {
+          const propietarioExistente = await propietarioService.buscarPorDNI(prop.propietario.dni);
+          if (propietarioExistente) {
+            propietarioId = propietarioExistente.propietario_id;
+            console.log('✅ propietario_id encontrado:', propietarioId);
+          }
+        } catch (error) {
+          console.error('❌ Error buscando propietario por DNI:', error);
+        }
+      }
+      
       // Mapear datos a formData (ajustado a estructura real del backend)
       this.formData = {
         // ✅ CRÍTICO: Guardar propietario_id para modo EDITAR
-        propietario_id: prop.propietario?.propietario_id || prop.propietario_id || null,
+        propietario_id: propietarioId,
         propietario_real_nombre: prop.propietario?.nombre || '',
         propietario_real_dni: prop.propietario?.dni || '',
         propietario_real_telefono: prop.propietario?.telefono || '',
