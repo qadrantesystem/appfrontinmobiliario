@@ -1273,30 +1273,38 @@ class PropiedadesTab {
 
   /**
    * Asignar corredor a propiedad con estado CRM y comisión
+   * 🔥 ACTUALIZADO: Usa nuevo endpoint PUT /propiedades/{propiedad_id}/corredor
    */
   async assignBrokerToProperty(propId, brokerId, crmStatus = null, comision = null) {
     try {
       const token = authService.getToken();
 
-      // Preparar payload
-      const payload = {
-        corredor_id: parseInt(brokerId)
-      };
-
-      // Agregar estado CRM si está presente
-      if (crmStatus) {
-        payload.estado_crm = crmStatus;
+      // ✅ NUEVO PAYLOAD según documentación del backend
+      const payload = {};
+      
+      // Agregar corredor_asignado_id (obligatorio)
+      if (brokerId) {
+        payload.corredor_asignado_id = parseInt(brokerId);
       }
 
       // Agregar comisión si está presente
-      if (comision !== null) {
-        payload.comision = parseFloat(comision);
+      if (comision !== null && comision !== undefined) {
+        payload.comision_corredor = parseFloat(comision);
       }
 
-      console.log('📤 Asignando corredor con datos:', payload);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📤 ASIGNANDO CORREDOR - NUEVO ENDPOINT');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🆔 Propiedad ID:', propId);
+      console.log('👤 Corredor ID:', brokerId);
+      console.log('💰 Comisión:', comision);
+      console.log('📋 Estado CRM:', crmStatus);
+      console.log('📦 Payload a enviar:', payload);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/asignar-corredor`, {
-        method: 'PATCH',
+      // ✅ NUEVO ENDPOINT: PUT /propiedades/{propiedad_id}/corredor
+      const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/corredor`, {
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -1304,21 +1312,63 @@ class PropiedadesTab {
         body: JSON.stringify(payload)
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error('Error al asignar corredor');
+        console.error('❌ Error del servidor:', result);
+        throw new Error(result.message || 'Error al asignar corredor');
       }
 
-      const result = await response.json();
-      console.log('✅ Corredor asignado:', result);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('✅ RESPUESTA DEL SERVIDOR:');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📋 Mensaje:', result.message);
+      console.log('📊 Data:', result.data);
+      console.log('🔄 Cambios realizados:', result.data?.cambios);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      showNotification('✅ Corredor asignado exitosamente', 'success');
+      // Mostrar mensaje de éxito con los cambios
+      const cambiosTexto = result.data?.cambios?.join(', ') || 'Corredor asignado';
+      showNotification(`✅ ${cambiosTexto}`, 'success');
+
+      // 🔄 Actualizar estado CRM si fue proporcionado (endpoint separado)
+      if (crmStatus) {
+        console.log('🔄 Actualizando estado CRM:', crmStatus);
+        await this.updatePropertyCRMStatus(propId, crmStatus);
+      }
 
       // Recargar las propiedades
       this.renderPropertiesPage();
 
     } catch (error) {
       console.error('❌ Error asignando corredor:', error);
-      showNotification('❌ Error al asignar corredor', 'error');
+      showNotification(`❌ ${error.message}`, 'error');
+    }
+  }
+
+  /**
+   * Actualizar estado CRM de una propiedad (método auxiliar)
+   */
+  async updatePropertyCRMStatus(propId, crmStatus) {
+    try {
+      const token = authService.getToken();
+      
+      const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/estado-crm`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ estado_crm: crmStatus })
+      });
+
+      if (!response.ok) {
+        console.warn('⚠️ No se pudo actualizar estado CRM');
+      } else {
+        console.log('✅ Estado CRM actualizado:', crmStatus);
+      }
+    } catch (error) {
+      console.warn('⚠️ Error actualizando estado CRM:', error);
     }
   }
 
