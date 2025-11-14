@@ -1177,10 +1177,12 @@ class PropiedadesTab {
       const brokerItems = document.querySelectorAll('.broker-item');
 
       searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
+        const query = e.target.value.toLowerCase().trim();
+        
         brokerItems.forEach(item => {
-          const name = item.dataset.brokerName.toLowerCase();
-          const email = item.dataset.brokerEmail.toLowerCase();
+          const name = (item.dataset.brokerName || '').toLowerCase();
+          const email = (item.dataset.brokerEmail || '').toLowerCase();
+          
           if (name.includes(query) || email.includes(query)) {
             item.style.display = 'flex';
           } else {
@@ -1292,15 +1294,6 @@ class PropiedadesTab {
         payload.comision_corredor = parseFloat(comision);
       }
 
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('📤 ASIGNANDO CORREDOR - NUEVO ENDPOINT');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('🆔 Propiedad ID:', propId);
-      console.log('👤 Corredor ID:', brokerId);
-      console.log('💰 Comisión:', comision);
-      console.log('📋 Estado CRM:', crmStatus);
-      console.log('📦 Payload a enviar:', payload);
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       // ✅ NUEVO ENDPOINT: PUT /propiedades/{propiedad_id}/corredor
       const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/corredor`, {
@@ -1319,21 +1312,13 @@ class PropiedadesTab {
         throw new Error(result.message || 'Error al asignar corredor');
       }
 
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('✅ RESPUESTA DEL SERVIDOR:');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('📋 Mensaje:', result.message);
-      console.log('📊 Data:', result.data);
-      console.log('🔄 Cambios realizados:', result.data?.cambios);
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       // Mostrar mensaje de éxito con los cambios
       const cambiosTexto = result.data?.cambios?.join(', ') || 'Corredor asignado';
       showNotification(`✅ ${cambiosTexto}`, 'success');
 
-      // 🔄 Actualizar estado CRM si fue proporcionado (endpoint separado)
+      // Actualizar estado CRM si fue proporcionado
       if (crmStatus) {
-        console.log('🔄 Actualizando estado CRM:', crmStatus);
         await this.updatePropertyCRMStatus(propId, crmStatus);
       }
 
@@ -1364,8 +1349,6 @@ class PropiedadesTab {
 
       if (!response.ok) {
         console.warn('⚠️ No se pudo actualizar estado CRM');
-      } else {
-        console.log('✅ Estado CRM actualizado:', crmStatus);
       }
     } catch (error) {
       console.warn('⚠️ Error actualizando estado CRM:', error);

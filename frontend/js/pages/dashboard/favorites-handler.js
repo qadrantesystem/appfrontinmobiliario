@@ -15,13 +15,10 @@ class FavoritesHandler {
    * Carga el estado inicial y configura los listeners
    */
   async init() {
-    console.log('❤️ Inicializando FavoritesHandler...');
-
     try {
       await this.loadFavoritesState();
       this.setupListeners();
       this.initialized = true;
-      console.log('✅ FavoritesHandler inicializado');
     } catch (error) {
       console.error('❌ Error inicializando FavoritesHandler:', error);
     }
@@ -33,42 +30,25 @@ class FavoritesHandler {
   async loadFavoritesState() {
     try {
       const token = authService.getToken();
-      if (!token) {
-        console.warn('⚠️ No hay token, no se cargan favoritos');
-        return;
-      }
-
-      console.log('📥 Cargando favoritos desde API...');
+      if (!token) return;
 
       const response = await fetch(`${API_CONFIG.BASE_URL}/favoritos/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (!response.ok) {
-        throw new Error('Error al cargar favoritos');
-      }
+      if (!response.ok) throw new Error('Error al cargar favoritos');
 
       const data = await response.json();
       const favoritos = Array.isArray(data) ? data : (data.data || []);
 
-      console.log(`✅ ${favoritos.length} favoritos cargados`);
-
-      // Limpiar cache
       this.favoritesCache.clear();
 
-      // Actualizar cache y UI
       favoritos.forEach(fav => {
         const propId = parseInt(fav.registro_cab_id);
         const favId = parseInt(fav.favorito_id);
-
-        // Guardar en cache
         this.favoritesCache.set(propId, favId);
-
-        // Actualizar UI
         this.updateButtonState(propId, true);
       });
-
-      console.log('✅ Estado de favoritos cargado en cache');
 
     } catch (error) {
       console.error('❌ Error cargando favoritos:', error);
@@ -79,7 +59,6 @@ class FavoritesHandler {
    * 🎯 Configurar listeners para todos los botones de favoritos
    */
   setupListeners() {
-    // Usar event delegation en el documento
     document.addEventListener('click', async (e) => {
       const btn = e.target.closest('[data-favorite-property]');
       if (!btn) return;
@@ -89,8 +68,6 @@ class FavoritesHandler {
 
       await this.handleFavoriteClick(btn);
     });
-
-    console.log('✅ Listeners de favoritos configurados (event delegation)');
   }
 
   /**
@@ -100,24 +77,18 @@ class FavoritesHandler {
     const propId = parseInt(button.dataset.favoriteProperty);
     const isFavorite = this.favoritesCache.has(propId);
 
-    console.log(`❤️ Click favorito - PropID: ${propId}, es favorito: ${isFavorite}`);
-
-    // Deshabilitar botón temporalmente
     button.disabled = true;
     button.style.opacity = '0.6';
 
     try {
       if (isFavorite) {
-        // Quitar de favoritos
         await this.removeFavorite(propId);
       } else {
-        // Agregar a favoritos
         await this.addFavorite(propId);
       }
     } catch (error) {
       console.error('❌ Error en handleFavoriteClick:', error);
     } finally {
-      // Rehabilitar botón
       button.disabled = false;
       button.style.opacity = '1';
     }
@@ -128,22 +99,13 @@ class FavoritesHandler {
    */
   async addFavorite(propId) {
     try {
-      console.log(`➕ Agregando propiedad ${propId} a favoritos...`);
-
       const result = await favoritesActionService.agregarFavorito(propId);
 
       if (result) {
-        // Agregar al cache
         const favoritoId = result.favorito_id || result.id;
         this.favoritesCache.set(propId, favoritoId);
-
-        // Actualizar UI
         this.updateButtonState(propId, true);
-
-        // Animación
         this.animateButton(propId);
-
-        console.log('✅ Favorito agregado exitosamente');
       }
 
     } catch (error) {
@@ -157,13 +119,9 @@ class FavoritesHandler {
    */
   async removeFavorite(propId) {
     try {
-      console.log(`➖ Quitando propiedad ${propId} de favoritos...`);
-
-      // Obtener el favorito_id del cache
       const favoritoId = this.favoritesCache.get(propId);
 
       if (!favoritoId) {
-        console.error('❌ No se encontró el favorito_id en cache');
         showNotification('❌ Error al quitar de favoritos', 'error');
         return;
       }
@@ -171,16 +129,9 @@ class FavoritesHandler {
       const success = await favoritesActionService.quitarFavorito(favoritoId);
 
       if (success) {
-        // Quitar del cache
         this.favoritesCache.delete(propId);
-
-        // Actualizar UI
         this.updateButtonState(propId, false);
-
-        // Animación
         this.animateButton(propId);
-
-        console.log('✅ Favorito eliminado exitosamente');
       }
 
     } catch (error) {
@@ -196,10 +147,7 @@ class FavoritesHandler {
   updateButtonState(propId, isFavorite) {
     const buttons = document.querySelectorAll(`[data-favorite-property="${propId}"]`);
 
-    if (buttons.length === 0) {
-      console.warn(`⚠️ No se encontró ningún botón con propId: ${propId}`);
-      return;
-    }
+    if (buttons.length === 0) return;
 
     buttons.forEach(button => {
       if (isFavorite) {
@@ -209,9 +157,12 @@ class FavoritesHandler {
         button.classList.remove('is-favorite');
         button.title = 'Agregar a favoritos';
       }
+      
+      // Forzar repaint
+      button.style.display = 'none';
+      button.offsetHeight;
+      button.style.display = '';
     });
-
-    console.log(`🎨 ${buttons.length} botón(es) actualizado(s) - PropID: ${propId}, es favorito: ${isFavorite}`);
   }
 
   /**
@@ -233,13 +184,9 @@ class FavoritesHandler {
    * 🔄 Refrescar todos los botones (útil después de renderizar nueva página)
    */
   refreshAllButtons() {
-    console.log('🔄 Refrescando estado de todos los botones de favoritos...');
-
     this.favoritesCache.forEach((favoritoId, propId) => {
       this.updateButtonState(propId, true);
     });
-
-    console.log('✅ Botones refrescados');
   }
 
   /**
