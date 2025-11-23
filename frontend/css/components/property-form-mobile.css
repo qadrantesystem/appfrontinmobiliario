@@ -87,6 +87,17 @@
    ======================================== */
 
 @media (max-width: 768px) {
+  .propietario-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  #propietario_dni,
+  #propietario_telefono,
+  #propietario_nombre {
+    max-width: 100%;
+    width: 100%;
+  }
+
   /* Contenedor principal con padding reducido */
   .property-form-container {
     padding: 0 12px !important;
@@ -229,17 +240,28 @@
    👤 PASO 1: INFORMACIÓN DEL PROPIETARIO
    ======================================== */
 
-/* Layout responsive para DNI y Teléfono */
-#propietarioBasicosContainer {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 12px !important;
-}
-
-/* En móvil: mantener 2 columnas para DNI y Teléfono */
+/* En móvil: layout vertical */
 @media (max-width: 768px) {
-  #propietarioBasicosContainer {
-    grid-template-columns: 1fr 1fr !important;
+  .propietario-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  
+  /* Dirección compacta en móvil: layout vertical */
+  .direccion-compacta-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  
+  /* Tipo Inmueble + Distrito en móvil: layout vertical */
+  .tipo-distrito-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  
+  /* Datos Básicos en móvil: layout vertical */
+  .datos-basicos-grid {
+    grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
 }

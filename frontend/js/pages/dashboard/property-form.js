@@ -106,11 +106,25 @@ class PropertyForm {
       this.tiposInmuebles = tiposData.data || tiposData || [];
       this.distritos = distritosData.data || distritosData || [];
       
-      // ✅ Ordenar tipos de inmueble por el campo 'orden'
+      // ✅ Orden personalizado de tipos de inmueble (prioriza edificios completos antes que unidades)
+      const getTipoPriority = (tipo) => {
+        const nombre = (tipo?.nombre || '').toLowerCase();
+        if (nombre.includes('edificio') && nombre.includes('oficina') && nombre.includes('completo')) return 1;
+        if (nombre.includes('edificio') && nombre.includes('departamento') && nombre.includes('completo')) return 2;
+        if (nombre.includes('condominio')) return 3;
+        if (nombre.includes('oficina')) return 4;
+        if (nombre.includes('departamento')) return 5;
+        if (nombre.includes('casa')) return 6;
+        return 9;
+      };
+
       this.tiposInmuebles.sort((a, b) => {
+        const prioDiff = getTipoPriority(a) - getTipoPriority(b);
+        if (prioDiff !== 0) return prioDiff;
         const ordenA = a.orden || 999;
         const ordenB = b.orden || 999;
-        return ordenA - ordenB;
+        if (ordenA !== ordenB) return ordenA - ordenB;
+        return (a.nombre || '').localeCompare(b.nombre || '');
       });
       
       console.log('✅ Catálogos cargados correctamente:', {
@@ -572,13 +586,21 @@ class PropertyForm {
       
       if (currentUser) {
         console.log('👤 Cargando datos del usuario:', currentUser.nombre);
-        
+
         // Pre-llenar datos del propietario con datos del usuario
         this.formData.propietario_real_nombre = currentUser.nombre || '';
         this.formData.propietario_real_dni = currentUser.dni || '';
-        this.formData.propietario_real_telefono = currentUser.telefono || '';
+        const telefonoRaw = currentUser.telefono || '';
+        if (telefonoRaw) {
+          const soloNumeros = ('' + telefonoRaw).replace(/\D/g, '');
+          this.formData.propietario_real_telefono = soloNumeros.startsWith('51') || telefonoRaw.startsWith('+51')
+            ? `+${soloNumeros.startsWith('51') ? soloNumeros : '51' + soloNumeros}`
+            : `+51 ${soloNumeros}`;
+        } else {
+          this.formData.propietario_real_telefono = '';
+        }
         this.formData.propietario_real_email = currentUser.email || '';
-        
+
         console.log('✅ Datos del usuario cargados en formData');
       } else {
         console.log('⚠️ No hay usuario logueado');
@@ -767,7 +789,7 @@ class PropertyForm {
     }
   }
 
-  async buscarCoordenadas(direccion, distrito) {
+  async buscarCoordenadasYMostrarMapa(direccion, distrito) {
     try {
       showNotification('🔍 Buscando ubicación...', 'info');
       
@@ -808,27 +830,25 @@ class PropertyForm {
         const lat = parseFloat(ubicacionEncontrada.lat);
         const lon = parseFloat(ubicacionEncontrada.lon);
         
-        // Actualizar campos
-        document.getElementById('latitud').value = lat.toFixed(6);
-        document.getElementById('longitud').value = lon.toFixed(6);
+        showNotification(`✅ Ubicación encontrada - Verifica en el mapa`, 'success');
         
-        this.formData.latitud = lat;
-        this.formData.longitud = lon;
-        
-        showNotification(`✅ Ubicación encontrada`, 'success');
-        
-        // Mostrar en mapa pequeño (opcional)
-        this.mostrarMapaPreview(lat, lon);
+        // SIEMPRE abrir el mapa con la ubicación encontrada
+        this.abrirMapaSeleccion(direccion, distrito, lat, lon);
       } else {
-        showNotification('⚠️ No se encontró automáticamente. Selecciona en el mapa.', 'warning');
-        // Abrir modal de mapa para selección manual
+        showNotification('⚠️ No se encontró automáticamente. Marca en el mapa.', 'warning');
+        // Abrir mapa sin coordenadas (centrado en Lima)
         this.abrirMapaSeleccion(direccion, distrito);
       }
     } catch (error) {
       console.error('❌ Error en geocoding:', error);
-      showNotification('❌ Error al buscar. Selecciona en el mapa.', 'error');
+      showNotification('📍 Marca la ubicación en el mapa', 'info');
       this.abrirMapaSeleccion(direccion, distrito);
     }
+  }
+
+  async buscarCoordenadas(direccion, distrito) {
+    // Método legacy - redirige al nuevo método
+    await this.buscarCoordenadasYMostrarMapa(direccion, distrito);
   }
 
   mostrarMapaPreview(lat, lon) {
@@ -836,35 +856,39 @@ class PropertyForm {
     console.log(`📍 Ubicación: ${lat}, ${lon}`);
   }
 
-  abrirMapaSeleccion(direccion, distrito) {
+  abrirMapaSeleccion(direccion, distrito, latInicial = null, lonInicial = null) {
     // Crear modal con mapa interactivo
     const modalHtml = `
       <div id="mapModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 20px;">
-        <div style="background: white; border-radius: 12px; max-width: 900px; width: 100%; max-height: 90vh; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-          <!-- Header -->
-          <div style="padding: 16px 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0; color: var(--azul-corporativo);">📍 Selecciona la Ubicación</h3>
-            <button onclick="propertyForm.cerrarMapaModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280;">×</button>
-          </div>
-          
-          <!-- Instrucciones -->
-          <div style="padding: 12px 20px; background: #f0f9ff; border-bottom: 1px solid #e5e7eb;">
-            <p style="margin: 0; font-size: 0.9rem; color: #0369a1;">
-              💡 Haz click en el mapa para marcar la ubicación exacta de tu propiedad
-            </p>
+        <div style="background: white; border-radius: 12px; max-width: 900px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+          <!-- Header con botones -->
+          <div style="padding: 16px 20px; border-bottom: 2px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--azul-corporativo); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">
+                📍
+              </div>
+              <div>
+                <h3 style="margin: 0; color: var(--azul-corporativo); font-size: 1.1rem;">Selecciona la Ubicación</h3>
+                <p style="margin: 0; font-size: 0.8rem; color: #64748b;">Haz click en el mapa para marcar</p>
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button onclick="propertyForm.cerrarMapaModal()" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
+                Cancelar
+              </button>
+              <button onclick="propertyForm.confirmarUbicacion()" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.9rem;">
+                ✓ Confirmar
+              </button>
+            </div>
           </div>
           
           <!-- Mapa -->
-          <div id="mapContainer" style="height: 500px; width: 100%;"></div>
+          <div id="mapContainer" style="height: 500px; width: 100%; flex-shrink: 0;"></div>
           
-          <!-- Footer -->
-          <div style="padding: 16px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 0.85rem; color: #6b7280;">
-              <span id="coordsDisplay">Lat: -, Lng: -</span>
-            </div>
-            <div style="display: flex; gap: 10px;">
-              <button onclick="propertyForm.cerrarMapaModal()" class="btn btn-secondary">Cancelar</button>
-              <button onclick="propertyForm.confirmarUbicacion()" class="btn btn-primary">✓ Confirmar Ubicación</button>
+          <!-- Footer con coordenadas -->
+          <div style="padding: 12px 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: center; align-items: center; flex-shrink: 0; background: #f8fafc;">
+            <div style="font-size: 0.85rem; color: #64748b; font-weight: 500;">
+              <span id="coordsDisplay">📍 Haz click en el mapa para seleccionar</span>
             </div>
           </div>
         </div>
@@ -875,11 +899,12 @@ class PropertyForm {
     
     // Inicializar mapa Leaflet
     setTimeout(() => {
-      // Centro en Lima por defecto
-      const defaultLat = -12.0464;
-      const defaultLng = -77.0428;
+      // Usar coordenadas iniciales si se proporcionan, sino Lima por defecto
+      const centerLat = latInicial || -12.0464;
+      const centerLng = lonInicial || -77.0428;
+      const zoom = (latInicial && lonInicial) ? 16 : 13;
       
-      const map = L.map('mapContainer').setView([defaultLat, defaultLng], 13);
+      const map = L.map('mapContainer').setView([centerLat, centerLng], zoom);
       
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
@@ -888,11 +913,18 @@ class PropertyForm {
       // Marker
       let marker = null;
       this.tempMarker = null;
-      this.tempLat = null;
-      this.tempLng = null;
+      this.tempLat = latInicial;
+      this.tempLng = lonInicial;
+      
+      // Si hay coordenadas iniciales, colocar marker
+      if (latInicial && lonInicial) {
+        marker = L.marker([latInicial, lonInicial]).addTo(map);
+        document.getElementById('coordsDisplay').textContent = 
+          `Lat: ${latInicial.toFixed(6)}, Lng: ${lonInicial.toFixed(6)}`;
+      }
       
       // Click en el mapa
-      map.on('click', (e) => {
+      map.on('click', async (e) => {
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
         
@@ -910,13 +942,11 @@ class PropertyForm {
         
         // Actualizar display
         document.getElementById('coordsDisplay').textContent = 
-          `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+          `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)} - Obteniendo dirección...`;
+        
+        // 🆕 Reverse Geocoding: Obtener dirección desde coordenadas
+        await this.obtenerDireccionDesdeCoordenadas(lat, lng);
       });
-      
-      // Si hay dirección, intentar buscarla y centrar
-      if (direccion) {
-        this.centrarMapaEnDireccion(map, direccion, distrito);
-      }
       
       this.currentMap = map;
     }, 100);
@@ -943,6 +973,88 @@ class PropertyForm {
     }
   }
 
+  async obtenerDireccionDesdeCoordenadas(lat, lng) {
+    try {
+      // Reverse Geocoding con Nominatim
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+      
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'QuadranteInmobiliaria/1.0' }
+      });
+      
+      const data = await response.json();
+      console.log('🔍 Reverse Geocoding:', data);
+      console.log('📍 Address object:', data.address);
+      
+      if (data && data.address) {
+        const address = data.address;
+        
+        // Extraer componentes de la dirección
+        const road = address.road || address.street || '';
+        const houseNumber = address.house_number || '';
+        const suburb = address.suburb || address.neighbourhood || '';
+        const district = address.city_district || address.district || address.city || '';
+        
+        console.log('📋 Componentes extraídos:', { road, houseNumber, suburb, district });
+        
+        // Determinar tipo de vía
+        let tipoVia = 'Calle';
+        if (road.toLowerCase().includes('avenida') || road.toLowerCase().includes('av.')) {
+          tipoVia = 'Av.';
+        } else if (road.toLowerCase().includes('jirón') || road.toLowerCase().includes('jr.')) {
+          tipoVia = 'Jr.';
+        } else if (road.toLowerCase().includes('pasaje') || road.toLowerCase().includes('psje.')) {
+          tipoVia = 'Psje.';
+        } else if (road.toLowerCase().includes('prolongación') || road.toLowerCase().includes('prol.')) {
+          tipoVia = 'Prol.';
+        }
+        
+        // Limpiar nombre de vía (quitar el tipo si viene incluido)
+        let nombreVia = road.replace(/^(Avenida|Av\.|Jirón|Jr\.|Calle|Pasaje|Psje\.|Prolongación|Prol\.)\s*/i, '').trim();
+        
+        console.log('🔧 Procesado:', { tipoVia, nombreVia });
+        
+        // Guardar temporalmente para usar al confirmar
+        this.tempDireccion = {
+          tipoVia,
+          nombreVia,
+          numero: houseNumber,
+          urbanizacion: suburb,
+          distrito: district
+        };
+        
+        console.log('✅ Dirección capturada:', this.tempDireccion);
+        
+        // Actualizar display con dirección encontrada
+        const direccionCompleta = `${tipoVia} ${nombreVia} ${houseNumber}`.trim();
+        console.log('📝 Dirección completa formateada:', direccionCompleta);
+        
+        const coordsDisplayElement = document.getElementById('coordsDisplay');
+        console.log('🎯 Elemento coordsDisplay:', coordsDisplayElement);
+        
+        if (coordsDisplayElement) {
+          const textoFinal = `📍 ${direccionCompleta} - ${district}`;
+          console.log('💬 Texto a mostrar:', textoFinal);
+          coordsDisplayElement.textContent = textoFinal;
+          console.log('✅ Display actualizado correctamente');
+        } else {
+          console.warn('⚠️ Elemento coordsDisplay no encontrado en el DOM');
+        }
+      } else {
+        const coordsDisplayElement = document.getElementById('coordsDisplay');
+        if (coordsDisplayElement) {
+          coordsDisplayElement.textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error en reverse geocoding:', error);
+      const coordsDisplayElement = document.getElementById('coordsDisplay');
+      if (coordsDisplayElement) {
+        coordsDisplayElement.textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+      }
+    }
+  }
+
   cerrarMapaModal() {
     const modal = document.getElementById('mapModal');
     if (modal) {
@@ -955,14 +1067,65 @@ class PropertyForm {
   }
 
   confirmarUbicacion() {
+    console.log('🎯 CONFIRMANDO UBICACIÓN');
+    console.log('📍 Coordenadas:', this.tempLat, this.tempLng);
+    console.log('📋 Dirección temporal:', this.tempDireccion);
+    
     if (this.tempLat && this.tempLng) {
+      // Guardar coordenadas
       document.getElementById('latitud').value = this.tempLat.toFixed(6);
       document.getElementById('longitud').value = this.tempLng.toFixed(6);
       
       this.formData.latitud = this.tempLat;
       this.formData.longitud = this.tempLng;
       
-      showNotification('✅ Ubicación confirmada', 'success');
+      // 🆕 Llenar campos de dirección si se capturó
+      if (this.tempDireccion) {
+        console.log('✅ tempDireccion existe, llenando campos...');
+        
+        const tipoViaSelect = document.getElementById('tipo_via');
+        const nombreViaInput = document.getElementById('nombre_via');
+        const numeroInput = document.getElementById('numero_direccion');
+        const urbanizacionInput = document.getElementById('urbanizacion');
+        
+        console.log('🔍 Elementos encontrados:', {
+          tipoViaSelect: !!tipoViaSelect,
+          nombreViaInput: !!nombreViaInput,
+          numeroInput: !!numeroInput,
+          urbanizacionInput: !!urbanizacionInput
+        });
+        
+        if (tipoViaSelect && this.tempDireccion.tipoVia) {
+          tipoViaSelect.value = this.tempDireccion.tipoVia;
+          console.log('✅ Tipo vía actualizado:', this.tempDireccion.tipoVia);
+        }
+        
+        if (nombreViaInput && this.tempDireccion.nombreVia) {
+          nombreViaInput.value = this.tempDireccion.nombreVia;
+          console.log('✅ Nombre vía actualizado:', this.tempDireccion.nombreVia);
+        }
+        
+        if (numeroInput && this.tempDireccion.numero) {
+          numeroInput.value = this.tempDireccion.numero;
+          console.log('✅ Número actualizado:', this.tempDireccion.numero);
+        }
+        
+        if (urbanizacionInput && this.tempDireccion.urbanizacion) {
+          urbanizacionInput.value = this.tempDireccion.urbanizacion;
+          console.log('✅ Urbanización actualizada:', this.tempDireccion.urbanizacion);
+        }
+        
+        // Actualizar dirección completa
+        console.log('🔄 Actualizando dirección completa...');
+        this.updateDireccionPreview();
+        
+        showNotification('✅ Ubicación y dirección confirmadas', 'success');
+      } else {
+        console.log('⚠️ No hay tempDireccion');
+        showNotification('✅ Ubicación confirmada', 'success');
+      }
+      
+      console.log('🚪 Cerrando modal...');
       this.cerrarMapaModal();
     } else {
       showNotification('⚠️ Primero haz click en el mapa para marcar la ubicación', 'warning');
@@ -1269,18 +1432,19 @@ class PropertyForm {
     return steps[this.currentStep] ? steps[this.currentStep]() : '<p>Paso no encontrado</p>';
   }
 
+  
   renderStep1() {
     return `
       <h3 style="margin-bottom: var(--spacing-md); color: var(--azul-corporativo); font-size: 1.3rem; font-weight: 600;">
         Información del Propietario
       </h3>
       <div style="display: grid; gap: var(--spacing-md);">
-        <!-- ✅ Layout responsive: DNI y Teléfono en una fila, Nombre completo -->
-        <div id="propietarioBasicosContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
-          ${this.renderInput('propietario_dni', 'DNI', 'text', true, '12345678', { maxlength: 8, pattern: '[0-9]{8}' })}
-          ${this.renderInput('propietario_telefono', 'Teléfono', 'tel', true, '999 888 777')}
+        <!-- 🎯 Layout compacto: DNI + Nombre + Celular en una fila -->
+        <div id="propietarioBasicosContainer" class="propietario-grid">
+          ${this.renderInput('propietario_dni', 'DNI / RUC', 'text', true, '12345678', { maxlength: 11, pattern: '[0-9]{8,11}', title: 'DNI (8 dígitos) o RUC (11 dígitos)' })}
+          ${this.renderInput('propietario_nombre', 'Nombre Completo', 'text', true, 'Juan Pérez García')}
+          ${this.renderInput('propietario_telefono', 'Teléfono', 'tel', true, '+51 999 888 777')}
         </div>
-        ${this.renderInput('propietario_nombre', 'Nombre Completo', 'text', true, 'Juan Pérez García')}
         ${this.renderInput('propietario_email', 'Email', 'email', false, 'juan.perez@email.com')}
         <!-- Campo oculto para propietario_id (si existe) -->
         <input type="hidden" id="propietario_id_hidden" value="">
@@ -1307,7 +1471,11 @@ class PropertyForm {
         Información Básica del Inmueble
       </h3>
       <div style="display: grid; gap: var(--spacing-md);">
-        ${this.renderSelect('tipo_inmueble_id', 'Tipo de Inmueble', this.tiposInmuebles, true)}
+        <!-- ✅ Tipo Inmueble + Distrito en una sola fila -->
+        <div class="tipo-distrito-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+          ${this.renderSelect('tipo_inmueble_id', 'Tipo de Inmueble', this.tiposInmuebles, true)}
+          ${this.renderSelect('distrito_id', 'Distrito', this.distritos, true)}
+        </div>
 
         <!-- ✅ Selector de Edificio Padre (SOLO para Oficinas INDIVIDUALES) -->
         <div id="edificio-padre-container" style="display: ${esOficinaIndividual ? 'block' : 'none'};">
@@ -1322,11 +1490,9 @@ class PropertyForm {
           <!-- Contenedor para características del edificio -->
           <div id="edificio-caracteristicas-container" style="margin-top: var(--spacing-md);"></div>
         </div>
-
-        ${this.renderSelect('distrito_id', 'Distrito', this.distritos, true)}
         
         <!-- ✅ Nombre del Inmueble con label dinámico -->
-        <div class="form-group">
+        <div class="form-group" id="nombre_inmueble_container">
           <label for="nombre_inmueble" id="label_nombre_inmueble">
             ${labelNombreInmueble} <span style="color: red;">*</span>
           </label>
@@ -1335,15 +1501,21 @@ class PropertyForm {
         
         <!-- 🆕 Dirección separada en componentes -->
         <div class="direccion-group" style="border: 1px solid #e2e8f0; padding: var(--spacing-md); border-radius: 8px; background: #f8fafc;">
-          <label style="display: block; margin-bottom: var(--spacing-sm); font-weight: 600; color: var(--azul-corporativo);">
-            📍 Dirección <span style="color: red;">*</span>
-          </label>
+          <!-- ✅ Header con título y botón -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
+            <label style="margin: 0; font-weight: 600; color: var(--azul-corporativo);">
+              📍 Dirección <span style="color: red;">*</span>
+            </label>
+            <button type="button" id="btnUbicarMapa" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;">
+              📍 Ubicar en Mapa
+            </button>
+          </div>
           
-          <!-- ✅ Layout responsive para dirección -->
-          <div id="direccionPrincipalContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
-            <div class="form-group">
+          <!-- ✅ Fila compacta: Tipo Vía + Nombre Vía + Número -->
+          <div class="direccion-compacta-grid" style="display: grid; grid-template-columns: 120px 1fr 100px; gap: 8px; margin-bottom: var(--spacing-sm);">
+            <div class="form-group" style="margin-bottom: 0;">
               <label for="tipo_via" style="font-size: 0.85rem;">Tipo de Vía</label>
-              <select id="tipo_via" class="form-control">
+              <select id="tipo_via" class="form-control" style="padding: 8px 10px; font-size: 0.95rem;">
                 <option value="Av.">Avenida</option>
                 <option value="Jr.">Jirón</option>
                 <option value="Calle">Calle</option>
@@ -1352,16 +1524,15 @@ class PropertyForm {
               </select>
             </div>
             
-            <div class="form-group">
-              <label for="numero_direccion" style="font-size: 0.85rem;">Número</label>
-              <input type="text" id="numero_direccion" class="form-control" placeholder="2520">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="nombre_via" style="font-size: 0.85rem;">Nombre de la Vía *</label>
+              <input type="text" id="nombre_via" class="form-control" placeholder="Ej: Angamos Este" required style="padding: 8px 10px; font-size: 0.95rem;">
             </div>
-          </div>
-          
-          <!-- Nombre de vía en fila separada -->
-          <div class="form-group" style="margin-bottom: var(--spacing-sm);">
-            <label for="nombre_via" style="font-size: 0.85rem;">Nombre de la Vía *</label>
-            <input type="text" id="nombre_via" class="form-control" placeholder="Ej: Angamos Este" required>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="numero_direccion" style="font-size: 0.85rem;">Número</label>
+              <input type="text" id="numero_direccion" class="form-control" placeholder="2520" style="padding: 8px 10px; font-size: 0.95rem;">
+            </div>
           </div>
           
           <div id="direccionSecundariaContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
@@ -1385,14 +1556,9 @@ class PropertyForm {
           </div>
         </div>
 
-        <!-- 🆕 Coordenadas ocultas + Botón de mapa -->
-        <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-          <input type="hidden" id="latitud" value="">
-          <input type="hidden" id="longitud" value="">
-          <button type="button" id="btnUbicarMapa" class="btn btn-secondary" style="width: 100%;">
-            📍 Ubicar en Mapa
-          </button>
-        </div>
+        <!-- 🆕 Coordenadas ocultas -->
+        <input type="hidden" id="latitud" value="">
+        <input type="hidden" id="longitud" value="">
       </div>
     `;
   }
@@ -1409,10 +1575,10 @@ class PropertyForm {
       <!-- Características Físicas Básicas -->
       <div style="background: #f8f9fa; padding: var(--spacing-md); border-radius: 8px; margin-bottom: var(--spacing-lg);">
         <h4 style="margin-bottom: var(--spacing-sm); color: var(--azul-corporativo); font-size: 0.95rem;">Datos Básicos</h4>
-        <!-- ✅ Contenedor con ID para CSS responsive -->
-        <div id="datosBasicosContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--spacing-sm);">
+        <!-- ✅ Grid compacto en una sola línea -->
+        <div class="datos-basicos-grid" style="display: grid; grid-template-columns: 150px 150px 1fr; gap: var(--spacing-sm);">
           ${this.renderInputCompact('area', 'Área (m²)', 'number', true, '120', { step: '0.01', min: '1' })}
-          ${this.renderInputCompact('antiguedad', 'Años', 'number', false, '5', { min: '0' })}
+          ${this.renderInputCompact('antiguedad', 'Años de Antigüedad', 'number', false, '5', { min: '0' })}
           ${this.renderSelectCompact('implementacion', 'Implementación', [
             { value: '', label: 'Seleccionar...' },
             { value: '1', label: 'Sin implementar' },
@@ -1598,43 +1764,51 @@ class PropertyForm {
               </div>
             </div>
 
-            <!-- Input para asignar metraje + Botones (responsive) -->
-            <div id="oficinasControlPanel" style="background: #f0f9ff; padding: var(--spacing-sm); border-radius: 8px; margin-bottom: var(--spacing-md);">
-              <!-- Fila 1: Input + Equipar -->
-              <div style="display: flex; gap: var(--spacing-sm); align-items: center; margin-bottom: var(--spacing-sm);">
+            <!-- Input para asignar metraje + Botones -->
+            <div id="oficinasControlPanel" style="background: #f0f9ff; padding: var(--spacing-sm); border-radius: 8px; margin-bottom: var(--spacing-md); border: 2px solid #0ea5e9;">
+              <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--azul-corporativo); font-size: 0.85rem;">
+                📐 Metraje (m²)
+              </label>
+              
+              <!-- Input + Botones en una sola fila -->
+              <div style="display: flex; gap: 8px; align-items: stretch;">
                 <input
                   type="number"
                   id="metraje-batch-input"
                   class="form-input"
-                  placeholder="m²"
+                  placeholder="50"
                   step="0.01"
                   min="1"
                   value="50"
-                  style="flex: 1; padding: 8px; font-size: 0.9rem;"
+                  style="width: 80px; padding: 8px; font-size: 0.9rem; border: 2px solid #cbd5e1; text-align: center;"
                 />
+                <button
+                  type="button"
+                  id="btn-aplicar-metraje"
+                  class="btn-primary"
+                  title="Aplicará el mismo metraje a TODAS las oficinas seleccionadas (marcadas en naranja)"
+                  style="flex: 1; padding: 8px 12px; font-size: 0.85rem; white-space: nowrap; font-weight: 600;"
+                >
+                  ✓ Aplicar
+                </button>
                 <button
                   type="button"
                   id="btn-equipar"
                   class="btn-secondary"
-                  style="padding: 8px 16px; font-size: 0.9rem; white-space: nowrap; background: var(--dorado); color: white; border: none; flex-shrink: 0;"
+                  title="Equipar aplica el mismo set de características/implementación a las oficinas seleccionadas"
+                  style="flex: 1; padding: 8px 12px; font-size: 0.85rem; white-space: nowrap; background: var(--dorado); color: white; border: none;"
                 >
-                  <i class="fas fa-cog"></i> Equipar
+                  🔧 Equipar
                 </button>
               </div>
               
-              <!-- Fila 2: Aplicar (ancho completo) -->
-              <button
-                type="button"
-                id="btn-aplicar-metraje"
-                class="btn-primary"
-                style="width: 100%; padding: 10px 16px; font-size: 0.9rem; white-space: nowrap;"
-              >
-                <i class="fas fa-check"></i> Aplicar
-              </button>
+              <p style="font-size: 0.75rem; color: #0369a1; margin: 6px 0 0 0; text-align: center;">
+                💡 Aplicar: asigna metraje | Equipar: copia características
+              </p>
             </div>
 
-            <p style="font-size: 0.85rem; color: var(--gris-medio); margin-bottom: var(--spacing-md); text-align: center;">
-              💡 Haz click en las oficinas para seleccionarlas
+            <p style="font-size: 0.85rem; color: var(--gris-medio); margin-bottom: var(--spacing-md); text-align: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+              👆 <strong>Haz click en las oficinas</strong> para seleccionarlas (se marcarán en naranja)
             </p>
 
             <!-- Edificio clickeable con borde -->
@@ -2093,7 +2267,22 @@ class PropertyForm {
         labelNombreInmueble.innerHTML = `${nuevoLabel} <span style="color: red;">*</span>`;
         console.log(`✅ Label actualizado: "${nuevoLabel}"`);
       }
-    });
+    const nombreInmuebleInput = document.getElementById('nombre_inmueble');
+      const nombreContainer = document.getElementById('nombre_inmueble_container');
+      if (nombreInmuebleInput) {
+        if (nombreTipoLower.includes('casa')) {
+          if (nombreContainer) nombreContainer.style.display = 'none';
+          nombreInmuebleInput.value = '';
+        } else {
+          if (nombreContainer) nombreContainer.style.display = 'block';
+          const autoNombre = this.getNombreInmuebleLabel(nombreTipo);
+          nombreInmuebleInput.placeholder = autoNombre;
+          if (!nombreInmuebleInput.value) {
+            nombreInmuebleInput.value = autoNombre;
+          }
+        }
+      }
+});
 
     // 🆕 Listeners para concatenar dirección automáticamente
     const direccionInputs = ['tipo_via', 'nombre_via', 'numero_direccion', 'urbanizacion', 'referencia'];
@@ -2140,12 +2329,15 @@ class PropertyForm {
       const distrito = document.getElementById('distrito_id');
       const distritoTexto = distrito?.options[distrito.selectedIndex]?.text;
       
-      if (!direccion) {
-        showNotification('⚠️ Primero ingresa una dirección', 'warning');
+      // SIEMPRE abrir el mapa, incluso sin dirección
+      if (!direccion || direccion.trim() === '') {
+        showNotification('📍 Marca la ubicación en el mapa', 'info');
+        this.abrirMapaSeleccion('', distritoTexto || 'Lima');
         return;
       }
       
-      await this.buscarCoordenadas(direccion, distritoTexto);
+      // Intentar geocoding pero SIEMPRE mostrar el mapa
+      await this.buscarCoordenadasYMostrarMapa(direccion, distritoTexto);
     });
 
     // ✅ Acordeón de características (Paso 3)
@@ -2495,10 +2687,10 @@ class PropertyForm {
       // Paso 1: Propietario
       const dni = document.getElementById('propietario_dni')?.value;
       const nombre = document.getElementById('propietario_nombre')?.value;
-      const telefono = document.getElementById('propietario_telefono')?.value;
+      const telefono = document.getElementById('propietario_telefono')?.value?.replace(/\D/g, '');
       
-      if (!dni || dni.length !== 8) {
-        showNotification('⚠️ El DNI debe tener 8 dígitos', 'warning');
+      if (!dni || (dni.length !== 8 && dni.length !== 11)) {
+        showNotification('⚠️ El DNI/RUC debe tener 8 u 11 dígitos', 'warning');
         return false;
       }
       
@@ -2507,8 +2699,8 @@ class PropertyForm {
         return false;
       }
       
-      if (!telefono || telefono.trim() === '') {
-        showNotification('⚠️ El teléfono es requerido', 'warning');
+      if (!telefono || telefono.trim() === '' || telefono.length < 9) {
+        showNotification('⚠️ El teléfono es requerido (9 dígitos)', 'warning');
         return false;
       }
     }
@@ -2517,7 +2709,8 @@ class PropertyForm {
       // Paso 2: Información Básica
       const tipoInmueble = document.getElementById('tipo_inmueble_id')?.value;
       const distrito = document.getElementById('distrito_id')?.value;
-      const nombreInmueble = document.getElementById('nombre_inmueble')?.value;
+      const nombreInmuebleInput = document.getElementById('nombre_inmueble');
+      const nombreInmueble = nombreInmuebleInput?.value;
       const nombreVia = document.getElementById('nombre_via')?.value;
       
       if (!tipoInmueble) {
@@ -2530,7 +2723,7 @@ class PropertyForm {
         return false;
       }
       
-      if (!nombreInmueble || nombreInmueble.trim() === '') {
+      if (nombreInmuebleInput?.offsetParent !== null && (!nombreInmueble || nombreInmueble.trim() === '')) {
         showNotification('⚠️ El nombre del inmueble es requerido', 'warning');
         return false;
       }
