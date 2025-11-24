@@ -720,7 +720,7 @@ class PropiedadesTab {
   }
 
   /**
-   * 🔥 REESCRITO DESDE CERO - Mostrar popup de detalle de propiedad
+   * 🔥 ÉPICO - Modal de detalle full-screen con características agrupadas
    */
   async showPropertyDetailPopup(propId) {
     console.log(`📄📄📄 MOSTRANDO DETALLE DE PROPIEDAD ID: ${propId}`);
@@ -736,79 +736,92 @@ class PropiedadesTab {
 
       const data = await response.json();
       const prop = data.data || data;
-      console.log('✅ Propiedad cargada:', prop.titulo);
+      console.log('✅ Propiedad cargada:', prop);
 
-      // 2️⃣ Crear modal (estructura HTML completa)
+      // 2️⃣ Detectar si es móvil
+      const isMobile = window.innerWidth <= 768;
+
+      // 3️⃣ Crear modal
       const modal = document.createElement('div');
       modal.id = 'detailModal';
       modal.className = 'modal-overlay';
-      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;';
+      
+      if (isMobile) {
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 12px;';
+      } else {
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 0;';
+      }
 
-      // 3️⃣ Crear contenido del modal
+      // 4️⃣ Crear contenido del modal
       const modalContent = document.createElement('div');
       modalContent.className = 'modal-content';
-      modalContent.style.cssText = 'background: white; border-radius: 16px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.4);';
+      
+      if (isMobile) {
+        modalContent.style.cssText = 'background: white; border-radius: 12px; width: 100%; height: 100%; max-height: calc(100vh - 24px); overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column; margin: 0; padding: 0;';
+      } else {
+        modalContent.style.cssText = 'background: white; border-radius: 0; width: 100vw; height: 100vh; overflow: hidden; box-shadow: none; display: flex; flex-direction: column; margin: 0; padding: 0;';
+      }
+
+      // 5️⃣ Mapear implementación a texto legible
+      const implementacionMap = {
+        '1': 'Implementado',
+        '2': 'Semi-implementado', 
+        '3': 'Sin implementar'
+      };
+      const implementacionTexto = implementacionMap[prop.implementacion] || prop.implementacion || 'Sin especificar';
+      const antiguedad = prop.antiguedad || prop.anos_antiguedad || 0;
+      const resumenNarrativo = `${prop.tipo_inmueble} ubicada en el distrito de ${prop.distrito || 'Lima'}, en ${prop.direccion}. Cuenta con ${prop.area || 0} m²${antiguedad > 0 ? `, ${antiguedad} años de antigüedad` : ''}${implementacionTexto !== 'Sin especificar' ? `, ${implementacionTexto.toLowerCase()}` : ''}.`;
 
       modalContent.innerHTML = `
-        <div style="padding: var(--spacing-xl); border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-medio) 100%); color: white; border-radius: 16px 16px 0 0;">
-          <h2 style="margin: 0; color: white; display: flex; align-items: center; gap: 10px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            Detalles de Propiedad
-          </h2>
-          <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); border: none; font-size: 28px; cursor: pointer; color: white; width: 40px; height: 40px; border-radius: 50%; transition: var(--transition-fast); display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">&times;</button>
+        <!-- Header compacto con resumen narrativo -->
+        <div style="background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-medio) 100%); color: white; padding: 12px; flex-shrink: 0; ${isMobile ? '' : 'border-radius: 0;'}">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+            <h2 style="margin: 0; color: white; font-size: 1.2rem; font-weight: 700; flex: 1; line-height: 1.2;">${prop.titulo || 'Propiedad'}</h2>
+            <button class="btn-close-modal" style="background: rgba(255,255,255,0.2); border: none; font-size: 20px; cursor: pointer; color: white; width: 32px; height: 32px; border-radius: 50%; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 8px;" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='rotate(0deg)'">&times;</button>
+          </div>
+          <p style="margin: 0; color: rgba(255,255,255,0.95); font-size: 0.85rem; line-height: 1.4;">${resumenNarrativo}</p>
         </div>
-        <div style="padding: var(--spacing-xl);">
-          <h3 style="margin-top: 0; color: var(--azul-corporativo); font-size: 1.5rem;">${prop.titulo}</h3>
-          <p style="color: var(--gris-medio); margin-bottom: var(--spacing-lg); display: flex; align-items: center; gap: 8px; font-size: 1rem;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-              <circle cx="12" cy="10" r="3"></circle>
-            </svg>
-            ${prop.direccion}, ${prop.distrito}
-          </p>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg); padding: var(--spacing-md); background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; border: 1px solid var(--borde);">
-            <div style="padding: var(--spacing-sm);"><strong style="color: var(--azul-corporativo);">🏢 Tipo:</strong> ${prop.tipo_inmueble}</div>
-            <div style="padding: var(--spacing-sm);"><strong style="color: var(--azul-corporativo);">💼 Operación:</strong> ${prop.tipo_operacion}</div>
-            <div style="padding: var(--spacing-sm);"><strong style="color: var(--azul-corporativo);">💰 Precio:</strong> S/ ${(prop.precio_venta || prop.precio_alquiler || 0).toLocaleString('es-PE')}</div>
-            <div style="padding: var(--spacing-sm);"><strong style="color: var(--azul-corporativo);">📐 Área:</strong> ${prop.area} m²</div>
-            <div style="padding: var(--spacing-sm);"><strong style="color: var(--azul-corporativo);">🛏️ Dormitorios:</strong> ${prop.dormitorios || 0}</div>
-            <div style="padding: var(--spacing-sm);"><strong style="color: var(--azul-corporativo);">🚿 Baños:</strong> ${prop.banos || 0}</div>
-            <div style="padding: var(--spacing-sm);"><strong style="color: var(--azul-corporativo);">🚗 Parqueos:</strong> ${prop.parqueos || 0}</div>
-            <div style="padding: var(--spacing-sm);"><strong style="color: var(--azul-corporativo);">📊 Estado:</strong> ${prop.estado}</div>
-          </div>
-          <div style="margin-bottom: var(--spacing-lg); padding: var(--spacing-md); background: white; border-left: 4px solid var(--azul-corporativo); border-radius: 8px; box-shadow: var(--shadow-sm);">
-            <strong style="color: var(--azul-corporativo); display: block; margin-bottom: 8px;">📝 Descripción:</strong>
-            <p style="margin: 0; line-height: 1.6; color: var(--gris-oscuro);">${prop.descripcion || 'Sin descripción'}</p>
-          </div>
-          ${prop.caracteristicas && prop.caracteristicas.length > 0 ? `
-            <div style="margin-bottom: var(--spacing-md);">
-              <strong style="color: var(--azul-corporativo); display: block; margin-bottom: var(--spacing-sm);">✨ Características:</strong>
-              <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;">
-                ${prop.caracteristicas.map(car => `
-                  <span style="padding: 8px 14px; background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-medio) 100%); color: white; border-radius: 8px; font-size: 0.9rem; font-weight: 500; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 6px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                    ${car.nombre || car}
-                  </span>
-                `).join('')}
-              </div>
+
+        <!-- Contenido scrolleable SIN padding lateral -->
+        <div style="flex: 1; overflow-y: auto; padding: 0; overflow-x: hidden;">
+          
+          <!-- Información Básica Compacta: solo metraje, años e implementación -->
+          <div style="padding: 10px 12px; background: #f8f9fa; border-bottom: 1px solid #e2e8f0;">
+            <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 0.85rem; color: var(--gris-oscuro);">
+              ${prop.area ? `<span style="display: flex; align-items: center; gap: 5px; font-weight: 600;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ff9800" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg><span style="color: #ff9800;">${prop.area} m²</span></span>` : ''}
+              ${antiguedad > 0 ? `<span style="display: flex; align-items: center; gap: 5px; font-weight: 600;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span style="color: #6c757d;">${antiguedad} años de antigüedad</span></span>` : ''}
+              ${implementacionTexto !== 'Sin especificar' ? `<span style="display: flex; align-items: center; gap: 5px; font-weight: 600;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#17a2b8" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg><span style="color: #17a2b8;">${implementacionTexto}</span></span>` : ''}
             </div>
+          </div>
+
+          <!-- Descripción - SIN márgenes laterales -->
+          ${prop.descripcion ? `
+          <div style="padding: 12px; background: white; border-bottom: 1px solid #e2e8f0;">
+            <h3 style="margin: 0 0 8px 0; color: var(--azul-corporativo); font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              Descripción
+            </h3>
+            <p style="margin: 0; line-height: 1.5; color: var(--gris-oscuro); font-size: 0.85rem;">${prop.descripcion}</p>
+          </div>
           ` : ''}
+
+          <!-- Características Agrupadas - SIN márgenes laterales -->
+          <div id="caracteristicas-container" style="padding: 12px; background: #f8f9fa;"></div>
+
         </div>
-        <div style="padding: var(--spacing-md) var(--spacing-lg); background: #f8f9fa; border-top: 1px solid var(--borde); display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-sm); border-radius: 0 0 16px 16px;">
-          <small style="color: var(--gris-medio); display: flex; align-items: center; gap: 6px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 16v-4"></path>
-              <path d="M12 8h.01"></path>
-            </svg>
-            Click fuera o presiona <kbd style="background: white; border: 1px solid var(--borde); padding: 2px 6px; border-radius: 4px; font-family: monospace;">ESC</kbd>
+
+        <!-- Footer minimalista -->
+        <div style="background: rgba(255,255,255,0.98); padding: 8px 12px; flex-shrink: 0; display: flex; justify-content: center; align-items: center; border-top: 1px solid rgba(0,0,0,0.08); backdrop-filter: blur(10px); ${isMobile ? 'border-radius: 0 0 12px 12px;' : ''}">
+          <small style="color: var(--gris-medio); display: flex; align-items: center; gap: 5px; font-size: 0.7rem;">
+            <span>Presiona</span>
+            <kbd style="background: white; border: 1px solid #ddd; padding: 2px 5px; border-radius: 3px; font-family: monospace; font-size: 0.65rem;">ESC</kbd>
+            <span>para cerrar</span>
           </small>
-          <button class="btn-close-modal" style="padding: 10px 20px; background: var(--gris-medio); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition-fast);" onmouseover="this.style.background='var(--gris-oscuro)'" onmouseout="this.style.background='var(--gris-medio)'">Cerrar</button>
         </div>
       `;
 
@@ -816,7 +829,97 @@ class PropiedadesTab {
       document.body.appendChild(modal);
       console.log('✅ Modal insertado en DOM');
 
-      // 4️⃣ Función para cerrar modal (UNA SOLA VEZ)
+      // 6️⃣ Renderizar características agrupadas
+      const caracteristicasContainer = modalContent.querySelector('#caracteristicas-container');
+      if (prop.caracteristicas && prop.caracteristicas.length > 0) {
+        console.log('📋 Características encontradas:', prop.caracteristicas);
+        
+        // Agrupar por categoría
+        const grouped = {};
+        prop.caracteristicas.forEach(car => {
+          const categoria = car.categoria || 'Otras';
+          if (!grouped[categoria]) {
+            grouped[categoria] = [];
+          }
+          grouped[categoria].push(car);
+        });
+        
+        console.log('📊 Características agrupadas:', grouped);
+        
+        // Orden de categorías según formulario multipaso
+        const ordenCategorias = [
+          'Áreas Comunes del Edificio',
+          'Ascensores',
+          'Implementación Detalle',
+          'Soporte del Edificio',
+          'Cercanía Estratégica',
+          'Vista de la Oficina',
+          'Equipamiento de Oficina'
+        ];
+        
+        // Ordenar categorías
+        const categoriasOrdenadas = ordenCategorias.filter(cat => grouped[cat]);
+        const categoriasRestantes = Object.keys(grouped).filter(cat => !ordenCategorias.includes(cat));
+        const todasCategorias = [...categoriasOrdenadas, ...categoriasRestantes];
+        
+        // Renderizar cada categoría
+        let caracteristicasHTML = '<h3 style="margin: 0 0 8px 0; color: var(--azul-corporativo); font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>Características</h3>';
+        
+        todasCategorias.forEach((categoria, index) => {
+          const items = grouped[categoria];
+          const isOpen = index === 0; // Primera categoría abierta por defecto
+          
+          caracteristicasHTML += `
+            <div style="margin-bottom: 6px; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; background: white;">
+              <button 
+                class="categoria-toggle" 
+                data-categoria="${categoria}"
+                style="width: 100%; padding: 10px 14px; background: #f8f9fa; border: none; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; color: var(--azul-corporativo); transition: all 0.15s; text-align: left;"
+                onmouseover="this.style.background='#e9ecef'"
+                onmouseout="this.style.background='#f8f9fa'"
+              >
+                <span style="font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 1rem;">📋</span>
+                  ${categoria}
+                  <span style="background: var(--azul-corporativo); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700;">${items.length}</span>
+                </span>
+                <span class="toggle-icon" style="font-size: 1rem; transition: transform 0.2s; color: var(--azul-corporativo);">${isOpen ? '▼' : '▶'}</span>
+              </button>
+              <div class="categoria-content" style="display: ${isOpen ? 'block' : 'none'}; padding: 10px 14px; background: white; border-top: 1px solid #e2e8f0;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px;">
+                  ${items.map(car => `
+                    <div style="display: flex; align-items: center; gap: 5px; padding: 5px 8px; background: #f0f9ff; border-radius: 5px; font-size: 0.8rem; border: 1px solid #bae6fd;">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span style="color: #0369a1; font-weight: 500;">${car.nombre || car}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        caracteristicasContainer.innerHTML = caracteristicasHTML;
+        
+        // Agregar event listeners para toggle
+        modalContent.querySelectorAll('.categoria-toggle').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const content = btn.nextElementSibling;
+            const icon = btn.querySelector('.toggle-icon');
+            const isOpen = content.style.display === 'block';
+            
+            content.style.display = isOpen ? 'none' : 'block';
+            icon.textContent = isOpen ? '▶' : '▼';
+            icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(0deg)';
+          });
+        });
+      } else {
+        caracteristicasContainer.innerHTML = '<p style="color: var(--gris-medio); font-style: italic; text-align: center; padding: 20px;">No hay características registradas</p>';
+      }
+
+      // 7️⃣ Función para cerrar modal (UNA SOLA VEZ)
       const closeModal = () => {
         console.log('🔒 Cerrando modal de detalle');
         modal.remove();
