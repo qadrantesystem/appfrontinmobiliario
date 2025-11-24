@@ -895,71 +895,44 @@
   flex-wrap: wrap;
 }
 
+/* ✅ Estilo uniforme para todos los botones de administración */
 .btn-admin {
   flex: 1;
   min-width: 90px;
   padding: 8px 16px;
-  background: white;
-  border: 2px solid var(--azul-corporativo);
+  background: white !important;
+  border: 2px solid var(--azul-corporativo) !important;
   border-radius: 8px;
-  color: var(--azul-corporativo);
+  color: var(--azul-corporativo) !important;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.btn-admin:hover {
-  background: var(--azul-corporativo);
-  color: white;
+.btn-admin:hover:not(:disabled) {
+  background: var(--azul-corporativo) !important;
+  color: white !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 51, 102, 0.2);
 }
 
-/* Botón dorado (Nueva Propiedad) */
-.btn-admin[style*="var(--dorado)"],
+.btn-admin:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Botón Nueva Propiedad (excepción - mantiene dorado) */
 #btnNuevaPropiedad {
   background: var(--dorado) !important;
   color: white !important;
-  border: none !important;
+  border: 2px solid var(--dorado) !important;
 }
 
-.btn-admin[style*="var(--dorado)"]:hover,
 #btnNuevaPropiedad:hover {
   background: var(--dorado-hover) !important;
-  color: white !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
-}
-
-/* Botón azul corporativo (Editar) */
-.btn-admin[style*="var(--azul-corporativo)"] {
-  background: var(--azul-corporativo) !important;
-  color: white !important;
-  border: none !important;
-}
-
-.btn-admin[style*="var(--azul-corporativo)"]:hover {
-  background: var(--azul-medio) !important;
-  color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(44, 82, 130, 0.3);
-}
-
-/* Botón success (Publicar) */
-.btn-admin[style*="var(--success)"],
-.btn-admin[data-publish-property] {
-  background: var(--success) !important;
-  color: white !important;
-  border: none !important;
-}
-
-.btn-admin[style*="var(--success)"]:hover,
-.btn-admin[data-publish-property]:hover {
-  background: #218838 !important;
-  color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
 /* 🚀 SweetAlert2 Personalizado con Paleta Corporativa */
