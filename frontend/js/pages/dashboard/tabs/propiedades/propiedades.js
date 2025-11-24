@@ -342,22 +342,22 @@ class PropiedadesTab {
             <p class="property-description">${(prop.descripcion || '').substring(0, 120)}...</p>
 
             <div class="admin-actions-simple" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 0.5rem;">
-              <button class="btn-admin" data-view-property="${prop.registro_cab_id}">📄 Detalle</button>
+              <button class="btn-admin" data-view-property="${prop.registro_cab_id}">Detalle</button>
               ${prop.latitud && prop.longitud ? `
-                <button class="btn-admin" data-map-property="${prop.registro_cab_id}" data-lat="${prop.latitud}" data-lng="${prop.longitud}">🗺️ Mapa</button>
+                <button class="btn-admin" data-map-property="${prop.registro_cab_id}" data-lat="${prop.latitud}" data-lng="${prop.longitud}">Mapa</button>
               ` : `
-                <button class="btn-admin" disabled style="opacity: 0.5; cursor: not-allowed;" title="Sin coordenadas de ubicación">🗺️ Mapa</button>
+                <button class="btn-admin" disabled title="Sin coordenadas de ubicación">Mapa</button>
               `}
-              <button class="btn-admin" data-edit-property="${prop.registro_cab_id || prop.id}" style="background: var(--azul-corporativo); color: white;" title="Editar propiedad ID: ${prop.registro_cab_id || prop.id}" onclick="console.log('🔥🔥🔥 CLICK DIRECTO EN EDITAR!!!', this.dataset.editProperty); window.propiedadesTab.editarPropiedad(this.dataset.editProperty)">
-              ✏️ Editar
-            </button>
+              <button class="btn-admin" data-edit-property="${prop.registro_cab_id || prop.id}" title="Editar propiedad ID: ${prop.registro_cab_id || prop.id}">
+                Editar
+              </button>
               ${prop.estado === 'borrador' && this.app.currentUser?.perfil_id === 4 ? `
-                <button class="btn-admin" data-publish-property="${prop.registro_cab_id}" style="background: #28a745; color: white; border: 2px solid #28a745;" title="Publicar propiedad" onclick="console.log('🚀 PUBLICANDO PROPIEDAD!!!', this.dataset.publishProperty); window.propiedadesTab.publicarPropiedad(this.dataset.publishProperty)">
-                  🚀 Publicar
+                <button class="btn-admin" data-publish-property="${prop.registro_cab_id}" title="Publicar propiedad">
+                  Publicar
                 </button>
               ` : ''}
               ${this.app.currentUser?.perfil_id === 4 ? `
-                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}" style="background: var(--dorado); color: white;">👤 Asignar</button>
+                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}">Asignar</button>
               ` : ''}
             </div>
           </div>
@@ -377,15 +377,19 @@ class PropiedadesTab {
     console.log(`📄 Botones [data-view-property] encontrados: ${viewBtns.length}`);
 
     viewBtns.forEach((btn, index) => {
-      console.log(`📄 Agregando listener a botón ${index}:`, btn);
-      btn.addEventListener('click', async (e) => {
+      // Clonar el botón para remover listeners anteriores
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      console.log(`📄 Agregando listener a botón ${index}:`, newBtn);
+      newBtn.addEventListener('click', async (e) => {
         console.log('🔥🔥🔥 CLICK EN VER DETALLE!!!', e.currentTarget.dataset.viewProperty);
         e.stopPropagation();
         e.preventDefault();
         const propId = e.currentTarget.dataset.viewProperty;
         console.log('📄 Mostrando popup de propId:', propId);
         await this.showPropertyDetailPopup(propId);
-      });
+      }, { once: false });
     });
 
     // Mapa
@@ -393,8 +397,12 @@ class PropiedadesTab {
     console.log(`🗺️ Botones [data-map-property] encontrados: ${mapBtns.length}`);
 
     mapBtns.forEach((btn, index) => {
-      console.log(`🗺️ Agregando listener a botón mapa ${index}:`, btn);
-      btn.addEventListener('click', (e) => {
+      // Clonar el botón para remover listeners anteriores
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      console.log(`🗺️ Agregando listener a botón mapa ${index}:`, newBtn);
+      newBtn.addEventListener('click', (e) => {
         console.log('🔥🔥🔥 CLICK EN MAPA!!!', e.currentTarget.dataset);
         e.stopPropagation();
         e.preventDefault();
@@ -402,7 +410,7 @@ class PropiedadesTab {
         const lng = e.currentTarget.dataset.lng;
         console.log('🗺️ Abriendo mapa con coords:', lat, lng);
         this.showMapPopup(lat, lng);
-      });
+      }, { once: false });
     });
 
     // Editar
@@ -410,10 +418,14 @@ class PropiedadesTab {
     console.log(`✏️ Botones [data-edit-property] encontrados: ${editBtns.length}`);
 
     editBtns.forEach((btn, index) => {
-      console.log(`✏️ Agregando listener a botón editar ${index}:`, btn);
-      console.log(`🆔 ID del botón ${index}:`, btn.dataset.editProperty);
+      // Clonar el botón para remover listeners anteriores
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
       
-      btn.addEventListener('click', async (e) => {
+      console.log(`✏️ Agregando listener a botón editar ${index}:`, newBtn);
+      console.log(`🆔 ID del botón ${index}:`, newBtn.dataset.editProperty);
+      
+      newBtn.addEventListener('click', async (e) => {
         console.log('🔥🔥🔥 CLICK EN EDITAR!!!', e.currentTarget.dataset.editProperty);
         console.log('🏢 Datos completos de la propiedad:', e.currentTarget.closest('.property-card')?.dataset.propertyId);
         
@@ -430,7 +442,7 @@ class PropiedadesTab {
         console.log('✏️ Abriendo formulario de edición para propId:', propId);
         const propertyForm = new PropertyForm(this.app, propId);
         await propertyForm.init();
-      });
+      }, { once: false });
     });
 
     // ❤️ FAVORITOS: Usar el nuevo módulo desacoplado
@@ -442,16 +454,38 @@ class PropiedadesTab {
       console.warn('⚠️ FavoritesHandler no inicializado aún');
     }
 
+    // Publicar (solo admin, solo borradores)
+    const publishBtns = document.querySelectorAll('[data-publish-property]');
+    console.log(`🚀 Botones [data-publish-property] encontrados: ${publishBtns.length}`);
+
+    publishBtns.forEach(btn => {
+      // Clonar el botón para remover listeners anteriores
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      newBtn.addEventListener('click', async (e) => {
+        console.log('🚀 PUBLICANDO PROPIEDAD!!!', e.currentTarget.dataset.publishProperty);
+        e.stopPropagation();
+        e.preventDefault();
+        const propId = e.currentTarget.dataset.publishProperty;
+        await this.publicarPropiedad(propId);
+      }, { once: false });
+    });
+
     // Asignar corredor (solo admin)
     const assignBtns = document.querySelectorAll('[data-assign-broker]');
     console.log(`👤 Botones [data-assign-broker] encontrados: ${assignBtns.length}`);
 
     assignBtns.forEach(btn => {
-      btn.addEventListener('click', async (e) => {
+      // Clonar el botón para remover listeners anteriores
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      newBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const propId = e.currentTarget.dataset.assignBroker;
         await this.showAssignBrokerPopup(propId);
-      });
+      }, { once: false });
     });
 
     // Nueva Propiedad
@@ -825,7 +859,7 @@ class PropiedadesTab {
   }
 
   /**
-   * 🔥 REESCRITO DESDE CERO - Mostrar popup de mapa
+   * 🔥 ÉPICO - Modal de mapa full-screen sin padding lateral
    */
   showMapPopup(lat, lng) {
     console.log(`🗺️🗺️🗺️ MOSTRANDO MAPA - lat: ${lat}, lng: ${lng}`);
@@ -842,68 +876,98 @@ class PropiedadesTab {
 
     console.log('✅ Coordenadas válidas:', { lat, lng });
 
-    // 2️⃣ Crear modal
+    // 2️⃣ Buscar la dirección de la propiedad desde allProperties
+    let direccionPropiedad = 'Dirección no disponible';
+    const property = this.allProperties.find(p => 
+      parseFloat(p.latitud) === lat && parseFloat(p.longitud) === lng
+    );
+    if (property && property.direccion) {
+      direccionPropiedad = property.direccion;
+    }
+    console.log('📍 Dirección encontrada:', direccionPropiedad);
+
+    // 3️⃣ Crear modal
     const modal = document.createElement('div');
     modal.id = 'mapModal';
     modal.className = 'modal-overlay';
-    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;';
+    
+    // Detectar si es móvil
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+      // Móvil: con padding y border-radius
+      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 12px;';
+    } else {
+      // Desktop: full-screen
+      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;';
+    }
 
-    // 3️⃣ Crear contenido
+    // 4️⃣ Crear contenido
     const modalContent = document.createElement('div');
     modalContent.className = 'modal-content';
-    modalContent.style.cssText = 'background: white; border-radius: 16px; max-width: 900px; width: 100%; max-height: 90vh; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.4);';
+    
+    if (isMobile) {
+      // Móvil: compacto con border-radius
+      modalContent.style.cssText = 'background: white; border-radius: 12px; width: 100%; height: 100%; max-height: calc(100vh - 24px); overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column;';
+    } else {
+      // Desktop: full-screen sin bordes
+      modalContent.style.cssText = 'background: white; border-radius: 0; width: 100vw; height: 100vh; overflow: hidden; box-shadow: none; display: flex; flex-direction: column; margin: 0; padding: 0;';
+    }
 
     modalContent.innerHTML = `
-      <div style="padding: var(--spacing-lg); border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-medio) 100%); color: white; border-radius: 16px 16px 0 0;">
-        <h2 style="margin: 0; color: white; display: flex; align-items: center; gap: 10px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>
-          Ubicación en Mapa
-        </h2>
-        <button class="btn-close-map" style="background: rgba(255,255,255,0.2); border: none; font-size: 28px; cursor: pointer; color: white; width: 40px; height: 40px; border-radius: 50%; transition: var(--transition-fast); display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">&times;</button>
-      </div>
-      <div style="padding: var(--spacing-lg);">
-        <div id="propertyMap" style="height: 500px; border-radius: 12px; border: 2px solid var(--borde); box-shadow: var(--shadow-md);"></div>
-        <div style="margin-top: var(--spacing-lg); display: flex; flex-direction: column; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; border: 1px solid var(--borde);">
-          <div style="display: flex; align-items: center; gap: 8px; color: var(--gris-oscuro); font-size: 0.95rem;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 6v6l4 2"></path>
-            </svg>
-            <strong>Coordenadas:</strong> ${lat}, ${lng}
-          </div>
-          <a
-            href="https://www.google.com/maps?q=${lat},${lng}"
-            target="_blank"
-            style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 1rem; box-shadow: var(--shadow-md); transition: all var(--transition-fast); border: none;"
-            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(44, 82, 130, 0.4)'"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-md)'"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <!-- Header compacto con dirección Y coordenadas -->
+      <div style="background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-medio) 100%); color: white; padding: 14px 20px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+        <div style="flex: 1; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
               <circle cx="12" cy="10" r="3"></circle>
             </svg>
-            Abrir en Google Maps
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
+            <h2 style="margin: 0; color: white; font-size: 1.1rem; font-weight: 700;">Ubicación en Mapa</h2>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-left: 32px; margin-bottom: 3px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
+            <span style="color: rgba(255,255,255,0.95); font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${direccionPropiedad}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-left: 32px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 6v6l4 2"></path>
+            </svg>
+            <span style="color: rgba(255,255,255,0.85); font-size: 0.75rem;">${lat}, ${lng}</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+          <a
+            href="https://www.google.com/maps?q=${lat},${lng}"
+            target="_blank"
+            style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; background: white; color: var(--azul-corporativo); text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: all 0.2s; border: none; white-space: nowrap;"
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.25)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.15)'"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            Google Maps
           </a>
+          <button class="btn-close-map" style="background: rgba(255,255,255,0.2); border: none; font-size: 22px; cursor: pointer; color: white; width: 34px; height: 34px; border-radius: 50%; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='rotate(90deg)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='rotate(0deg)'">&times;</button>
         </div>
       </div>
-      <div style="padding: var(--spacing-md) var(--spacing-lg); background: #f8f9fa; border-top: 1px solid var(--borde); display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-sm); border-radius: 0 0 16px 16px;">
-        <small style="color: var(--gris-medio); display: flex; align-items: center; gap: 6px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M12 16v-4"></path>
-            <path d="M12 8h.01"></path>
-          </svg>
-          Click fuera o presiona <kbd style="background: white; border: 1px solid #ccc; padding: 2px 6px; border-radius: 4px; font-family: monospace;">ESC</kbd>
+      
+      <!-- Mapa full-screen SIN padding ni márgenes -->
+      <div id="propertyMap" style="flex: 1; width: 100%; height: 100%; margin: 0; padding: 0;"></div>
+      
+      <!-- Footer minimalista -->
+      <div style="background: rgba(255,255,255,0.96); padding: 8px 20px; flex-shrink: 0; display: flex; justify-content: center; align-items: center; border-top: 1px solid rgba(0,0,0,0.08); backdrop-filter: blur(10px);">
+        <small style="color: var(--gris-medio); display: flex; align-items: center; gap: 6px; font-size: 0.75rem;">
+          <span>Presiona</span>
+          <kbd style="background: white; border: 1px solid #ddd; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.7rem;">ESC</kbd>
+          <span>para cerrar</span>
         </small>
-        <button class="btn-close-map" style="padding: 10px 20px; background: var(--gris-medio); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition-fast);" onmouseover="this.style.background='var(--gris-oscuro)'" onmouseout="this.style.background='var(--gris-medio)'">Cerrar</button>
       </div>
     `;
 
@@ -950,7 +1014,7 @@ class PropiedadesTab {
     // 6️⃣ Inicializar mapa Leaflet
     setTimeout(() => {
       console.log('🗺️ Inicializando Leaflet...');
-      const map = L.map('propertyMap').setView([lat, lng], 16);
+      const map = L.map('propertyMap').setView([lat, lng], 17);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
