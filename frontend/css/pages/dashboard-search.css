@@ -1031,3 +1031,163 @@
     height: 200px;
   }
 }
+
+/* ========================================
+   🔗 ESTILOS PARA TARJETAS DE COMBINACIÓN
+   ======================================== */
+
+.property-card-combinacion {
+  border: 3px solid #4CAF50 !important;
+  background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
+  position: relative;
+}
+
+.combinacion-badge {
+  position: absolute;
+  top: 50px;
+  left: 10px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 20;
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
+  animation: pulseGreen 2s ease-in-out infinite;
+}
+
+@keyframes pulseGreen {
+  0%, 100% {
+    box-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(76, 175, 80, 0.6);
+  }
+}
+
+.combinacion-icon {
+  font-size: 1.3em;
+  vertical-align: middle;
+  margin-right: 5px;
+  color: #4CAF50;
+}
+
+.property-card-combinacion .property-title {
+  color: #2d5f2e;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.property-location {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.property-location i {
+  color: #4CAF50;
+  margin-right: 5px;
+}
+
+.feature-highlight {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.oficinas-lista-combinacion {
+  background: #f9fff9;
+  border: 2px dashed #4CAF50;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 15px 0;
+}
+
+.oficinas-header {
+  font-size: 0.9rem;
+  color: #2d5f2e;
+  margin: 0 0 10px 0;
+  font-weight: 600;
+}
+
+.oficinas-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.oficina-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e0f2e0;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.oficina-item:hover {
+  background: #f0fff4;
+  border-color: #4CAF50;
+  transform: translateX(3px);
+}
+
+.oficina-item:last-child {
+  margin-bottom: 0;
+}
+
+.oficina-nombre {
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.oficina-area {
+  color: #666;
+  margin: 0 10px;
+  font-size: 0.8rem;
+}
+
+.oficina-precio {
+  color: #4CAF50;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* Responsive para combinaciones */
+@media (max-width: 768px) {
+  .combinacion-badge {
+    font-size: 0.65rem;
+    padding: 6px 10px;
+    top: 45px;
+  }
+
+  .property-card-combinacion .property-title {
+    font-size: 1rem;
+  }
+
+  .oficina-item {
+    flex-wrap: wrap;
+    padding: 8px;
+  }
+
+  .oficina-nombre {
+    flex-basis: 100%;
+    margin-bottom: 5px;
+  }
+
+  .oficina-area,
+  .oficina-precio {
+    font-size: 0.75rem;
+  }
+}

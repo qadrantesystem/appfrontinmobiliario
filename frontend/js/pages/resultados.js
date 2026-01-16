@@ -580,12 +580,27 @@ class ResultadosPage {
         configFiltrosData = { categorias: [] };
       }
 
-      // Mapear respuesta de propiedades
-      this.propiedades = propiedadesData.data || propiedadesData;
+      // 🔍 Mapear respuesta de propiedades (soporta combinaciones)
+      // El backend puede retornar: { data: [...], metadata: { individuales: X, combinaciones: Y } }
+      // O simplemente un array directo
+      if (propiedadesData.data && Array.isArray(propiedadesData.data)) {
+        this.propiedades = propiedadesData.data;
+        this.metadata = propiedadesData.metadata || {};
+        console.log('📊 Respuesta con combinaciones:', {
+          total: this.propiedades.length,
+          individuales: this.metadata.individuales || 0,
+          combinaciones: this.metadata.combinaciones || 0
+        });
+      } else {
+        // Respuesta simple (sin combinaciones)
+        this.propiedades = propiedadesData.data || propiedadesData;
+        this.metadata = {};
+      }
 
       // 🔍 DEBUG: Ver qué datos traemos del API
       if (this.propiedades.length > 0) {
-        console.log('📊 Ejemplo de propiedad del API:', this.propiedades[0]);
+        console.log('📊 Ejemplo de item del API:', this.propiedades[0]);
+        console.log('📊 ¿Es combinación?', this.propiedades[0].tipo === 'combinacion');
       }
 
       // Mapear características
@@ -2751,55 +2766,12 @@ class ResultadosPage {
     const propiedadesPagina = this.propiedadesFiltradas.slice(startIndex, endIndex);
 
     const html = propiedadesPagina.map((prop, index) => {
-      const propId = prop.registro_cab_id || prop.id;
-      return `
-      <div class="property-card" data-property-id="${propId}">
-        <div class="property-number">${startIndex + index + 1}</div>
-        
-        <!-- ❤️ Botón de Favorito -->
-        <button class="favorite-btn-float" data-favorite-property="${propId}" title="Agregar a favoritos" style="position: absolute; top: 10px; right: 10px; background: white; border: 2px solid #333; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; z-index: 30; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-          ♡
-        </button>
-        
-        <div class="property-image-carousel">
-          <div class="carousel-images" data-current="0">
-            ${prop.imagenes.map((img, i) => `
-              <img src="${img}" alt="${prop.titulo} - imagen ${i + 1}" class="carousel-image search-result-image ${i === 0 ? 'active' : ''}" data-index="${i}">
-            `).join('')}
-          </div>
-          ${prop.imagenes.length > 1 ? `
-            <button class="carousel-prev" data-property-id="${propId}">‹</button>
-            <button class="carousel-next" data-property-id="${propId}">›</button>
-            <div class="carousel-indicators">
-              ${prop.imagenes.map((_, i) => `
-                <span class="indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
-              `).join('')}
-            </div>
-          ` : ''}
-        </div>
-        <div class="property-info">
-          <h3 class="property-title">${prop.titulo}</h3>
-          <div class="property-price">${this.renderPrecio(prop)}</div>
-          <div class="property-features">
-            ${prop.area ? `<span class="feature">📐 ${prop.area} m²</span>` : ''}
-            ${prop.parqueos ? `<span class="feature">🚗 ${prop.parqueos} parqueos</span>` : ''}
-            ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
-            ${prop.implementacion ? `<span class="feature">🔧 ${prop.implementacion}</span>` : ''}
-          </div>
-          ${prop.descripcion ? `<p class="property-description">${prop.descripcion}</p>` : ''}
-          ${!this.usuarioLogueado ? `
-            <div class="contact-locked">
-              🔒 <a href="#" class="login-link" data-property-id="${prop.id}">Inicia sesión para ver contacto</a>
-            </div>
-          ` : `
-            <div class="contact-info">
-              <div class="contact-item">📱 +51 999457538</div>
-              <div class="contact-item">📧 info@match.pe</div>
-            </div>
-          `}
-        </div>
-      </div>
-    `;
+      // 🔍 Detectar si es combinación o propiedad individual
+      if (prop.tipo === 'combinacion') {
+        return this.renderCombinacionCard(prop, startIndex + index + 1);
+      } else {
+        return this.renderPropertyCard(prop, startIndex + index + 1);
+      }
     }).join('');
 
     container.innerHTML = html;
@@ -2940,6 +2912,148 @@ class ResultadosPage {
       html += `<span class="price-tag">💰 Alquiler: USD ${prop.precio_alquiler.toLocaleString()}/mes</span>`;
     }
     return html;
+  }
+
+  /**
+   * 🏠 Renderizar tarjeta de propiedad individual
+   */
+  renderPropertyCard(prop, number) {
+    const propId = prop.registro_cab_id || prop.id;
+    return `
+      <div class="property-card" data-property-id="${propId}">
+        <div class="property-number">${number}</div>
+
+        <!-- ❤️ Botón de Favorito -->
+        <button class="favorite-btn-float" data-favorite-property="${propId}" title="Agregar a favoritos" style="position: absolute; top: 10px; right: 10px; background: white; border: 2px solid #333; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; z-index: 30; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+          ♡
+        </button>
+
+        <div class="property-image-carousel">
+          <div class="carousel-images" data-current="0">
+            ${prop.imagenes.map((img, i) => `
+              <img src="${img}" alt="${prop.titulo} - imagen ${i + 1}" class="carousel-image search-result-image ${i === 0 ? 'active' : ''}" data-index="${i}">
+            `).join('')}
+          </div>
+          ${prop.imagenes.length > 1 ? `
+            <button class="carousel-prev" data-property-id="${propId}">‹</button>
+            <button class="carousel-next" data-property-id="${propId}">›</button>
+            <div class="carousel-indicators">
+              ${prop.imagenes.map((_, i) => `
+                <span class="indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+        <div class="property-info">
+          <h3 class="property-title">${prop.titulo}</h3>
+          <div class="property-price">${this.renderPrecio(prop)}</div>
+          <div class="property-features">
+            ${prop.area ? `<span class="feature">📐 ${prop.area} m²</span>` : ''}
+            ${prop.parqueos ? `<span class="feature">🚗 ${prop.parqueos} parqueos</span>` : ''}
+            ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
+            ${prop.implementacion ? `<span class="feature">🔧 ${prop.implementacion}</span>` : ''}
+          </div>
+          ${prop.descripcion ? `<p class="property-description">${prop.descripcion}</p>` : ''}
+          ${!this.usuarioLogueado ? `
+            <div class="contact-locked">
+              🔒 <a href="#" class="login-link" data-property-id="${prop.id}">Inicia sesión para ver contacto</a>
+            </div>
+          ` : `
+            <div class="contact-info">
+              <div class="contact-item">📱 +51 999457538</div>
+              <div class="contact-item">📧 info@match.pe</div>
+            </div>
+          `}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * 🔗 Renderizar tarjeta de COMBINACIÓN de oficinas
+   */
+  renderCombinacionCard(combinacion, number) {
+    const oficinasPreviews = combinacion.oficinas || [];
+    const primeraOficina = oficinasPreviews[0] || {};
+    const imagenPrincipal = primeraOficina.imagen_principal || 'https://via.placeholder.com/400x300?text=Combinacion';
+
+    // Renderizar precio total
+    let precioHtml = '';
+    if (combinacion.precio_venta_total) {
+      precioHtml += `<span class="price-tag">💰 Venta Total: USD ${combinacion.precio_venta_total.toLocaleString()}</span>`;
+    }
+    if (combinacion.precio_alquiler_total) {
+      if (precioHtml) precioHtml += ' ';
+      precioHtml += `<span class="price-tag">💰 Alquiler Total: USD ${combinacion.precio_alquiler_total.toLocaleString()}/mes</span>`;
+    }
+
+    return `
+      <div class="property-card property-card-combinacion" data-combination-id="${combinacion.edificio_id || 'combo'}">
+        <div class="property-number">${number}</div>
+
+        <!-- 🔗 Badge de Combinación -->
+        <div class="combinacion-badge">
+          🔗 COMBINACIÓN DE ${combinacion.cantidad_oficinas} OFICINAS
+        </div>
+
+        <div class="property-image-carousel">
+          <div class="carousel-images" data-current="0">
+            <img src="${imagenPrincipal}" alt="Combinación de oficinas" class="carousel-image active" onerror="this.src='https://via.placeholder.com/400x300?text=Combinacion'">
+          </div>
+        </div>
+
+        <div class="property-info">
+          <h3 class="property-title">
+            <span class="combinacion-icon">🏢</span>
+            ${combinacion.glosa || 'Combinación de oficinas'}
+          </h3>
+
+          <div class="property-location">
+            <i class="fa-solid fa-location-dot"></i>
+            ${combinacion.distrito || 'Ubicación no especificada'}
+            ${combinacion.piso ? ` - Piso ${combinacion.piso}` : ''}
+          </div>
+
+          <div class="property-price">${precioHtml}</div>
+
+          <div class="property-features">
+            <span class="feature feature-highlight">📐 ${combinacion.area_total} m² TOTAL</span>
+            <span class="feature">🏢 ${combinacion.cantidad_oficinas} oficinas</span>
+            <span class="feature">💱 ${combinacion.moneda || 'PEN'}</span>
+          </div>
+
+          <!-- Lista de Oficinas Individuales -->
+          <div class="oficinas-lista-combinacion">
+            <p class="oficinas-header"><strong>Oficinas incluidas:</strong></p>
+            <ul class="oficinas-items">
+              ${oficinasPreviews.map(ofi => `
+                <li class="oficina-item">
+                  <span class="oficina-nombre">📄 ${ofi.nombre || 'Oficina'}</span>
+                  <span class="oficina-area">${ofi.area} m²</span>
+                  ${ofi.precio_venta ? `<span class="oficina-precio">$${ofi.precio_venta.toLocaleString()}</span>` : ''}
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+
+          <p class="property-description">
+            Esta combinación te permite obtener ${combinacion.area_total} m² de oficinas contiguas en el mismo piso y edificio.
+            ${combinacion.transaccion === 'venta' ? 'Ideal para inversión o uso corporativo.' : 'Disponible para alquiler mensual.'}
+          </p>
+
+          ${!this.usuarioLogueado ? `
+            <div class="contact-locked">
+              🔒 <a href="#" class="login-link">Inicia sesión para más información</a>
+            </div>
+          ` : `
+            <div class="contact-info">
+              <div class="contact-item">📱 +51 999457538</div>
+              <div class="contact-item">📧 info@match.pe</div>
+            </div>
+          `}
+        </div>
+      </div>
+    `;
   }
 
   setupCardListeners() {

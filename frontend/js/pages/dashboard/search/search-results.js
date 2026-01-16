@@ -117,15 +117,29 @@ class SearchResultsModule {
 
       const data = await response.json();
 
-      // Extraer data según formato de respuesta
-      this.data = Array.isArray(data) ? data : (data.data || data.items || []);
+      // 🔍 Extraer data según formato de respuesta (soporta combinaciones)
+      if (data.data && Array.isArray(data.data)) {
+        this.data = data.data;
+        this.metadata = data.metadata || {};
+        console.log('📊 Respuesta con combinaciones:', {
+          total: this.data.length,
+          individuales: this.metadata.individuales || 0,
+          combinaciones: this.metadata.combinaciones || 0
+        });
+      } else {
+        // Respuesta simple (array directo o data sin metadata)
+        this.data = Array.isArray(data) ? data : (data.data || data.items || []);
+        this.metadata = {};
+      }
+
       this.pagination.total = data.total || this.data.length;
       this.pagination.totalPages = Math.ceil(this.pagination.total / this.pagination.limit);
 
       console.log('✅ Propiedades cargadas:', {
         cantidad: this.data.length,
         total: this.pagination.total,
-        pagina: this.pagination.page
+        pagina: this.pagination.page,
+        combinaciones: this.metadata.combinaciones || 0
       });
 
       // Renderizar resultados
@@ -180,8 +194,14 @@ class SearchResultsModule {
     placeholder.style.display = 'none';
     listContainer.style.display = 'grid';
 
-    // Renderizar tarjetas
-    const cardsHtml = this.data.map((prop, index) => this.renderPropertyCard(prop, index)).join('');
+    // Renderizar tarjetas (detectar combinaciones)
+    const cardsHtml = this.data.map((prop, index) => {
+      if (prop.tipo === 'combinacion') {
+        return this.renderCombinacionCard(prop, index);
+      } else {
+        return this.renderPropertyCard(prop, index);
+      }
+    }).join('');
 
     listContainer.innerHTML = `
       <!-- Header de resultados -->
@@ -293,6 +313,88 @@ class SearchResultsModule {
           ` : ''}
 
           <button class="btn btn-primary btn-sm" onclick="window.open('/propiedad/${propId}', '_blank')">
+            <i class="fa-solid fa-eye"></i>
+            Ver Detalles
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * 🔗 Renderizar tarjeta de COMBINACIÓN de oficinas
+   */
+  renderCombinacionCard(combinacion, index) {
+    const oficinasPreviews = combinacion.oficinas || [];
+    const primeraOficina = oficinasPreviews[0] || {};
+    const imagenPrincipal = primeraOficina.imagen_principal || 'https://via.placeholder.com/400x300?text=Combinacion';
+
+    // Renderizar precio total
+    let precioHtml = '';
+    if (combinacion.precio_venta_total) {
+      precioHtml = `S/ ${parseFloat(combinacion.precio_venta_total).toLocaleString('es-PE')}`;
+    } else if (combinacion.precio_alquiler_total) {
+      precioHtml = `S/ ${parseFloat(combinacion.precio_alquiler_total).toLocaleString('es-PE')}/mes`;
+    } else {
+      precioHtml = 'Precio no disponible';
+    }
+
+    return `
+      <div class="property-card property-card-combinacion" data-combination-id="${combinacion.edificio_id || 'combo'}">
+        <!-- Número de combinación -->
+        <div class="property-number">${index + 1}</div>
+
+        <!-- 🔗 Badge de Combinación -->
+        <div class="combinacion-badge">
+          🔗 COMBINACIÓN DE ${combinacion.cantidad_oficinas} OFICINAS
+        </div>
+
+        <div class="property-image-carousel">
+          <div class="carousel-images" data-current="0">
+            <img src="${imagenPrincipal}" alt="Combinación de oficinas" class="carousel-image active" onerror="this.src='https://via.placeholder.com/400x300?text=Combinacion'">
+          </div>
+        </div>
+
+        <div class="property-info">
+          <h3 class="property-title">
+            <span class="combinacion-icon">🏢</span>
+            ${combinacion.glosa || 'Combinación de oficinas'}
+          </h3>
+
+          <div class="property-location">
+            <i class="fa-solid fa-location-dot"></i>
+            ${combinacion.distrito || 'Ubicación no especificada'}
+            ${combinacion.piso ? ` - Piso ${combinacion.piso}` : ''}
+          </div>
+
+          <div class="property-price">${precioHtml}</div>
+
+          <div class="property-features">
+            <span class="feature feature-highlight">📐 ${combinacion.area_total} m² TOTAL</span> |
+            <span class="feature">🏢 ${combinacion.cantidad_oficinas} oficinas</span> |
+            <span class="feature">💱 ${combinacion.moneda || 'PEN'}</span>
+          </div>
+
+          <!-- Lista de Oficinas Individuales -->
+          <div class="oficinas-lista-combinacion">
+            <p class="oficinas-header"><strong>Oficinas incluidas:</strong></p>
+            <ul class="oficinas-items">
+              ${oficinasPreviews.map(ofi => `
+                <li class="oficina-item">
+                  <span class="oficina-nombre">📄 ${ofi.nombre || 'Oficina'}</span>
+                  <span class="oficina-area">${ofi.area} m²</span>
+                  ${ofi.precio_venta ? `<span class="oficina-precio">S/ ${parseFloat(ofi.precio_venta).toLocaleString('es-PE')}</span>` : ''}
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+
+          <p class="property-description">
+            Esta combinación te permite obtener ${combinacion.area_total} m² de oficinas contiguas en el mismo piso y edificio.
+            ${combinacion.transaccion === 'venta' ? 'Ideal para inversión o uso corporativo.' : 'Disponible para alquiler mensual.'}
+          </p>
+
+          <button class="btn btn-primary btn-sm" onclick="alert('Ver detalles de combinación')">
             <i class="fa-solid fa-eye"></i>
             Ver Detalles
           </button>
