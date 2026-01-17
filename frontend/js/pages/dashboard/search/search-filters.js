@@ -155,7 +155,7 @@ class SearchFiltersModule {
           <label for="transaccionFilter">Transacción</label>
           <select id="transaccionFilter" class="form-control">
             <option value="">Todas</option>
-            <option value="compra">Compra</option>
+            <option value="venta">Venta</option>
             <option value="alquiler">Alquiler</option>
           </select>
         </div>

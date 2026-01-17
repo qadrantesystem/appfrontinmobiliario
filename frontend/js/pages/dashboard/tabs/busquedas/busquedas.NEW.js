@@ -234,7 +234,7 @@ class BusquedasTab {
                 <div class="form-group-custom">
                   <label>Tipo de Transacción</label>
                   <select id="modalTransaccion" class="form-control-custom">
-                    <option value="compra" selected>Compra</option>
+                    <option value="venta" selected>Venta</option>
                     <option value="alquiler">Alquiler</option>
                   </select>
                 </div>
