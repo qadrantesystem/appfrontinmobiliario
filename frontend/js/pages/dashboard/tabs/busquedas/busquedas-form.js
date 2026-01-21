@@ -362,11 +362,13 @@ class BusquedasForm {
       page: 1,
       limit: 12,
       incluir_combinaciones: true,
-      // Meta para mostrar en UI (no va al backend)
+      // Meta para mostrar en UI (campos legacy que busquedas.NEW.js necesita)
       tipo_inmueble: tipoInmueble,
       tipo_inmueble_nombre: tipoNombre,
       metraje: metraje || null,
-      presupuesto: presupuesto || null
+      presupuesto: presupuesto || null,
+      distritos: this.selectedDistritos.length > 0 ? this.selectedDistritos.map(d => parseInt(d)) : [],
+      tipo_transaccion: transaccion
     };
 
     return filters;
