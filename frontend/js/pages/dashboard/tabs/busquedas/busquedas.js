@@ -1902,7 +1902,7 @@ class BusquedasTab {
       const distritosPanel = this.container.querySelector('#modalDistritoPanel');
 
       if (tipoInput) tipoInput.value = '';
-      if (transaccionInput) transaccionInput.value = 'compra';
+      if (transaccionInput) transaccionInput.value = 'venta';
       if (metrajeInput) metrajeInput.value = '';
       if (presupuestoInput) presupuestoInput.value = '';
       if (distritosPanel) distritosPanel.setAttribute('hidden', '');
@@ -1926,6 +1926,7 @@ class BusquedasTab {
 
   /**
    * Recopilar filtros del modal
+   * CORREGIDO: Estructura compatible con backend /propiedades/buscar-avanzada
    */
   collectModalFilters() {
     const tipo = this.container.querySelector('#modalTipoInmueble').value;
@@ -1938,31 +1939,31 @@ class BusquedasTab {
     const metraje = this.container.querySelector('#modalMetraje').value;
     const presupuesto = this.container.querySelector('#modalPresupuesto').value;
 
-    // Calcular rangos con tolerancia del 15%
-    let metraje_min = null;
-    let metraje_max = null;
-    if (metraje) {
-      const metNum = parseFloat(metraje);
-      metraje_min = Math.round(metNum * 0.85);
-      metraje_max = Math.round(metNum * 1.15);
-    }
+    // Obtener nombre del tipo de inmueble para mostrar en resumen
+    const tipoSelect = this.container.querySelector('#modalTipoInmueble');
+    const tipoNombre = tipoSelect.options[tipoSelect.selectedIndex]?.text || '';
 
-    let precio_min = null;
-    let precio_max = null;
-    if (presupuesto) {
-      const precioNum = parseFloat(presupuesto);
-      precio_min = Math.round(precioNum * 0.85);
-      precio_max = Math.round(precioNum * 1.15);
-    }
-
+    // Estructura compatible con BusquedaAvanzadaRequest del backend
     return {
-      tipo_inmueble_id: parseInt(tipo),
-      distritos: this.selectedDistritos.size > 0 ? Array.from(this.selectedDistritos) : null,
-      transaccion: transaccion,
-      area_min: metraje_min,
-      area_max: metraje_max,
-      precio_min: precio_min,
-      precio_max: precio_max
+      filtros_genericos: {
+        tipo_inmueble_id: parseInt(tipo),
+        distrito_ids: this.selectedDistritos.size > 0 ? Array.from(this.selectedDistritos) : [],
+        transaccion: transaccion
+      },
+      filtros_basicos: {
+        area: metraje ? parseFloat(metraje) : null,
+        precio: presupuesto ? parseFloat(presupuesto) : null
+      },
+      filtros_avanzados: [],
+      page: 1,
+      limit: 12,
+      incluir_combinaciones: true,
+      // Campos adicionales para el resumen visual (no van al backend)
+      _meta: {
+        tipo_inmueble_nombre: tipoNombre,
+        metraje_original: metraje ? parseFloat(metraje) : null,
+        presupuesto_original: presupuesto ? parseFloat(presupuesto) : null
+      }
     };
   }
 
@@ -2087,22 +2088,37 @@ class BusquedasTab {
 
   /**
    * Renderizar resumen de Filtros Genéricos
+   * CORREGIDO: Compatible con nueva estructura de filtros
    */
   renderResumenGenericos() {
     const container = this.container.querySelector('#resumenGenericos');
     if (!container || !this.currentFilters) return;
 
     const filters = this.currentFilters;
-    const tipoInmueble = filters.tipo_inmueble_nombre || filters.tipo_inmueble_id || 'Todos';
-    const distrito = filters.distrito_nombre || filters.distrito_ids?.join(', ') || 'Todos';
-    const transaccion = filters.transaccion === 'compra' ? 'Compra' : filters.transaccion === 'alquiler' ? 'Alquiler' : 'Todas';
-    const area = filters.area ? `${filters.area} m²` : 'Sin especificar';
 
+    // Extraer datos de la nueva estructura o legacy
+    const fg = filters.filtros_genericos || {};
+    const fb = filters.filtros_basicos || {};
+    const meta = filters._meta || {};
+
+    const tipoInmueble = meta.tipo_inmueble_nombre || fg.tipo_inmueble_id || filters.tipo_inmueble_nombre || 'Todos';
+    const distritoIds = fg.distrito_ids || filters.distrito_ids || [];
+    const distrito = distritoIds.length > 0 ? distritoIds.join(', ') : 'Todos';
+
+    const transaccionValue = fg.transaccion || filters.transaccion || '';
+    const transaccion = transaccionValue === 'venta' ? 'Venta' : transaccionValue === 'alquiler' ? 'Alquiler' : 'Todas';
+
+    const areaValue = fb.area || meta.metraje_original || filters.area;
+    const area = areaValue ? `${areaValue} m²` : 'Sin especificar';
+
+    const precioValue = fb.precio || meta.presupuesto_original || filters.precio;
     let presupuesto = 'Sin especificar';
-    if (filters.transaccion === 'compra' && filters.presupuesto_compra) {
-      presupuesto = `USD ${this.formatNumber(filters.presupuesto_compra)}`;
-    } else if (filters.transaccion === 'alquiler' && filters.presupuesto_alquiler) {
-      presupuesto = `USD ${this.formatNumber(filters.presupuesto_alquiler)}/mes`;
+    if (precioValue) {
+      if (transaccionValue === 'alquiler') {
+        presupuesto = `USD ${this.formatNumber(precioValue)}/mes`;
+      } else {
+        presupuesto = `USD ${this.formatNumber(precioValue)}`;
+      }
     }
 
     container.innerHTML = `
@@ -3469,7 +3485,7 @@ class BusquedasTab {
     const usuario = busqueda.usuario || {};
 
     // Crear descripción narrativa
-    let narrativa = `Búsqueda de ${criterios.transaccion === 'alquiler' ? 'alquiler' : 'compra'} de ${tipoInmueble.toLowerCase()} en ${distritosNarrativos}`;
+    let narrativa = `Búsqueda de ${criterios.transaccion === 'alquiler' ? 'alquiler' : 'venta'} de ${tipoInmueble.toLowerCase()} en ${distritosNarrativos}`;
 
     // Agregar detalles adicionales
     let detalles = [];
@@ -3533,7 +3549,7 @@ class BusquedasTab {
           <div>
             <span style="color: var(--gris-medio); font-size: var(--font-size-small);">Transacción:</span>
             <strong style="color: var(--gris-oscuro); display: block;">
-              ${criterios.transaccion === 'alquiler' ? '🏠 Alquiler' : '💰 Compra'}
+              ${criterios.transaccion === 'alquiler' ? '🏠 Alquiler' : '💰 Venta'}
             </strong>
           </div>
           <div>
