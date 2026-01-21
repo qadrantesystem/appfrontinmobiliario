@@ -54,22 +54,35 @@ class BusquedasMap {
       const offsetLng = lng + lngOffset;
 
       const number = startNumber + index;
+      const esCombinacion = prop.tipo === 'combinacion';
 
-      // Crear marcador con número
+      // Crear marcador con número (verde para combinaciones)
       const marker = L.marker([offsetLat, offsetLng], {
-        icon: this.createNumberedIcon(number)
+        icon: esCombinacion
+          ? this.createCombinationIcon(number)
+          : this.createNumberedIcon(number)
       });
 
-      marker.propertyId = prop.registro_cab_id;
+      marker.propertyId = esCombinacion ? prop.edificio_id : prop.registro_cab_id;
       marker.propertyNumber = number;
+      marker.isCombination = esCombinacion;
 
-      // Popup
-      marker.bindPopup(`
-        <div style="text-align: center;">
-          <strong>${prop.titulo || 'Propiedad'}</strong><br>
-          <small>${prop.direccion || prop.distrito || ''}</small>
-        </div>
-      `);
+      // Popup (diferente para combinaciones)
+      const popupContent = esCombinacion
+        ? `<div style="text-align: center;">
+            <div style="background: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; font-size: 11px;">
+              🔗 COMBINACIÓN
+            </div>
+            <strong>${prop.edificio_nombre || 'Edificio'}</strong><br>
+            <small>📐 ${prop.area_total} m² | Piso ${prop.piso}</small><br>
+            <small>📍 ${prop.distrito || ''}</small>
+          </div>`
+        : `<div style="text-align: center;">
+            <strong>${prop.titulo || 'Propiedad'}</strong><br>
+            <small>${prop.direccion || prop.distrito || ''}</small>
+          </div>`;
+
+      marker.bindPopup(popupContent);
 
       marker.addTo(this.map);
       this.markers.push(marker);
@@ -84,7 +97,7 @@ class BusquedasMap {
   }
 
   /**
-   * Crear icono numerado
+   * Crear icono numerado (azul por defecto)
    */
   createNumberedIcon(number) {
     return L.divIcon({
@@ -92,6 +105,18 @@ class BusquedasMap {
       html: `<div>${number}</div>`,
       iconSize: [36, 36],
       iconAnchor: [18, 18]
+    });
+  }
+
+  /**
+   * Crear icono verde para combinaciones
+   */
+  createCombinationIcon(number) {
+    return L.divIcon({
+      className: 'custom-number-marker combination-marker',
+      html: `<div style="background: #4CAF50 !important; border: 3px solid #2e7d32 !important;">🔗 ${number}</div>`,
+      iconSize: [44, 44],
+      iconAnchor: [22, 22]
     });
   }
 
