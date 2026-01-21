@@ -335,17 +335,36 @@ class BusquedasForm {
 
   /**
    * Recopilar filtros del modal
+   * CORREGIDO: Estructura compatible con BusquedaAvanzadaRequest del backend
    */
   collectFilters() {
     const tipoInmueble = this.tab.container.querySelector('#modalTipoInmueble')?.value;
-    const transaccion = this.tab.container.querySelector('#modalTransaccion')?.value || 'compra';
+    const transaccion = this.tab.container.querySelector('#modalTransaccion')?.value || 'venta';
     const metraje = parseFloat(this.tab.container.querySelector('#modalMetraje')?.value);
     const presupuesto = parseFloat(this.tab.container.querySelector('#modalPresupuesto')?.value);
 
+    // Obtener nombre del tipo para mostrar en resumen
+    const tipoSelect = this.tab.container.querySelector('#modalTipoInmueble');
+    const tipoNombre = tipoSelect?.options[tipoSelect.selectedIndex]?.text || '';
+
+    // Estructura compatible con backend /propiedades/buscar-avanzada
     const filters = {
-      tipo_inmueble: tipoInmueble || null,
-      distritos: this.selectedDistritos.length > 0 ? this.selectedDistritos : null,
-      tipo_transaccion: transaccion,
+      filtros_genericos: {
+        tipo_inmueble_id: tipoInmueble ? parseInt(tipoInmueble) : null,
+        distrito_ids: this.selectedDistritos.length > 0 ? this.selectedDistritos.map(d => parseInt(d)) : [],
+        transaccion: transaccion
+      },
+      filtros_basicos: {
+        area: metraje || null,
+        precio: presupuesto || null
+      },
+      filtros_avanzados: [],
+      page: 1,
+      limit: 12,
+      incluir_combinaciones: true,
+      // Meta para mostrar en UI (no va al backend)
+      tipo_inmueble: tipoInmueble,
+      tipo_inmueble_nombre: tipoNombre,
       metraje: metraje || null,
       presupuesto: presupuesto || null
     };
@@ -376,7 +395,7 @@ class BusquedasForm {
     const presupuestoInput = this.tab.container.querySelector('#modalPresupuesto');
 
     if (tipoSelect) tipoSelect.value = '';
-    if (transaccionSelect) transaccionSelect.value = 'compra';
+    if (transaccionSelect) transaccionSelect.value = 'venta';
     if (metrajeInput) metrajeInput.value = '';
     if (presupuestoInput) presupuestoInput.value = '';
 
