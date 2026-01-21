@@ -10,9 +10,15 @@ class BusquedasCards {
   }
 
   /**
-   * Renderizar tarjeta de propiedad (IDÉNTICO A PROPIEDADES.JS)
+   * Renderizar tarjeta de propiedad o combinación
    */
   render(prop, number) {
+    // 🔗 DETECTAR SI ES COMBINACIÓN
+    if (prop.tipo === 'combinacion') {
+      console.log('🔗 Renderizando COMBINACIÓN:', prop.glosa);
+      return this.renderCombinacion(prop, number);
+    }
+
     console.log('🎨 BusquedasCards.render() llamado:', {
       titulo: prop.titulo,
       numero: number,
@@ -159,6 +165,93 @@ class BusquedasCards {
           ` : ''}
 
           <p class="property-description">${(prop.descripcion || '').substring(0, 120)}...</p>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * 🔗 Renderizar tarjeta de COMBINACIÓN (verde)
+   */
+  renderCombinacion(combo, number) {
+    const oficinas = combo.oficinas || [];
+    const primeraImagen = oficinas[0]?.imagen_principal || 'https://placehold.co/800x600/4CAF50/ffffff?text=Combinación';
+
+    // Precio total
+    let precio = '';
+    if (combo.precio_venta_total && combo.precio_venta_total > 0) {
+      precio = `<strong>USD ${this.formatNumber(combo.precio_venta_total)}</strong>`;
+    } else if (combo.precio_alquiler_total && combo.precio_alquiler_total > 0) {
+      precio = `<strong>USD ${this.formatNumber(combo.precio_alquiler_total)}/mes</strong>`;
+    }
+
+    // Lista de oficinas incluidas
+    const oficinasHTML = oficinas.map(of => `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(76, 175, 80, 0.2);">
+        <span style="font-weight: 500;">${of.nombre}</span>
+        <span style="color: #4CAF50; font-weight: 600;">${of.area} m²</span>
+      </div>
+    `).join('');
+
+    return `
+      <div class="property-card combination-card" data-combination="true" data-edificio-id="${combo.edificio_id}" data-property-number="${number}"
+           style="border: 3px solid #4CAF50; background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(76, 175, 80, 0.1) 100%);">
+
+        <div class="property-number" style="background: #4CAF50;">${number}</div>
+
+        <!-- Badge de Combinación -->
+        <div style="position: absolute; top: 10px; left: 10px; right: 10px; z-index: 25;">
+          <div style="background: #4CAF50; color: white; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; animation: pulse 2s infinite;">
+            🔗 COMBINACIÓN DE ${combo.cantidad_oficinas} OFICINAS
+          </div>
+        </div>
+
+        <!-- Imagen principal -->
+        <div class="property-image-carousel" style="border-bottom: 3px solid #4CAF50;">
+          <img src="${primeraImagen}" alt="Combinación de oficinas"
+               style="width: 100%; height: 200px; object-fit: cover;"
+               onerror="this.src='https://placehold.co/800x600/4CAF50/ffffff?text=Combinación'">
+        </div>
+
+        <div class="property-info" style="padding: 1rem;">
+          <!-- Glosa descriptiva -->
+          <h3 class="property-title" style="color: #2e7d32; font-size: 1rem; margin-bottom: 0.5rem;">
+            ${combo.glosa}
+          </h3>
+
+          <!-- Ubicación -->
+          <div class="property-location" style="margin-bottom: 0.75rem;">
+            📍 ${combo.distrito} | Piso ${combo.piso}
+          </div>
+
+          <!-- Área Total destacada -->
+          <div style="background: #4CAF50; color: white; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 1rem;">
+            <div style="font-size: 0.75rem; opacity: 0.9;">ÁREA TOTAL</div>
+            <div style="font-size: 1.5rem; font-weight: 700;">📐 ${combo.area_total} m²</div>
+          </div>
+
+          <!-- Precio Total -->
+          <div class="property-price" style="font-size: 1.1rem; margin-bottom: 1rem;">
+            💰 ${precio}
+          </div>
+
+          <!-- Lista de oficinas incluidas -->
+          <div style="background: rgba(76, 175, 80, 0.1); border-radius: 8px; padding: 12px; margin-bottom: 0.75rem;">
+            <div style="font-size: 0.75rem; color: #2e7d32; font-weight: 600; margin-bottom: 8px;">
+              📋 OFICINAS INCLUIDAS:
+            </div>
+            ${oficinasHTML}
+          </div>
+
+          <!-- Transacción -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span style="background: white; border: 2px solid #4CAF50; color: #4CAF50; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
+              ${combo.transaccion === 'venta' ? '💰 Venta' : '🏠 Alquiler'}
+            </span>
+            <span style="background: white; border: 2px solid #4CAF50; color: #4CAF50; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
+              ${combo.moneda}
+            </span>
+          </div>
         </div>
       </div>
     `;
