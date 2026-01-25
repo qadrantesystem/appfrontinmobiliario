@@ -319,9 +319,10 @@ class PropertyForm {
         propietario_real_telefono: prop.propietario?.telefono || '',
         propietario_real_email: prop.propietario?.email || '',
         
-        // ✅ NUEVO: Cargar padre_registro_cab_id para oficinas
+        // ✅ NUEVO: Cargar padre_registro_cab_id y piso para oficinas
         padre_registro_cab_id: prop.padre_registro_cab_id || null,
-        
+        piso: prop.piso || null,
+
         tipo_inmueble_id: tipoInmuebleId,
         tipo_inmueble_nombre: prop.tipo_inmueble || '',
         distrito_id: distritoId,
@@ -693,6 +694,7 @@ class PropertyForm {
         
         return {
           registro_cab_id: ofi.registro_cab_id,
+          nombre: ofi.nombre || `Oficina ${numeroOficina}`,
           numero_oficina: parseInt(numeroOficina),
           piso: parseInt(ofi.piso) || 1,
           area: parseFloat(ofi.area) || 50,
@@ -1368,8 +1370,21 @@ class PropertyForm {
   }
 
   renderProgressBar() {
+    // Detectar si es edificio completo para mostrar paso "Configurar"
+    const tipoId = parseInt(this.formData.tipo_inmueble_id) || 0;
+    const esEdificioCompleto = tipoId === 12; // Edificio Completo Oficinas
+
     const progress = (this.currentStep / this.totalSteps) * 100;
-    const steps = [
+
+    // Pasos dinámicos según tipo de inmueble
+    const steps = esEdificioCompleto ? [
+      { num: 1, icon: '👤', name: 'Propietario' },
+      { num: 2, icon: '🏠', name: 'Información' },
+      { num: 3, icon: '📐', name: 'Características' },
+      { num: 4, icon: '🏢', name: 'Configurar' },
+      { num: 5, icon: '💰', name: 'Precio' },
+      { num: 6, icon: '📸', name: 'Imágenes' }
+    ] : [
       { num: 1, icon: '👤', name: 'Propietario' },
       { num: 2, icon: '🏠', name: 'Información' },
       { num: 3, icon: '📐', name: 'Características' },
@@ -1407,7 +1422,13 @@ class PropertyForm {
   }
 
   getStepName(step) {
-    const names = ['', 'Propietario', 'Información', 'Características', 'Precio', 'Imágenes'];
+    // Nombres dinámicos según tipo de inmueble
+    const tipoId = parseInt(this.formData.tipo_inmueble_id) || 0;
+    const esEdificioCompleto = tipoId === 12;
+
+    const names = esEdificioCompleto
+      ? ['', 'Propietario', 'Información', 'Características', 'Configurar', 'Precio', 'Imágenes']
+      : ['', 'Propietario', 'Información', 'Características', 'Precio', 'Imágenes'];
     return names[step] || '';
   }
 
@@ -1453,13 +1474,15 @@ class PropertyForm {
   }
 
   renderStep2() {
-    // ✅ Verificar si es "Oficina Individual" (NO edificio completo)
-    const tipoSeleccionado = this.tiposInmuebles.find(t => t.tipo_inmueble_id === this.formData.tipo_inmueble_id);
+    // ✅ Verificar si requiere edificio padre por tipo_inmueble_id
+    // IDs que REQUIEREN edificio padre: 1=Oficina en Edificio, 3=Departamento
+    const tipoIdInt = parseInt(this.formData.tipo_inmueble_id) || 0;
+    const requiereEdificioPadre = (tipoIdInt === 1 || tipoIdInt === 3);
+
+    // Para label dinámico
+    const tipoSeleccionado = this.tiposInmuebles.find(t => t.tipo_inmueble_id == this.formData.tipo_inmueble_id);
     const nombreTipo = (tipoSeleccionado?.nombre || tipoSeleccionado?.nombre_tipo || '');
-    
-    // Solo mostrar selector de edificio para oficinas INDIVIDUALES
-    const esOficinaIndividual = nombreTipo.toLowerCase().includes('oficina') && !nombreTipo.toLowerCase().includes('edificio') && !nombreTipo.toLowerCase().includes('completo');
-    
+
     // ✅ Label dinámico para nombre del inmueble
     const labelNombreInmueble = this.getNombreInmuebleLabel(nombreTipo);
 
@@ -1474,20 +1497,45 @@ class PropertyForm {
         <!-- ✅ Tipo Inmueble + Distrito en una sola fila -->
         <div class="tipo-distrito-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
           ${this.renderSelect('tipo_inmueble_id', 'Tipo de Inmueble', this.tiposInmuebles, true)}
-          ${this.renderSelect('distrito_id', 'Distrito', this.distritos, true)}
+          <div class="form-group">
+            <label for="distrito_id">
+              Distrito ${requiereEdificioPadre ? '<span style="color: #ff9800; font-size: 0.8rem;">(heredado del edificio)</span>' : '<span style="color: red;">*</span>'}
+            </label>
+            <select id="distrito_id" class="form-control" ${requiereEdificioPadre ? 'disabled style="background: #f5f5f5; cursor: not-allowed;"' : 'required'}>
+              <option value="">Seleccionar...</option>
+              ${this.distritos.map(d => `<option value="${d.distrito_id}" ${this.formData.distrito_id == d.distrito_id ? 'selected' : ''}>${d.nombre}</option>`).join('')}
+            </select>
+            ${requiereEdificioPadre ? '<small style="color: #ff9800;">💡 Se heredará del edificio seleccionado</small>' : ''}
+          </div>
         </div>
 
-        <!-- ✅ Selector de Edificio Padre (SOLO para Oficinas INDIVIDUALES) -->
-        <div id="edificio-padre-container" style="display: ${esOficinaIndividual ? 'block' : 'none'};">
-          <div class="form-group">
-            <label for="edificio-padre-select">
-              🏢 Edificio Padre <span style="color: red;">*</span>
+        <!-- ✅ Selector de Edificio + Piso (tipos 1 y 3 requieren edificio padre) -->
+        <div id="edificio-padre-container" style="display: ${requiereEdificioPadre ? 'block' : 'none'};">
+          <div class="form-group" style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border: 2px solid #ff9800; border-radius: 12px; padding: 16px;">
+
+            <!-- Edificio -->
+            <label for="edificio-padre-select" style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #e65100; margin-bottom: 8px;">
+              🏢 Seleccionar Edificio <span style="color: red;">*</span>
             </label>
-            <select id="edificio-padre-select" class="form-control">
-              <option value="">Seleccionar edificio...</option>
+            <select id="edificio-padre-select" class="form-control" style="border: 2px solid #ff9800; font-size: 1rem; padding: 12px; margin-bottom: 12px;">
+              <option value="">-- Seleccionar edificio --</option>
             </select>
+
+            <!-- Piso (aparece después de seleccionar edificio) -->
+            <div id="piso-container" style="display: none; margin-top: 12px;">
+              <label for="piso-select" style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #e65100; margin-bottom: 8px;">
+                🔢 Número de Piso <span style="color: red;">*</span>
+              </label>
+              <select id="piso-select" class="form-control" style="border: 2px solid #ff9800; font-size: 1rem; padding: 12px;">
+                <option value="">-- Seleccionar piso --</option>
+              </select>
+            </div>
+
+            <small style="display: block; margin-top: 12px; color: #e65100;">
+              💡 Al seleccionar edificio se heredan: distrito, dirección y coordenadas.
+            </small>
           </div>
-          <!-- Contenedor para características del edificio -->
+          <!-- Contenedor para mostrar info del edificio seleccionado -->
           <div id="edificio-caracteristicas-container" style="margin-top: var(--spacing-md);"></div>
         </div>
         
@@ -1764,56 +1812,51 @@ class PropertyForm {
               </div>
             </div>
 
-            <!-- Input para asignar metraje + Botones -->
-            <div id="oficinasControlPanel" style="background: #f0f9ff; padding: var(--spacing-sm); border-radius: 8px; margin-bottom: var(--spacing-md); border: 2px solid #0ea5e9;">
-              <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--azul-corporativo); font-size: 0.85rem;">
-                📐 Metraje (m²)
-              </label>
-              
-              <!-- Input + Botones en una sola fila -->
-              <div style="display: flex; gap: 8px; align-items: stretch;">
-                <input
-                  type="number"
-                  id="metraje-batch-input"
-                  class="form-input"
-                  placeholder="50"
-                  step="0.01"
-                  min="1"
-                  value="50"
-                  style="width: 80px; padding: 8px; font-size: 0.9rem; border: 2px solid #cbd5e1; text-align: center;"
-                />
-                <button
-                  type="button"
-                  id="btn-aplicar-metraje"
-                  class="btn-primary"
-                  title="Aplicará el mismo metraje a TODAS las oficinas seleccionadas (marcadas en naranja)"
-                  style="flex: 1; padding: 8px 12px; font-size: 0.85rem; white-space: nowrap; font-weight: 600;"
-                >
-                  ✓ Aplicar
-                </button>
-                <button
-                  type="button"
-                  id="btn-equipar"
-                  class="btn-secondary"
-                  title="Equipar aplica el mismo set de características/implementación a las oficinas seleccionadas"
-                  style="flex: 1; padding: 8px 12px; font-size: 0.85rem; white-space: nowrap; background: var(--dorado); color: white; border: none;"
-                >
-                  🔧 Equipar
-                </button>
-              </div>
-              
-              <p style="font-size: 0.75rem; color: #0369a1; margin: 6px 0 0 0; text-align: center;">
-                💡 Aplicar: asigna metraje | Equipar: copia características
-              </p>
+            <!-- Botones de acción para oficinas seleccionadas -->
+            <div id="oficinasControlPanel" style="display: flex; gap: 8px; margin-bottom: var(--spacing-md);">
+              <button
+                type="button"
+                id="btn-metraje"
+                class="btn-primary"
+                title="Asignar metraje a las oficinas seleccionadas (doradas)"
+                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600;"
+              >
+                📐 Metraje
+              </button>
+              <button
+                type="button"
+                id="btn-equipar"
+                class="btn-secondary"
+                title="Configurar equipamiento de las oficinas seleccionadas (doradas)"
+                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: var(--dorado); color: white; border: none;"
+              >
+                🔧 Equipar
+              </button>
             </div>
-
-            <p style="font-size: 0.85rem; color: var(--gris-medio); margin-bottom: var(--spacing-md); text-align: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
-              👆 <strong>Haz click en las oficinas</strong> para seleccionarlas (se marcarán en naranja)
-            </p>
 
             <!-- Edificio clickeable con borde -->
             <div id="torreContainer" style="border: 3px solid var(--azul-corporativo); border-radius: 8px; padding: var(--spacing-md); background: white; box-shadow: 0 4px 12px rgba(44, 82, 130, 0.15);">
               ${this.renderTorreClickeable(cantidadPisos, oficinasPorPiso, cantidadSotanos)}
+            </div>
+
+            <!-- Leyenda de colores (alineada a la izquierda) -->
+            <div style="margin-top: var(--spacing-sm); display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.7rem; color: var(--gris-medio);">
+              <div style="display: flex; align-items: center; gap: 3px;">
+                <span style="width: 12px; height: 12px; background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%); border-radius: 2px;"></span>
+                <span>Existente</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 3px;">
+                <span style="width: 12px; height: 12px; background: linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%); border-radius: 2px;"></span>
+                <span>Seleccionada</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 3px;">
+                <span style="width: 12px; height: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 2px;"></span>
+                <span>Nueva</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 3px;">
+                <span style="width: 12px; height: 12px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 2px;"></span>
+                <span>A eliminar</span>
+              </div>
             </div>
           </div>
         ` : `
@@ -2242,23 +2285,28 @@ class PropertyForm {
         showNotification('✅ Características cargadas', 'success');
       }
 
-      // ✅ Mostrar/ocultar selector de edificio SOLO para Oficinas INDIVIDUALES
-      const tipoSeleccionado = this.tiposInmuebles.find(t => t.tipo_inmueble_id == tipoId);
-      const nombreTipo = (tipoSeleccionado?.nombre || tipoSeleccionado?.nombre_tipo || '');
-      const nombreTipoLower = nombreTipo.toLowerCase();
-      
-      // Solo para oficinas individuales (NO edificio completo)
-      const esOficinaIndividual = nombreTipoLower.includes('oficina') && !nombreTipoLower.includes('edificio') && !nombreTipoLower.includes('completo');
+      // ✅ Mostrar/ocultar selector de edificio por tipo_inmueble_id
+      // IDs que REQUIEREN edificio padre: 1=Oficina en Edificio, 3=Departamento
+      const tipoIdInt = parseInt(tipoId);
+      const requiereEdificioPadre = (tipoIdInt === 1 || tipoIdInt === 3);
+
+      console.log('🏢 Tipo ID:', tipoIdInt, '- Requiere edificio padre:', requiereEdificioPadre);
+
       const edificioContainer = document.getElementById('edificio-padre-container');
 
       if (edificioContainer) {
-        edificioContainer.style.display = esOficinaIndividual ? 'block' : 'none';
+        edificioContainer.style.display = requiereEdificioPadre ? 'block' : 'none';
 
-        // Si es oficina individual, inicializar selector de edificio
-        if (esOficinaIndividual && !this.selectorEdificio) {
+        // Si requiere edificio padre, inicializar selector
+        if (requiereEdificioPadre && !this.selectorEdificio) {
           this.initSelectorEdificio();
         }
       }
+
+      // Para el label dinámico
+      const tipoSeleccionado = this.tiposInmuebles.find(t => t.tipo_inmueble_id == tipoId);
+      const nombreTipo = (tipoSeleccionado?.nombre || tipoSeleccionado?.nombre_tipo || '');
+      const nombreTipoLower = nombreTipo.toLowerCase();
       
       // 🆕 Actualizar label de "Nombre del Inmueble" dinámicamente
       const labelNombreInmueble = document.getElementById('label_nombre_inmueble');
@@ -2375,6 +2423,28 @@ class PropertyForm {
       });
     }
 
+    // 🆕 BOTÓN METRAJE (Paso 4)
+    document.getElementById('btn-metraje')?.addEventListener('click', () => {
+      // Obtener oficinas seleccionadas (doradas)
+      const oficinasSeleccionadas = document.querySelectorAll('.oficina-seleccionable.selected');
+
+      if (oficinasSeleccionadas.length === 0) {
+        showNotification('⚠️ Primero selecciona las oficinas para asignar metraje', 'warning');
+        return;
+      }
+
+      // Extraer datos de las oficinas seleccionadas
+      const oficinasData = Array.from(oficinasSeleccionadas).map(el => ({
+        id: el.dataset.oficinaId,
+        registroCabId: el.dataset.registroCabId,
+        metraje: el.dataset.metraje || '50',
+        piso: el.dataset.piso,
+        esNueva: el.classList.contains('oficina-nueva')
+      }));
+
+      this.mostrarModalMetraje(oficinasData);
+    });
+
     // 🆕 BOTÓN EQUIPAR (Paso 4)
     document.getElementById('btn-equipar')?.addEventListener('click', () => {
       // Obtener oficinas seleccionadas (doradas)
@@ -2394,6 +2464,7 @@ class PropertyForm {
     // 🆕 STEP 4: Inputs dinámicos de oficinas por piso (si existe la torre)
     if (this.currentStep === 4 && document.querySelector('.oficinas-por-piso-input')) {
       this.attachOficinasInputListeners();
+      this.attachOficinaExistenteListeners(); // 🎯 Listeners para SELECCIONAR oficinas (dorado)
     }
 
     // Drag & drop imágenes
@@ -2572,6 +2643,20 @@ class PropertyForm {
       this.formData.direccion = document.getElementById('direccion')?.value || '';
       this.formData.latitud = document.getElementById('latitud')?.value || null;
       this.formData.longitud = document.getElementById('longitud')?.value || null;
+
+      // 🏢 Campos para Oficina en Edificio (tipos 1 y 3)
+      const tipoIdInt = parseInt(this.formData.tipo_inmueble_id) || 0;
+      const requiereEdificioPadre = (tipoIdInt === 1 || tipoIdInt === 3);
+
+      if (requiereEdificioPadre) {
+        this.formData.padre_registro_cab_id = document.getElementById('edificio-padre-select')?.value || null;
+        this.formData.piso = document.getElementById('piso-select')?.value || null;
+
+        console.log('🏢 Datos de edificio padre recopilados (Paso 2):', {
+          padre_registro_cab_id: this.formData.padre_registro_cab_id,
+          piso: this.formData.piso
+        });
+      }
     } else if (this.currentStep === 3) {
       this.formData.area = document.getElementById('area')?.value || null;
       this.formData.antiguedad = document.getElementById('antiguedad')?.value || null;
@@ -2717,7 +2802,49 @@ class PropertyForm {
         showNotification('⚠️ Selecciona el tipo de inmueble', 'warning');
         return false;
       }
-      
+
+      // 🏢 VALIDACIÓN OBLIGATORIA: Edificio + Piso para tipos 1 (Oficina) y 3 (Departamento)
+      const tipoIdInt = parseInt(tipoInmueble);
+      const requiereEdificioPadre = (tipoIdInt === 1 || tipoIdInt === 3);
+
+      if (requiereEdificioPadre) {
+        // Validar edificio
+        const edificioSelect = document.getElementById('edificio-padre-select');
+        const edificioId = edificioSelect?.value;
+
+        if (!edificioId) {
+          showNotification('⚠️ Debes seleccionar el edificio donde está ubicada la oficina', 'warning');
+          if (edificioSelect) {
+            edificioSelect.style.border = '3px solid #ef4444';
+            edificioSelect.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.5)';
+            edificioSelect.focus();
+            setTimeout(() => {
+              edificioSelect.style.border = '2px solid #ff9800';
+              edificioSelect.style.boxShadow = '';
+            }, 3000);
+          }
+          return false;
+        }
+
+        // Validar piso
+        const pisoSelect = document.getElementById('piso-select');
+        const piso = pisoSelect?.value;
+
+        if (!piso) {
+          showNotification('⚠️ Debes seleccionar el número de piso', 'warning');
+          if (pisoSelect) {
+            pisoSelect.style.border = '3px solid #ef4444';
+            pisoSelect.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.5)';
+            pisoSelect.focus();
+            setTimeout(() => {
+              pisoSelect.style.border = '2px solid #ff9800';
+              pisoSelect.style.boxShadow = '';
+            }, 3000);
+          }
+          return false;
+        }
+      }
+
       if (!distrito) {
         showNotification('⚠️ Selecciona el distrito', 'warning');
         return false;
@@ -2909,6 +3036,7 @@ class PropertyForm {
       const propiedadJson = {
         propietario_id: propietarioId,
         padre_registro_cab_id: padreRegistroCabId,
+        piso: this.formData.piso ? parseInt(this.formData.piso) : null,
 
         tipo_inmueble_id: parseInt(this.formData.tipo_inmueble_id),
         distrito_id: parseInt(this.formData.distrito_id),
@@ -3180,20 +3308,127 @@ class PropertyForm {
         '#edificio-padre-select',
         '#edificio-caracteristicas-container'
       );
-      
+
+      // 🆕 Configurar callback para heredar datos del edificio
+      this.selectorEdificio.setOnChangeCallback((edificio) => {
+        this.handleEdificioHerencia(edificio);
+      });
+
       // Inicializar y esperar a que cargue las opciones
       await this.selectorEdificio.init();
       console.log('✅ SelectorEdificio inicializado');
-      
+
       // ✅ Si hay un edificio padre en formData, pre-seleccionarlo AHORA
       console.log('🔍 Verificando padre_registro_cab_id:', this.formData.padre_registro_cab_id);  // ✅ DEBUG
       if (this.formData.padre_registro_cab_id) {
         console.log('🏢 Pre-seleccionando edificio padre después de cargar opciones:', this.formData.padre_registro_cab_id);
-        
+
         // Usar el método setEdificio del componente
         await this.selectorEdificio.setEdificio(this.formData.padre_registro_cab_id);
       }
     }
+  }
+
+  /**
+   * 🏢 Manejar herencia de datos del edificio padre
+   * Cuando se selecciona un edificio, hereda: distrito, dirección, coordenadas y carga pisos
+   */
+  async handleEdificioHerencia(edificio) {
+    const pisoContainer = document.getElementById('piso-container');
+    const pisoSelect = document.getElementById('piso-select');
+
+    if (!edificio) {
+      console.log('🔄 Edificio deseleccionado - limpiando herencia');
+      // Ocultar combo de piso
+      if (pisoContainer) pisoContainer.style.display = 'none';
+      if (pisoSelect) pisoSelect.innerHTML = '<option value="">-- Seleccionar piso --</option>';
+      return;
+    }
+
+    console.log('🏢 Heredando datos del edificio:', edificio);
+
+    // 1. Heredar distrito
+    if (edificio.distrito_id) {
+      const distritoSelect = document.getElementById('distrito_id');
+      if (distritoSelect) {
+        distritoSelect.value = edificio.distrito_id;
+        this.formData.distrito_id = edificio.distrito_id;
+        console.log('✅ Distrito heredado:', edificio.distrito_id);
+        distritoSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+
+    // 2. Heredar dirección
+    if (edificio.direccion) {
+      const direccionInput = document.getElementById('direccion');
+      const nombreViaInput = document.getElementById('nombre_via');
+
+      if (direccionInput && (!direccionInput.value || direccionInput.value.trim() === '')) {
+        direccionInput.value = edificio.direccion;
+        this.formData.direccion = edificio.direccion;
+        console.log('✅ Dirección heredada:', edificio.direccion);
+      }
+
+      if (nombreViaInput && (!nombreViaInput.value || nombreViaInput.value.trim() === '')) {
+        nombreViaInput.value = edificio.direccion.split(',')[0] || edificio.direccion;
+      }
+    }
+
+    // 3. Heredar coordenadas
+    if (edificio.latitud && edificio.longitud) {
+      const latitudInput = document.getElementById('latitud');
+      const longitudInput = document.getElementById('longitud');
+
+      if (latitudInput) {
+        latitudInput.value = edificio.latitud;
+        this.formData.latitud = edificio.latitud;
+      }
+      if (longitudInput) {
+        longitudInput.value = edificio.longitud;
+        this.formData.longitud = edificio.longitud;
+      }
+      console.log('✅ Coordenadas heredadas:', edificio.latitud, edificio.longitud);
+
+      if (typeof this.updateMapMarker === 'function') {
+        this.updateMapMarker(parseFloat(edificio.latitud), parseFloat(edificio.longitud));
+      }
+    }
+
+    // 4. 🆕 Cargar pisos del edificio
+    if (pisoContainer && pisoSelect) {
+      try {
+        pisoSelect.innerHTML = '<option value="">Cargando pisos...</option>';
+        pisoContainer.style.display = 'block';
+
+        const cantidadPisos = await edificioService.obtenerCantidadPisos(edificio.registro_cab_id);
+
+        // Generar opciones de piso
+        let opcionesPiso = '<option value="">-- Seleccionar piso --</option>';
+        for (let i = 1; i <= cantidadPisos; i++) {
+          opcionesPiso += `<option value="${i}">Piso ${i}</option>`;
+        }
+        pisoSelect.innerHTML = opcionesPiso;
+
+        console.log(`✅ Combo de pisos cargado: 1 a ${cantidadPisos}`);
+
+        // Si ya había un piso guardado, seleccionarlo
+        if (this.formData.piso) {
+          pisoSelect.value = this.formData.piso;
+        }
+
+      } catch (error) {
+        console.error('❌ Error cargando pisos:', error);
+        // Fallback: mostrar 1-20
+        let opcionesPiso = '<option value="">-- Seleccionar piso --</option>';
+        for (let i = 1; i <= 20; i++) {
+          opcionesPiso += `<option value="${i}">Piso ${i}</option>`;
+        }
+        pisoSelect.innerHTML = opcionesPiso;
+        pisoContainer.style.display = 'block';
+      }
+    }
+
+    showNotification(`✅ Datos heredados de "${edificio.nombre_inmueble}"`, 'success');
   }
 
   /**
@@ -3361,145 +3596,473 @@ class PropertyForm {
 
       // Re-aplicar event listeners a los nuevos inputs
       this.attachOficinasInputListeners();
+
+      // Re-aplicar event listeners a las oficinas (para SELECCIÓN dorada)
+      this.attachOficinaExistenteListeners();
     }
+  }
+
+  /**
+   * 🎯 Adjuntar listeners a oficinas para SELECCIÓN (equipar/metraje)
+   * Click = toggle selección (dorado) para luego aplicar metraje o equipar
+   */
+  attachOficinaExistenteListeners() {
+    document.querySelectorAll('.oficina-seleccionable').forEach(oficina => {
+      oficina.addEventListener('click', (e) => {
+        const oficinaId = oficina.dataset.oficinaId;
+        const registroCabId = oficina.dataset.registroCabId;
+        const paraEliminar = oficina.classList.contains('para-eliminar');
+
+        // Si está marcada para eliminar (roja), no permitir seleccionar
+        if (paraEliminar) {
+          showNotification('Esta oficina está marcada para eliminar', 'warning');
+          return;
+        }
+
+        // Toggle clase selected (visual)
+        oficina.classList.toggle('selected');
+
+        if (oficina.classList.contains('selected')) {
+          oficina.style.background = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)';
+          oficina.style.transform = 'scale(1.05)';
+          console.log(`🎯 Oficina ${oficinaId} SELECCIONADA para equipar`);
+        } else {
+          // Restaurar color original (azul para existentes, verde para nuevas)
+          const esNueva = oficina.classList.contains('oficina-nueva');
+          if (esNueva) {
+            oficina.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+          } else {
+            oficina.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
+          }
+          oficina.style.transform = 'scale(1)';
+          console.log(`🎯 Oficina ${oficinaId} DESELECCIONADA`);
+        }
+      });
+    });
   }
 
   attachOficinasInputListeners() {
     document.querySelectorAll('.oficinas-por-piso-input').forEach(input => {
       input.addEventListener('change', (e) => {
         const piso = parseInt(e.target.dataset.piso);
-        const cantidad = parseInt(e.target.value);
+        let cantidad = parseInt(e.target.value) || 0;
 
-        // Validar rango
-        if (cantidad < 1) {
-          e.target.value = 1;
-          return;
+        // Validar rango (0 a 20)
+        if (cantidad < 0) {
+          cantidad = 0;
+          e.target.value = 0;
         }
-        if (cantidad > 10) {
-          e.target.value = 10;
-          return;
+        if (cantidad > 20) {
+          cantidad = 20;
+          e.target.value = 20;
         }
 
         // Guardar y re-renderizar
         this.setOficinasEnPiso(piso, cantidad);
         this.rerenderTorre();
 
-        showNotification(`✅ Piso ${piso} actualizado a ${cantidad} oficina(s)`, 'success');
+        showNotification(`Piso ${piso} actualizado a ${cantidad} oficina(s)`, 'success');
       });
     });
   }
 
   /**
+   * 🗑️ Toggle marcar/desmarcar oficina existente para eliminar
+   */
+  toggleEliminarOficina(registroCabId) {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🗑️ TOGGLE ELIMINAR OFICINA');
+    console.log('  registroCabId:', registroCabId, typeof registroCabId);
+
+    // Inicializar array si no existe
+    if (!this.formData.oficinasParaEliminar) {
+      this.formData.oficinasParaEliminar = [];
+      console.log('  ✅ Array inicializado');
+    }
+
+    const index = this.formData.oficinasParaEliminar.indexOf(registroCabId);
+    console.log('  Index en array:', index);
+
+    if (index === -1) {
+      // Marcar para eliminar
+      this.formData.oficinasParaEliminar.push(registroCabId);
+      console.log(`  🗑️ MARCADA para eliminar`);
+      showNotification(`Oficina ID ${registroCabId} marcada para eliminar`, 'warning');
+    } else {
+      // Desmarcar
+      this.formData.oficinasParaEliminar.splice(index, 1);
+      console.log(`  ✅ DESMARCADA`);
+      showNotification(`Oficina ID ${registroCabId} desmarcada`, 'info');
+    }
+
+    console.log('  📋 Array actual:', JSON.stringify(this.formData.oficinasParaEliminar));
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  }
+
+  /**
+   * 🔍 Verificar si una oficina está marcada para eliminar
+   */
+  estaParaEliminar(registroCabId) {
+    const resultado = this.formData.oficinasParaEliminar?.includes(registroCabId) || false;
+    if (resultado) {
+      console.log(`    🔴 Oficina ${registroCabId} ESTÁ marcada para eliminar`);
+    }
+    return resultado;
+  }
+
+  /**
    * 🏗️ NUEVO: Torre clickeable con selección y parqueos integrados
+   * En modo edición: muestra oficinas REALES de la base de datos
+   * En modo creación: muestra oficinas TEÓRICAS basadas en características
    */
   renderTorreClickeable(pisos, oficinasPorPiso, sotanos) {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('🏗️ RENDERIZANDO TORRE CLICKEABLE');
-    console.log('  Pisos:', pisos);
-    console.log('  Oficinas por piso:', oficinasPorPiso);
-    console.log('  Oficinas seleccionadas disponibles:', this.formData.oficinasSeleccionadas?.length || 0);
-    console.log('  Datos oficinas seleccionadas:', this.formData.oficinasSeleccionadas);
+    console.log('  Pisos (teórico):', pisos);
+    console.log('  Oficinas por piso (teórico):', oficinasPorPiso);
+    console.log('  Oficinas existentes (DB):', this.formData.oficinasExistentes?.length || 0);
+    console.log('  Oficinas seleccionadas:', this.formData.oficinasSeleccionadas?.length || 0);
+    console.log('  Modo:', this.propId ? 'EDICIÓN' : 'CREACIÓN');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
+
     let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
 
-    // Pisos (de arriba hacia abajo) - CLICKEABLES
-    for (let piso = parseInt(pisos); piso >= 1; piso--) {
-      // 🆕 Obtener cantidad de oficinas para este piso (por defecto usa oficinasPorPiso)
-      const oficinasEnEstePiso = this.getOficinasEnPiso(piso, parseInt(oficinasPorPiso));
+    // 🆕 MODO EDICIÓN: Usar oficinas REALES agrupadas por piso
+    const modoEdicion = this.propId && this.formData.oficinasExistentes?.length > 0;
 
-      html += `
-        <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-          <div style="min-width: 60px; font-weight: 600; color: var(--azul-corporativo); font-size: 0.85rem;">
-            Piso ${piso}
-          </div>
+    if (modoEdicion) {
+      console.log('📊 MODO EDICIÓN - Usando oficinas REALES de la base de datos');
 
-          <!-- 🆕 INPUT ÉPICO para cambiar cantidad de oficinas por piso -->
-          <input
-            type="number"
-            id="oficinas-piso-${piso}"
-            class="oficinas-por-piso-input"
-            data-piso="${piso}"
-            min="1"
-            max="10"
-            value="${oficinasEnEstePiso}"
-            style="
-              width: 50px;
-              padding: 4px 6px;
-              text-align: center;
-              border: 2px solid var(--azul-claro);
-              border-radius: 4px;
-              font-weight: 600;
-              font-size: 0.85rem;
-              color: var(--azul-corporativo);
-            "
-            title="Cantidad de oficinas en este piso"
-          />
-
-          <div id="oficinas-contenedor-piso-${piso}" style="display: flex; gap: 4px; flex: 1;">
-      `;
-
-      for (let ofi = 1; ofi <= oficinasEnEstePiso; ofi++) {
-        const oficinaNum = (piso * 100) + ofi; // 🆕 Fórmula consecutiva por piso: piso 9 = 901, 902, 903
-        
-        // 🆕 VERIFICAR SI ESTA OFICINA YA EXISTE (modo edición)
-        const oficinaExistente = this.formData.oficinasSeleccionadas?.find(
-          o => parseInt(o.numero_oficina) === parseInt(oficinaNum)
-        );
-        const estaSeleccionada = !!oficinaExistente;
-        
-        if (estaSeleccionada) {
-          console.log(`  ✅ Oficina ${oficinaNum} encontrada en seleccionadas:`, oficinaExistente);
+      // Agrupar oficinas reales por piso
+      const oficinasPorPisoReal = {};
+      this.formData.oficinasExistentes.forEach(ofi => {
+        const pisoOficina = parseInt(ofi.piso) || 1;
+        if (!oficinasPorPisoReal[pisoOficina]) {
+          oficinasPorPisoReal[pisoOficina] = [];
         }
-        
+        oficinasPorPisoReal[pisoOficina].push(ofi);
+      });
+
+      console.log('📊 Oficinas agrupadas por piso:', oficinasPorPisoReal);
+
+      // Calcular el máximo de pisos (entre teórico y real)
+      const pisosReales = Object.keys(oficinasPorPisoReal).map(p => parseInt(p));
+      const maxPisoReal = pisosReales.length > 0 ? Math.max(...pisosReales) : 0;
+      const totalPisos = Math.max(parseInt(pisos) || 0, maxPisoReal);
+
+      console.log(`📊 Pisos: teórico=${pisos}, real max=${maxPisoReal}, total=${totalPisos}`);
+
+      // Renderizar pisos (de arriba hacia abajo) con oficinas REALES + NUEVAS
+      for (let piso = totalPisos; piso >= 1; piso--) {
+        const oficinasExistentes = oficinasPorPisoReal[piso] || [];
+        const cantidadExistentes = oficinasExistentes.length;
+
+        // ✅ Obtener cantidad configurada por el usuario
+        const cantidadConfigurada = this.getOficinasEnPiso(piso, cantidadExistentes);
+
+        // Calcular oficinas nuevas (si subió) o a eliminar automáticamente (si bajó)
+        const oficinasNuevas = Math.max(0, cantidadConfigurada - cantidadExistentes);
+        const oficinasAEliminarAuto = Math.max(0, cantidadExistentes - cantidadConfigurada);
+
+        // 🗑️ Si bajó el número, marcar automáticamente las últimas oficinas para eliminar
+        if (oficinasAEliminarAuto > 0) {
+          // Ordenar oficinas por numero_oficina descendente y marcar las últimas
+          const oficinasOrdenadas = [...oficinasExistentes].sort((a, b) =>
+            (b.numero_oficina || b.registro_cab_id) - (a.numero_oficina || a.registro_cab_id)
+          );
+
+          for (let i = 0; i < oficinasAEliminarAuto; i++) {
+            const oficinaAMarcar = oficinasOrdenadas[i];
+            if (oficinaAMarcar && !this.estaParaEliminar(oficinaAMarcar.registro_cab_id)) {
+              // Marcar automáticamente para eliminar
+              if (!this.formData.oficinasParaEliminar) {
+                this.formData.oficinasParaEliminar = [];
+              }
+              this.formData.oficinasParaEliminar.push(oficinaAMarcar.registro_cab_id);
+              console.log(`  🗑️ Auto-marcada para eliminar: ${oficinaAMarcar.nombre} (ID: ${oficinaAMarcar.registro_cab_id})`);
+            }
+          }
+        }
+
+        // ✅ Si subió el número (o volvió al original), desmarcar oficinas de este piso
+        if (cantidadConfigurada >= cantidadExistentes && this.formData.oficinasParaEliminar?.length > 0) {
+          // Desmarcar oficinas de este piso que estaban marcadas
+          const idsDeEstePiso = oficinasExistentes.map(o => o.registro_cab_id);
+          const marcadasDeEstePiso = this.formData.oficinasParaEliminar.filter(id => idsDeEstePiso.includes(id));
+
+          if (marcadasDeEstePiso.length > 0) {
+            // Desmarcar todas las de este piso (ya que subió al número original o más)
+            marcadasDeEstePiso.forEach(id => {
+              const index = this.formData.oficinasParaEliminar.indexOf(id);
+              if (index > -1) {
+                this.formData.oficinasParaEliminar.splice(index, 1);
+                console.log(`  ✅ Auto-desmarcada: ID ${id}`);
+              }
+            });
+          }
+        }
+
+        console.log(`  Piso ${piso}: ${cantidadExistentes} existentes, ${oficinasNuevas} nuevas, ${oficinasAEliminarAuto} a eliminar (config: ${cantidadConfigurada})`);
+
         html += `
-          <div
-            class="oficina-seleccionable ${estaSeleccionada ? 'selected' : ''}"
-            data-oficina-id="${oficinaNum}"
-            data-metraje="${oficinaExistente?.area || 50}"
-            data-registro-cab-id="${oficinaExistente?.registro_cab_id || ''}"
-            style="
+          <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+            <div style="min-width: 60px; font-weight: 600; color: var(--azul-corporativo); font-size: 0.85rem;">
+              Piso ${piso}
+            </div>
+
+            <!-- INPUT para cambiar cantidad de oficinas por piso -->
+            <input
+              type="number"
+              id="oficinas-piso-${piso}"
+              class="oficinas-por-piso-input"
+              data-piso="${piso}"
+              min="0"
+              max="20"
+              value="${cantidadConfigurada}"
+              style="
+                width: 50px;
+                padding: 4px 6px;
+                text-align: center;
+                border: 2px solid var(--azul-claro);
+                border-radius: 4px;
+                font-weight: 600;
+                font-size: 0.85rem;
+                color: var(--azul-corporativo);
+              "
+              title="Total: ${cantidadConfigurada} | Existentes: ${cantidadExistentes} | Nuevas: ${oficinasNuevas}"
+            />
+
+            <div id="oficinas-contenedor-piso-${piso}" style="display: flex; gap: 4px; flex: 1; flex-wrap: wrap;">
+        `;
+
+        // 1️⃣ Renderizar oficinas EXISTENTES (de BD)
+        oficinasExistentes.forEach(oficina => {
+          let numeroOficina = oficina.numero_oficina;
+          if (!numeroOficina && oficina.nombre) {
+            const match = oficina.nombre.match(/(\d+)/);
+            numeroOficina = match ? parseInt(match[1]) : oficina.registro_cab_id;
+          }
+
+          // 🗑️ Verificar si está marcada para eliminar (por bajar el input)
+          const paraEliminar = this.estaParaEliminar(oficina.registro_cab_id);
+
+          const displayName = oficina.nombre || `Oficina ${numeroOficina}`;
+          const shortName = displayName.replace('Oficina ', 'Of. ');
+
+          // Determinar color según estado
+          // Rojo = para eliminar, Azul = normal (click lo pone dorado)
+          let bgColor, borderStyle, iconPrefix, extraClass;
+          if (paraEliminar) {
+            bgColor = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'; // Rojo
+            borderStyle = '2px dashed white';
+            iconPrefix = '🗑️ ';
+            extraClass = 'para-eliminar';
+          } else {
+            bgColor = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)'; // Azul
+            borderStyle = '2px solid white';
+            iconPrefix = '';
+            extraClass = '';
+          }
+
+          html += `
+            <div
+              class="oficina-seleccionable oficina-existente ${extraClass}"
+              data-oficina-id="${numeroOficina}"
+              data-registro-cab-id="${oficina.registro_cab_id}"
+              data-metraje="${oficina.area || 50}"
+              data-piso="${piso}"
+              data-existente="true"
+              style="
+                min-width: 70px;
+                flex: 1;
+                max-width: 120px;
+                height: 45px;
+                background: ${bgColor};
+                border: ${borderStyle};
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 600;
+                font-size: 0.75rem;
+                box-shadow: 0 2px 6px rgba(44, 82, 130, 0.3);
+                cursor: pointer;
+                transition: all 0.2s;
+                ${paraEliminar ? 'opacity: 0.8; text-decoration: line-through;' : ''}
+              "
+              title="${paraEliminar ? '🗑️ MARCADA PARA ELIMINAR' : `${displayName} - ${oficina.area || 50}m² - Click para seleccionar`}"
+            >
+              ${iconPrefix}${shortName}
+            </div>
+          `;
+        });
+
+        // 2️⃣ Renderizar oficinas NUEVAS (a crear)
+        // Usar formato: edificioId-pisoNumero (ej: 189-401, 189-402)
+        const edificioId = this.propId || 0;
+        for (let i = 1; i <= oficinasNuevas; i++) {
+          const nuevoNumero = (piso * 100) + cantidadExistentes + i;
+          const nombreOficina = edificioId ? `${edificioId}-${nuevoNumero}` : `+${nuevoNumero}`;
+
+          html += `
+            <div
+              class="oficina-seleccionable oficina-nueva"
+              data-oficina-id="${nuevoNumero}"
+              data-piso="${piso}"
+              data-metraje="50"
+              data-existente="false"
+              data-nombre="${nombreOficina}"
+              style="
+                min-width: 70px;
+                flex: 1;
+                max-width: 120px;
+                height: 45px;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                border: 2px dashed white;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 600;
+                font-size: 0.75rem;
+                box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+                cursor: pointer;
+                transition: all 0.2s;
+              "
+              title="Nueva oficina ${nombreOficina} - Click para seleccionar"
+            >
+              +${nuevoNumero}
+            </div>
+          `;
+        }
+
+        // 3️⃣ Placeholder si no hay ninguna oficina
+        if (cantidadConfigurada === 0) {
+          html += `
+            <div style="
               flex: 1;
               height: 45px;
-              background: ${estaSeleccionada 
-                ? 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)' 
-                : 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)'
-              };
-              border: 2px solid white;
+              background: #f1f5f9;
+              border: 2px dashed #cbd5e1;
               border-radius: 6px;
               display: flex;
               align-items: center;
               justify-content: center;
-              color: white;
-              font-weight: 600;
-              font-size: 0.9rem;
-              box-shadow: 0 2px 6px rgba(44, 82, 130, 0.3);
-              cursor: pointer;
-              transition: all 0.2s;
-              ${estaSeleccionada ? 'transform: scale(1.05);' : ''}
-            "
-            title="${estaSeleccionada 
-              ? `Oficina ${oficinaNum} - ${oficinaExistente?.area || 50}m² - Estado: ${oficinaExistente?.estado || 'borrador'}` 
-              : `Seleccionar Oficina ${oficinaNum}`
-            }"
-            onclick="
-              this.classList.toggle('selected');
-              if (this.classList.contains('selected')) {
-                this.style.background = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)';
-                this.style.transform = 'scale(1.05)';
-              } else {
-                this.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
-                this.style.transform = 'scale(1)';
-              }
-            "
-            title="Oficina ${oficinaNum} - Click para seleccionar"
-          >
-            ${oficinaNum}
-          </div>
-        `;
+              color: #94a3b8;
+              font-size: 0.8rem;
+            ">
+              Sin oficinas - Usa el input para agregar
+            </div>
+          `;
+        }
+
+        html += '</div></div>';
       }
 
-      html += '</div></div>';
+    } else {
+      // 🆕 MODO CREACIÓN: Comportamiento original (oficinas teóricas)
+      console.log('📊 MODO CREACIÓN - Usando oficinas TEÓRICAS');
+
+      // Pisos (de arriba hacia abajo) - CLICKEABLES
+      for (let piso = parseInt(pisos); piso >= 1; piso--) {
+        // Obtener cantidad de oficinas para este piso (por defecto usa oficinasPorPiso)
+        const oficinasEnEstePiso = this.getOficinasEnPiso(piso, parseInt(oficinasPorPiso));
+
+        html += `
+          <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+            <div style="min-width: 60px; font-weight: 600; color: var(--azul-corporativo); font-size: 0.85rem;">
+              Piso ${piso}
+            </div>
+
+            <!-- INPUT para cambiar cantidad de oficinas por piso -->
+            <input
+              type="number"
+              id="oficinas-piso-${piso}"
+              class="oficinas-por-piso-input"
+              data-piso="${piso}"
+              min="1"
+              max="10"
+              value="${oficinasEnEstePiso}"
+              style="
+                width: 50px;
+                padding: 4px 6px;
+                text-align: center;
+                border: 2px solid var(--azul-claro);
+                border-radius: 4px;
+                font-weight: 600;
+                font-size: 0.85rem;
+                color: var(--azul-corporativo);
+              "
+              title="Cantidad de oficinas en este piso"
+            />
+
+            <div id="oficinas-contenedor-piso-${piso}" style="display: flex; gap: 4px; flex: 1;">
+        `;
+
+        for (let ofi = 1; ofi <= oficinasEnEstePiso; ofi++) {
+          const oficinaNum = (piso * 100) + ofi; // Fórmula consecutiva por piso: piso 9 = 901, 902, 903
+
+          // VERIFICAR SI ESTA OFICINA YA EXISTE (modo edición)
+          const oficinaExistente = this.formData.oficinasSeleccionadas?.find(
+            o => parseInt(o.numero_oficina) === parseInt(oficinaNum)
+          );
+          const estaSeleccionada = !!oficinaExistente;
+
+          if (estaSeleccionada) {
+            console.log(`  ✅ Oficina ${oficinaNum} encontrada en seleccionadas:`, oficinaExistente);
+          }
+
+          html += `
+            <div
+              class="oficina-seleccionable ${estaSeleccionada ? 'selected' : ''}"
+              data-oficina-id="${oficinaNum}"
+              data-metraje="${oficinaExistente?.area || 50}"
+              data-registro-cab-id="${oficinaExistente?.registro_cab_id || ''}"
+              style="
+                flex: 1;
+                height: 45px;
+                background: ${estaSeleccionada
+                  ? 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)'
+                  : 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)'
+                };
+                border: 2px solid white;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 600;
+                font-size: 0.9rem;
+                box-shadow: 0 2px 6px rgba(44, 82, 130, 0.3);
+                cursor: pointer;
+                transition: all 0.2s;
+                ${estaSeleccionada ? 'transform: scale(1.05);' : ''}
+              "
+              title="${estaSeleccionada
+                ? `Oficina ${oficinaNum} - ${oficinaExistente?.area || 50}m² - Estado: ${oficinaExistente?.estado || 'borrador'}`
+                : `Seleccionar Oficina ${oficinaNum}`
+              }"
+              onclick="
+                this.classList.toggle('selected');
+                if (this.classList.contains('selected')) {
+                  this.style.background = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)';
+                  this.style.transform = 'scale(1.05)';
+                } else {
+                  this.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
+                  this.style.transform = 'scale(1)';
+                }
+              "
+              title="Oficina ${oficinaNum} - Click para seleccionar"
+            >
+              ${oficinaNum}
+            </div>
+          `;
+        }
+
+        html += '</div></div>';
+      }
     }
 
     // Sótanos con INPUT DE PARQUEOS DENTRO
@@ -3553,47 +4116,6 @@ class PropertyForm {
     }
 
     html += '</div>';
-
-    // Script para manejar la aplicación de metraje
-    html += `
-      <script>
-        // Event listener para aplicar metraje en lote
-        setTimeout(() => {
-          const btnAplicar = document.getElementById('btn-aplicar-metraje');
-          if (btnAplicar) {
-            btnAplicar.onclick = () => {
-              const metrajeValue = document.getElementById('metraje-batch-input')?.value;
-
-              if (!metrajeValue || parseFloat(metrajeValue) <= 0) {
-                showNotification('⚠️ Ingresa un área válida', 'warning');
-                return;
-              }
-
-              const selectedOficinas = document.querySelectorAll('.oficina-seleccionable.selected');
-
-              if (selectedOficinas.length === 0) {
-                showNotification('⚠️ Selecciona al menos una oficina', 'warning');
-                return;
-              }
-
-              // Aplicar metraje a las seleccionadas
-              selectedOficinas.forEach(oficina => {
-                oficina.dataset.metraje = metrajeValue;
-              });
-
-              showNotification(\`✅ Metraje de \${metrajeValue}m² aplicado a \${selectedOficinas.length} oficina(s)\`, 'success');
-
-              // Deseleccionar todas
-              selectedOficinas.forEach(oficina => {
-                oficina.classList.remove('selected');
-                oficina.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
-                oficina.style.transform = 'scale(1)';
-              });
-            };
-          }
-        }, 100);
-      </script>
-    `;
 
     return html;
   }
@@ -4175,6 +4697,262 @@ class PropertyForm {
   }
 
   /**
+   * 📐 NUEVO: Mostrar modal de metraje para oficinas seleccionadas
+   * @param {Array} oficinasData - Array con datos de oficinas seleccionadas
+   */
+  mostrarModalMetraje(oficinasData) {
+    console.log('📐 Abriendo modal de metraje...');
+    console.log('📊 Oficinas seleccionadas:', oficinasData);
+
+    // Crear HTML del modal
+    let html = `
+      <div id="modal-metraje" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      ">
+        <div style="
+          background: white;
+          border-radius: 12px;
+          width: 90%;
+          max-width: 600px;
+          max-height: 90vh;
+          overflow: hidden;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        ">
+          <!-- Header -->
+          <div style="
+            background: linear-gradient(135deg, var(--azul-corporativo), var(--azul-claro));
+            color: white;
+            padding: 12px var(--spacing-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          ">
+            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: white;">
+              📐 Asignar Metraje
+            </h3>
+            <button
+              id="btn-cerrar-metraje"
+              style="
+                background: transparent;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+                cursor: pointer;
+                padding: 0;
+                width: 32px;
+                height: 32px;
+              "
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Body con scroll -->
+          <div style="
+            padding: var(--spacing-md);
+            overflow-y: auto;
+            max-height: calc(90vh - 180px);
+          ">
+            <p style="color: var(--gris-medio); margin-bottom: var(--spacing-md); font-size: 0.9rem;">
+              Configurando metraje para <strong>${oficinasData.length} oficina(s) seleccionada(s)</strong>
+            </p>
+
+            <!-- Aplicar a todas -->
+            <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-bottom: var(--spacing-md); border: 1px solid #0ea5e9;">
+              <label style="font-size: 0.85rem; font-weight: 600; color: var(--azul-corporativo); display: block; margin-bottom: 6px;">
+                Aplicar mismo metraje a todas:
+              </label>
+              <div style="display: flex; gap: 8px;">
+                <input
+                  type="number"
+                  id="metraje-todas-input"
+                  class="form-input"
+                  placeholder="50"
+                  step="0.01"
+                  min="1"
+                  value="50"
+                  style="flex: 1; padding: 8px; font-size: 0.9rem; text-align: center;"
+                />
+                <button
+                  type="button"
+                  id="btn-aplicar-todas"
+                  class="btn-primary"
+                  style="padding: 8px 16px; font-size: 0.85rem; white-space: nowrap;"
+                >
+                  Aplicar a todas
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista de oficinas con inputs individuales -->
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${oficinasData.map(ofi => `
+                <div style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  padding: 10px 12px;
+                  background: ${ofi.esNueva ? '#ecfdf5' : '#f8fafc'};
+                  border: 1px solid ${ofi.esNueva ? '#10b981' : '#e2e8f0'};
+                  border-radius: 6px;
+                ">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="
+                      width: 24px;
+                      height: 24px;
+                      background: ${ofi.esNueva ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)'};
+                      border-radius: 4px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      color: white;
+                      font-size: 0.7rem;
+                      font-weight: 600;
+                    ">${ofi.esNueva ? '+' : ''}</span>
+                    <span style="font-weight: 600; color: var(--azul-corporativo);">
+                      Oficina ${ofi.id}
+                    </span>
+                    <span style="font-size: 0.75rem; color: var(--gris-medio);">
+                      (Piso ${ofi.piso})
+                    </span>
+                    ${ofi.esNueva ? '<span style="font-size: 0.7rem; background: #10b981; color: white; padding: 2px 6px; border-radius: 4px;">NUEVA</span>' : ''}
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <input
+                      type="number"
+                      class="metraje-input-individual"
+                      data-oficina-id="${ofi.id}"
+                      data-registro-cab-id="${ofi.registroCabId || ''}"
+                      data-piso="${ofi.piso}"
+                      data-es-nueva="${ofi.esNueva}"
+                      value="${ofi.metraje}"
+                      step="0.01"
+                      min="1"
+                      style="width: 80px; padding: 6px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem;"
+                    />
+                    <span style="font-size: 0.85rem; color: var(--gris-medio);">m²</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="
+            background: #f8f9fa;
+            padding: var(--spacing-md);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-sm);
+            border-top: 1px solid #dee2e6;
+          ">
+            <button
+              id="btn-cancelar-metraje"
+              class="btn-secondary"
+              style="padding: 10px 20px;"
+            >
+              Cancelar
+            </button>
+            <button
+              id="btn-guardar-metraje"
+              class="btn-primary"
+              style="padding: 10px 20px;"
+            >
+              <i class="fas fa-save"></i> Guardar
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Insertar modal en el body
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    // Event listeners
+    document.getElementById('btn-cerrar-metraje').onclick = () => {
+      document.getElementById('modal-metraje').remove();
+    };
+
+    document.getElementById('btn-cancelar-metraje').onclick = () => {
+      document.getElementById('modal-metraje').remove();
+    };
+
+    // Aplicar a todas
+    document.getElementById('btn-aplicar-todas').onclick = () => {
+      const valorTodas = document.getElementById('metraje-todas-input').value;
+      if (!valorTodas || parseFloat(valorTodas) <= 0) {
+        showNotification('⚠️ Ingresa un valor válido', 'warning');
+        return;
+      }
+      document.querySelectorAll('.metraje-input-individual').forEach(input => {
+        input.value = valorTodas;
+      });
+      showNotification(`✅ Metraje ${valorTodas}m² aplicado a todas`, 'success');
+    };
+
+    // Guardar metraje
+    document.getElementById('btn-guardar-metraje').onclick = () => {
+      const inputs = document.querySelectorAll('.metraje-input-individual');
+      let actualizados = 0;
+
+      inputs.forEach(input => {
+        const oficinaId = input.dataset.oficinaId;
+        const metraje = input.value;
+        const esNueva = input.dataset.esNueva === 'true';
+
+        // Actualizar el data-metraje en la oficina de la torre
+        const oficinaEl = document.querySelector(`.oficina-seleccionable[data-oficina-id="${oficinaId}"]`);
+        if (oficinaEl) {
+          oficinaEl.dataset.metraje = metraje;
+          console.log(`📐 Oficina ${oficinaId}: metraje actualizado a ${metraje}m²`);
+          actualizados++;
+        }
+
+        // Guardar en formData para oficinas nuevas
+        if (esNueva) {
+          if (!this.formData.oficinasNuevas) {
+            this.formData.oficinasNuevas = [];
+          }
+          const existeIdx = this.formData.oficinasNuevas.findIndex(o => o.numero == oficinaId);
+          if (existeIdx >= 0) {
+            this.formData.oficinasNuevas[existeIdx].area = parseFloat(metraje);
+          } else {
+            this.formData.oficinasNuevas.push({
+              numero: oficinaId,
+              piso: input.dataset.piso,
+              area: parseFloat(metraje)
+            });
+          }
+        }
+      });
+
+      // Deseleccionar oficinas y restaurar colores
+      document.querySelectorAll('.oficina-seleccionable.selected').forEach(oficina => {
+        oficina.classList.remove('selected');
+        const esNueva = oficina.classList.contains('oficina-nueva');
+        if (esNueva) {
+          oficina.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        } else {
+          oficina.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
+        }
+        oficina.style.transform = 'scale(1)';
+      });
+
+      showNotification(`✅ Metraje guardado para ${actualizados} oficina(s)`, 'success');
+      document.getElementById('modal-metraje').remove();
+    };
+  }
+
+  /**
    * 🅿️ NUEVO: Renderizar sótanos COMPACTO
    * Input de parqueos DENTRO del rectángulo del sótano
    */
@@ -4392,8 +5170,14 @@ class PropertyForm {
     const edificioCompleto = {
       edificio: edificio,
       oficinas: oficinas,
-      sotanos: sotanos
+      sotanos: sotanos,
+      oficinas_para_eliminar: this.formData.oficinasParaEliminar || []  // 🗑️ IDs de oficinas a eliminar
     };
+
+    // Log de oficinas para eliminar
+    if (this.formData.oficinasParaEliminar?.length > 0) {
+      console.log('🗑️ Oficinas marcadas para ELIMINAR:', this.formData.oficinasParaEliminar);
+    }
     
     // Contar oficinas con equipamiento
     const oficinasConEquipamiento = oficinas.filter(ofi => ofi.caracteristicas.length > 0).length;
