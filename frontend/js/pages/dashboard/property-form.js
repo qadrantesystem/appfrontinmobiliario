@@ -3457,9 +3457,114 @@ class PropertyForm {
         pisoSelect.innerHTML = opcionesPiso;
         pisoContainer.style.display = 'block';
       }
+
+      // 🆕 Listener para generar nombre correlativo cuando cambia el piso
+      // Remover listener anterior si existe (evitar duplicados)
+      if (this._pisoChangeHandler) {
+        pisoSelect.removeEventListener('change', this._pisoChangeHandler);
+      }
+
+      // Guardar referencia al edificio actual para el closure
+      const edificioActual = edificio;
+
+      this._pisoChangeHandler = async (e) => {
+        const pisoSeleccionado = e.target.value;
+        if (!pisoSeleccionado) return;
+
+        const nombreInmuebleInput = document.getElementById('nombre_inmueble');
+        if (!nombreInmuebleInput) return;
+
+        // Solo auto-generar si el campo está vacío o tiene el placeholder genérico
+        const valorActual = nombreInmuebleInput.value.trim();
+        const esPlaceholderGenerico = !valorActual ||
+                                       valorActual.includes('Edificio') ||
+                                       valorActual.includes('Oficinas') ||
+                                       valorActual === nombreInmuebleInput.placeholder;
+
+        if (esPlaceholderGenerico) {
+          // Generar nombre correlativo
+          const nombreCorrelativo = await this.generarNombreCorrelativo(
+            edificioActual.registro_cab_id,
+            pisoSeleccionado
+          );
+          nombreInmuebleInput.value = nombreCorrelativo;
+          this.formData.nombre_inmueble = nombreCorrelativo;
+          console.log(`✅ Nombre auto-generado: ${nombreCorrelativo}`);
+        }
+      };
+
+      pisoSelect.addEventListener('change', this._pisoChangeHandler);
     }
 
     showNotification(`✅ Datos heredados de "${edificio.nombre_inmueble}"`, 'success');
+  }
+
+  /**
+   * 🔢 Generar nombre correlativo para oficina individual
+   * Cuando se crea una oficina individual, calcular el siguiente correlativo del piso
+   */
+  async generarNombreCorrelativo(edificioId, piso) {
+    try {
+      console.log(`🔢 Calculando correlativo para edificio ${edificioId}, piso ${piso}`);
+
+      const token = localStorage.getItem('access_token');
+      const url = `${API_CONFIG.BASE_URL}/propiedades/${edificioId}/oficinas`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.warn('⚠️ No se pudo obtener oficinas del edificio');
+        // Fallback: primer correlativo del piso
+        return `Oficina ${piso}01`;
+      }
+
+      const result = await response.json();
+      const oficinas = result.data || [];
+
+      console.log(`📦 Oficinas del edificio: ${oficinas.length}`);
+
+      // Filtrar oficinas del piso seleccionado
+      const oficinasDelPiso = oficinas.filter(o => parseInt(o.piso) === parseInt(piso));
+      console.log(`📋 Oficinas en piso ${piso}: ${oficinasDelPiso.length}`);
+
+      // Calcular siguiente correlativo basado en patrón {piso}01, {piso}02...
+      // Ej: Piso 7 -> 701, 702, 703...
+      const baseNumero = parseInt(piso) * 100;
+      let maxNumero = 0;
+
+      oficinasDelPiso.forEach(oficina => {
+        if (oficina.numero_oficina) {
+          const numero = parseInt(oficina.numero_oficina);
+          if (numero > maxNumero) {
+            maxNumero = numero;
+          }
+        }
+      });
+
+      // Si no hay oficinas o el maxNumero es menor que el base, empezar desde base+1
+      let siguienteNumero;
+      if (maxNumero < baseNumero) {
+        siguienteNumero = baseNumero + 1; // Ej: 701
+      } else {
+        siguienteNumero = maxNumero + 1; // Ej: 703 si ya existen 701, 702
+      }
+
+      const nombreCorrelativo = `Oficina ${siguienteNumero}`;
+      console.log(`✅ Nombre correlativo generado: ${nombreCorrelativo}`);
+
+      return nombreCorrelativo;
+
+    } catch (error) {
+      console.error('❌ Error generando nombre correlativo:', error);
+      // Fallback
+      return `Oficina ${piso}01`;
+    }
   }
 
   /**
