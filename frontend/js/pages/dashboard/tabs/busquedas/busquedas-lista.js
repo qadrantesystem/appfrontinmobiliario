@@ -115,14 +115,50 @@ class BusquedasLista {
       minute: '2-digit'
     });
 
+    // Extraer datos de estructura anidada (compatible con formato nuevo y legacy)
+    const filtrosGenericos = criterios.filtros_genericos || {};
+    const filtrosBasicos = criterios.filtros_basicos || {};
+    const filtrosAvanzados = criterios.filtros_avanzados || [];
+    const meta = criterios._meta || {};
+
+    // Transacción (buscar en estructura anidada o legacy)
+    const transaccion = filtrosGenericos.transaccion || criterios.transaccion || 'venta';
+    const transaccionTexto = transaccion === 'alquiler' ? 'Alquiler' : 'Venta';
+
+    // Tipo de inmueble
+    const tipoInmuebleId = filtrosGenericos.tipo_inmueble_id || criterios.tipo_inmueble_id;
+    const tipoNombre = meta.tipo_inmueble_nombre || this.getTipoNombre(tipoInmuebleId);
+
+    // Distritos
+    const distritoIds = filtrosGenericos.distrito_ids || criterios.distritos_ids || [];
+
+    // Área/Metraje
+    const area = filtrosBasicos.area || meta.metraje_original || criterios.metraje || criterios.area_min;
+
+    // Presupuesto
+    const presupuesto = filtrosBasicos.precio || meta.presupuesto_original || criterios.presupuesto;
+
+    // Tipo de búsqueda (badge)
+    let tipoBusquedaBadge = '';
+    if (filtrosAvanzados.length > 0) {
+      tipoBusquedaBadge = `<span style="background: #8B5CF6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">🔬 AVANZADA</span>`;
+    } else if (Object.keys(filtrosBasicos).some(k => filtrosBasicos[k])) {
+      tipoBusquedaBadge = `<span style="background: #0066CC; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">📋 BÁSICA</span>`;
+    } else {
+      tipoBusquedaBadge = `<span style="background: #6b7280; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">🔍 GENÉRICA</span>`;
+    }
+
     return `
       <div class="saved-search-card" data-search-id="${busqueda.busqueda_id}">
         <!-- Header con usuario y fecha -->
         <div class="saved-search-header">
           <div>
-            <h3 class="saved-search-title">
-              ${busqueda.nombre_busqueda || busqueda.descripcion_legible || `Búsqueda #${busqueda.codigo_busqueda}`}
-            </h3>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <h3 class="saved-search-title" style="margin: 0;">
+                ${busqueda.nombre_busqueda || busqueda.descripcion_legible || `Búsqueda #${busqueda.codigo_busqueda}`}
+              </h3>
+              ${tipoBusquedaBadge}
+            </div>
             <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 0.875rem;">
               👤 ${busqueda.usuario_nombre || busqueda.usuario?.nombre + ' ' + busqueda.usuario?.apellido || 'Usuario'}
             </p>
@@ -144,34 +180,34 @@ class BusquedasLista {
         <div class="saved-search-details">
           <div class="saved-search-detail">
             <i class="fas fa-handshake"></i>
-            <span><strong>Transacción:</strong> ${criterios.transaccion === 'alquiler' ? 'Alquiler' : 'Venta'}</span>
+            <span><strong>Transacción:</strong> ${transaccionTexto}</span>
           </div>
 
-          ${criterios.tipo_inmueble_id ? `
+          ${tipoInmuebleId ? `
             <div class="saved-search-detail">
               <i class="fas fa-building"></i>
-              <span><strong>Tipo:</strong> ${this.getTipoNombre(criterios.tipo_inmueble_id)}</span>
+              <span><strong>Tipo:</strong> ${tipoNombre}</span>
             </div>
           ` : ''}
 
-          ${criterios.distritos_ids && criterios.distritos_ids.length > 0 ? `
+          ${distritoIds.length > 0 ? `
             <div class="saved-search-detail">
               <i class="fas fa-map-marker-alt"></i>
-              <span><strong>Ubicación:</strong> ${criterios.distritos_ids.length} distrito(s)</span>
+              <span><strong>Ubicación:</strong> ${distritoIds.length} distrito(s)</span>
             </div>
           ` : ''}
 
-          ${criterios.metraje || criterios.area_min || criterios.area_max ? `
+          ${area ? `
             <div class="saved-search-detail">
               <i class="fas fa-ruler-combined"></i>
-              <span><strong>Área:</strong> ${criterios.metraje ? `~${criterios.metraje} m²` : `${criterios.area_min || 0}-${criterios.area_max || '∞'} m²`}</span>
+              <span><strong>Área:</strong> ~${area} m²</span>
             </div>
           ` : ''}
 
-          ${criterios.presupuesto || criterios.presupuesto_max ? `
+          ${presupuesto ? `
             <div class="saved-search-detail">
               <i class="fas fa-dollar-sign"></i>
-              <span><strong>Presupuesto:</strong> ${criterios.presupuesto ? `~USD ${this.formatNumber(criterios.presupuesto)}` : `hasta USD ${this.formatNumber(criterios.presupuesto_max)}`}</span>
+              <span><strong>Presupuesto:</strong> ~USD ${this.formatNumber(presupuesto)}</span>
             </div>
           ` : ''}
 
