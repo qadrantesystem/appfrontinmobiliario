@@ -1843,11 +1843,11 @@ class PropertyForm {
             <div style="margin-top: var(--spacing-sm); display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.7rem; color: var(--gris-medio);">
               <div style="display: flex; align-items: center; gap: 3px;">
                 <span style="width: 12px; height: 12px; background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%); border-radius: 2px;"></span>
-                <span>Existente</span>
+                <span>Sin equipar</span>
               </div>
               <div style="display: flex; align-items: center; gap: 3px;">
                 <span style="width: 12px; height: 12px; background: linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%); border-radius: 2px;"></span>
-                <span>Seleccionada</span>
+                <span>⭐ Equipada</span>
               </div>
               <div style="display: flex; align-items: center; gap: 3px;">
                 <span style="width: 12px; height: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 2px;"></span>
@@ -3763,11 +3763,18 @@ class PropertyForm {
           oficina.style.transform = 'scale(1.05)';
           console.log(`🎯 Oficina ${oficinaId} SELECCIONADA para equipar`);
         } else {
-          // Restaurar color original (azul para existentes, verde para nuevas)
+          // Restaurar color original según tipo
           const esNueva = oficina.classList.contains('oficina-nueva');
+          const esEquipada = oficina.classList.contains('equipada');
+
           if (esNueva) {
+            // Verde para nuevas
             oficina.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+          } else if (esEquipada) {
+            // Dorado para equipadas (mantener estado visual)
+            oficina.style.background = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)';
           } else {
+            // Azul para existentes sin equipar
             oficina.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
           }
           oficina.style.transform = 'scale(1)';
@@ -3985,14 +3992,25 @@ class PropertyForm {
           const displayName = oficina.nombre || `Oficina ${numeroOficina}`;
           const shortName = displayName.replace('Oficina ', 'Of. ');
 
+          // ✅ Verificar si tiene equipamiento (características con valor "Sí" o "true")
+          const tieneEquipamiento = oficina.caracteristicas?.some(c => {
+            const valor = c.valor;
+            return valor === 'Sí' || valor === 'true' || valor === '1' || valor === true;
+          });
+
           // Determinar color según estado
-          // Rojo = para eliminar, Azul = normal (click lo pone dorado)
+          // Rojo = para eliminar, Dorado = tiene equipamiento, Azul = sin equipamiento
           let bgColor, borderStyle, iconPrefix, extraClass;
           if (paraEliminar) {
             bgColor = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'; // Rojo
             borderStyle = '2px dashed white';
             iconPrefix = '🗑️ ';
             extraClass = 'para-eliminar';
+          } else if (tieneEquipamiento) {
+            bgColor = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)'; // Dorado
+            borderStyle = '2px solid white';
+            iconPrefix = '⭐ ';
+            extraClass = 'equipada selected';
           } else {
             bgColor = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)'; // Azul
             borderStyle = '2px solid white';
@@ -4027,7 +4045,11 @@ class PropertyForm {
                 transition: all 0.2s;
                 ${paraEliminar ? 'opacity: 0.8; text-decoration: line-through;' : ''}
               "
-              title="${paraEliminar ? '🗑️ MARCADA PARA ELIMINAR' : `${displayName} - ${oficina.area || 50}m² - Click para seleccionar`}"
+              title="${paraEliminar
+                ? '🗑️ MARCADA PARA ELIMINAR'
+                : tieneEquipamiento
+                  ? `⭐ ${displayName} - ${oficina.area || 50}m² - EQUIPADA`
+                  : `${displayName} - ${oficina.area || 50}m² - Click para seleccionar`}"
             >
               ${iconPrefix}${shortName}
             </div>
