@@ -142,9 +142,11 @@ class BusquedasMap {
 
     // Remover resaltado de todos los marcadores
     this.tab.container.querySelectorAll('.custom-number-marker > div').forEach(markerDiv => {
+      const isCombination = markerDiv.closest('.combination-marker') !== null;
       markerDiv.style.transform = 'scale(1)';
       markerDiv.style.zIndex = '1000';
-      markerDiv.style.background = '#2C5282'; // Azul por defecto
+      // Restaurar color original: verde para combinaciones, azul para individuales
+      markerDiv.style.background = isCombination ? '#4CAF50' : '#2C5282';
       markerDiv.style.boxShadow = '0 3px 10px rgba(0, 0, 0, 0.3)';
     });
 
@@ -152,16 +154,19 @@ class BusquedasMap {
     const markers = this.tab.container.querySelectorAll('.custom-number-marker > div');
     markers.forEach(markerDiv => {
       const markerText = markerDiv.textContent.trim();
-      if (parseInt(markerText) === number) {
+      // Extraer número (funciona para "1" y para "🔗 1")
+      const extractedNumber = parseInt(markerText.replace(/[^\d]/g, ''));
+
+      if (extractedNumber === number) {
         if (isHover) {
           // Hover: solo hacer más grande
           markerDiv.style.transform = 'scale(1.3)';
           markerDiv.style.zIndex = '2000';
         } else if (isClick) {
-          // Click: pintar de amarillo y hacer más grande
+          // Click: pintar de amarillo/dorado y hacer más grande
           markerDiv.style.transform = 'scale(1.4)';
           markerDiv.style.zIndex = '3000';
-          markerDiv.style.background = '#E8A317'; // Amarillo
+          markerDiv.style.background = '#E8A317'; // Amarillo/Dorado
           markerDiv.style.boxShadow = '0 4px 12px rgba(232, 163, 23, 0.6)';
         } else {
           // Mouseleave: volver a normal
