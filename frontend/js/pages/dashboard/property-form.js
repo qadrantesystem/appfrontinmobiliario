@@ -2079,12 +2079,19 @@ class PropertyForm {
                     const caracId = carac.caracteristica_id || carac.id;
                     const caracNombre = carac.nombre || '';
                     const caracIcono = carac.icono || '📋';
-                    
+
+                    // ✅ PRE-POBLAR con valor existente (modo edición)
+                    const caracExistente = this.formData.caracteristicas?.find(c =>
+                      parseInt(c.caracteristica_id) === parseInt(caracId)
+                    );
+                    const valorExistente = caracExistente?.valor || '';
+                    const isChecked = isBoolean && (valorExistente === 'Sí' || valorExistente === 'true' || valorExistente === true);
+
                     return `
                       <label class="checkbox-label">
                         ${isBoolean
-                          ? `<input type="checkbox" name="caracteristica_${caracId}" data-carac-id="${caracId}" data-tipo="boolean" />`
-                          : `<input type="text" name="caracteristica_${caracId}" data-carac-id="${caracId}" data-tipo="${tipoInput}" placeholder="${caracNombre}" />`
+                          ? `<input type="checkbox" name="caracteristica_${caracId}" data-carac-id="${caracId}" data-tipo="boolean" ${isChecked ? 'checked' : ''} />`
+                          : `<input type="text" name="caracteristica_${caracId}" data-carac-id="${caracId}" data-tipo="${tipoInput}" placeholder="${caracNombre}" value="${valorExistente}" />`
                         }
                         <span>${caracIcono} ${caracNombre}</span>
                       </label>
@@ -2702,27 +2709,51 @@ class PropertyForm {
         const oficinasPorPiso = parseInt(this.formData.caracteristicas.find(c => c.caracteristica_id === 120)?.valor || 0);
         const sotanos = parseInt(this.formData.caracteristicas.find(c => c.caracteristica_id === 121)?.valor || 0);
 
-        console.log(`📊 Generando oficinas: ${pisos} pisos × ${oficinasPorPiso} oficinas/piso = ${pisos * oficinasPorPiso} oficinas`);
+        console.log(`📊 Generando oficinas: ${pisos} pisos × ${oficinasPorPiso} oficinas/piso`);
 
-        // ✅ GENERAR OFICINAS PROGRAMÁTICAMENTE (sin depender del DOM)
+        // ✅ LEER OFICINAS DIRECTAMENTE DEL DOM (existentes + nuevas)
         const oficinasConfig = [];
-        
-        for (let piso = pisos; piso >= 1; piso--) {
-          const oficinasEnEstePiso = this.getOficinasEnPiso(piso, oficinasPorPiso);
-          
-          for (let i = 1; i <= oficinasEnEstePiso; i++) {
-            const oficinaNum = (piso * 100) + i;
-            
-            // Intentar obtener metraje del DOM si existe, sino usar default
-            const oficinaEl = document.querySelector(`.oficina-seleccionable[data-oficina-id="${oficinaNum}"]`);
-            const metraje = oficinaEl ? parseFloat(oficinaEl.dataset.metraje) || 50 : 50;
+        const isEdit = !!this.propId;
 
-            oficinasConfig.push({
-              oficina_numero: oficinaNum,
-              piso: piso,
-              area: metraje,
-              nombre: `Oficina ${oficinaNum}`
-            });
+        // Obtener TODAS las oficinas del DOM (azules=existentes, verdes=nuevas)
+        const oficinasDOM = document.querySelectorAll('.oficina-seleccionable:not(.para-eliminar)');
+        console.log(`📊 Oficinas en DOM (no eliminadas): ${oficinasDOM.length}`);
+
+        oficinasDOM.forEach(oficinaEl => {
+          const oficinaId = oficinaEl.dataset.oficinaId;
+          const registroCabId = oficinaEl.dataset.registroCabId;
+          const piso = parseInt(oficinaEl.dataset.piso) || 1;
+          const metraje = parseFloat(oficinaEl.dataset.metraje) || 50;
+          const esNueva = oficinaEl.classList.contains('oficina-nueva');
+          const nombreOficina = oficinaEl.dataset.nombre || `Oficina ${oficinaId}`;
+
+          oficinasConfig.push({
+            oficina_numero: parseInt(oficinaId),
+            registro_cab_id: registroCabId ? parseInt(registroCabId) : null, // ID real para existentes
+            piso: piso,
+            area: metraje,
+            nombre: nombreOficina,
+            es_nueva: esNueva
+          });
+
+          console.log(`  📦 Oficina ${oficinaId} (piso ${piso}): ${metraje}m² ${esNueva ? '[NUEVA]' : '[EXISTENTE]'}`);
+        });
+
+        // Si no hay oficinas en el DOM (por algún error), generar teóricas
+        if (oficinasConfig.length === 0) {
+          console.warn('⚠️ No hay oficinas en DOM, generando teóricas...');
+          for (let piso = pisos; piso >= 1; piso--) {
+            const oficinasEnEstePiso = this.getOficinasEnPiso(piso, oficinasPorPiso);
+            for (let i = 1; i <= oficinasEnEstePiso; i++) {
+              const oficinaNum = (piso * 100) + i;
+              oficinasConfig.push({
+                oficina_numero: oficinaNum,
+                piso: piso,
+                area: 50,
+                nombre: `Oficina ${oficinaNum}`,
+                es_nueva: true
+              });
+            }
           }
         }
 
@@ -5144,12 +5175,14 @@ class PropertyForm {
         });
         
         oficinas.push({
+          registro_cab_id: oficina.registro_cab_id || null, // ✅ ID para oficinas existentes (actualizar)
           piso: oficina.piso,
           numero_oficina: oficina.oficina_numero,
           nombre: truncateString(oficina.nombre, 200),
           // Area: NUMERIC(10,2) = 0 a 99999999.99
           area: validateNumeric(oficina.area, 0, 99999999.99) || 0,
-          caracteristicas: caracteristicasOficina // ✅ Equipamiento mapeado correctamente
+          caracteristicas: caracteristicasOficina, // ✅ Equipamiento mapeado correctamente
+          es_nueva: oficina.es_nueva || false // ✅ Flag para saber si crear o actualizar
         });
       });
     }
