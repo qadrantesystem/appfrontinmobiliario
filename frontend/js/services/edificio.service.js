@@ -138,6 +138,80 @@ class EdificioService {
       throw error;
     }
   }
+
+  /**
+   * 🔢 Obtener cantidad de pisos de un edificio
+   * @param {number} edificioId - ID del edificio
+   * @returns {Promise<number>} - Cantidad de pisos (default 10 si no existe)
+   */
+  async obtenerCantidadPisos(edificioId) {
+    try {
+      const token = localStorage.getItem('access_token');
+      // Característica ID 110 = "Cantidad Pisos Edificio"
+      // ✅ Usar endpoint correcto (sin /detalle)
+      const url = `${API_CONFIG.BASE_URL}/propiedades/${edificioId}`;
+
+      console.log('🔍 Obteniendo pisos del edificio:', edificioId);
+      console.log('🌐 URL:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.warn('⚠️ No se pudo obtener detalle del edificio, usando 10 pisos por defecto');
+        return 10;
+      }
+
+      const result = await response.json();
+      const data = result.data || result;
+
+      console.log('📦 Data del edificio:', data);
+
+      // Buscar característica "Cantidad Pisos Edificio" en el detalle
+      const caracteristicas = data.caracteristicas || [];
+      console.log('📋 Características encontradas:', caracteristicas.length);
+      console.log('📋 Características:', caracteristicas);
+
+      // Buscar por ID 110 o por nombre "Cantidad Pisos Edificio"
+      // ⚠️ NO confundir con "Cantidad Oficinas por Piso" (ID 120)
+      const pisosCaract = caracteristicas.find(c => {
+        // Comparar como números para evitar problemas de tipos
+        const caracId = parseInt(c.caracteristica_id);
+        const esId110 = caracId === 110;
+        const nombreLower = (c.nombre || '').toLowerCase();
+        // Buscar específicamente "cantidad pisos edificio" (no "oficinas por piso")
+        const esPorNombre = nombreLower.includes('cantidad') &&
+                           nombreLower.includes('piso') &&
+                           nombreLower.includes('edificio');
+
+        console.log(`🔍 Evaluando característica: ID=${caracId}, nombre="${c.nombre}", valor="${c.valor}"`);
+
+        if (esId110 || esPorNombre) {
+          console.log('✅ Característica de pisos del edificio encontrada:', c);
+        }
+
+        return esId110 || esPorNombre;
+      });
+
+      if (pisosCaract) {
+        const cantidadPisos = parseInt(pisosCaract.valor) || 10;
+        console.log(`🔢 Edificio ${edificioId} tiene ${cantidadPisos} pisos (de característica)`);
+        return cantidadPisos;
+      }
+
+      console.warn('⚠️ No se encontró característica de pisos, usando 10 por defecto');
+      return 10;
+
+    } catch (error) {
+      console.error('❌ Error al obtener cantidad de pisos:', error);
+      return 10; // Default
+    }
+  }
 }
 
 // Instancia singleton

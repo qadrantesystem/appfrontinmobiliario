@@ -15,6 +15,17 @@ class SelectorEdificio {
     this.edificios = [];
     this.edificioSeleccionado = null;
     this.caracteristicas = null;
+
+    // 🆕 Callback para notificar al formulario padre cuando cambia el edificio
+    this.onEdificioChange = null;
+  }
+
+  /**
+   * 🆕 Configurar callback para cuando cambie el edificio
+   * @param {Function} callback - Función que recibe el edificio seleccionado
+   */
+  setOnChangeCallback(callback) {
+    this.onEdificioChange = callback;
   }
 
   /**
@@ -95,6 +106,11 @@ class SelectorEdificio {
       this.edificioSeleccionado = null;
       this.caracteristicas = null;
       this.hideCaracteristicas();
+
+      // 🆕 Notificar al callback que se deseleccionó
+      if (this.onEdificioChange) {
+        this.onEdificioChange(null);
+      }
       return;
     }
 
@@ -103,15 +119,46 @@ class SelectorEdificio {
 
     console.log('🏢 Edificio seleccionado:', this.edificioSeleccionado);
 
-    // 🚫 CARACTERÍSTICAS DESHABILITADAS (por ahora)
-    // await this.cargarCaracteristicas(edificioId);
-    
-    // Solo mostrar info básica del edificio
-    if (this.caracteristicasContainer) {
+    // 🆕 Notificar al callback con los datos del edificio para herencia
+    if (this.onEdificioChange && this.edificioSeleccionado) {
+      console.log('📤 Notificando cambio de edificio al formulario padre...');
+      this.onEdificioChange({
+        registro_cab_id: this.edificioSeleccionado.registro_cab_id,
+        nombre_inmueble: this.edificioSeleccionado.nombre_inmueble,
+        distrito_id: this.edificioSeleccionado.distrito_id,
+        distrito_nombre: this.edificioSeleccionado.distrito_nombre || this.edificioSeleccionado.distrito,
+        direccion: this.edificioSeleccionado.direccion,
+        latitud: this.edificioSeleccionado.latitud,
+        longitud: this.edificioSeleccionado.longitud
+      });
+    }
+
+    // Mostrar info del edificio con datos heredados
+    if (this.caracteristicasContainer && this.edificioSeleccionado) {
       this.caracteristicasContainer.innerHTML = `
-        <div class="alert alert-info mt-3">
-          <i class="fas fa-building me-2"></i>
-          <strong>Edificio seleccionado:</strong> ${this.edificioSeleccionado.nombre_inmueble}
+        <div class="edificio-info-card" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4CAF50; border-radius: 12px; padding: 16px; margin-top: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <span style="font-size: 2rem;">🏢</span>
+            <div>
+              <div style="font-weight: 700; font-size: 1.1rem; color: #2e7d32;">
+                ${this.edificioSeleccionado.nombre_inmueble}
+              </div>
+              <div style="font-size: 0.85rem; color: #388e3c;">
+                📍 ${this.edificioSeleccionado.direccion || 'Sin dirección'}
+              </div>
+            </div>
+          </div>
+          <div style="background: white; border-radius: 8px; padding: 12px; font-size: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 8px; color: #4CAF50; font-weight: 600; margin-bottom: 8px;">
+              <span>✅</span>
+              <span>Datos que se heredarán automáticamente:</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; color: #555;">
+              <div>📍 <strong>Distrito:</strong> ${this.edificioSeleccionado.distrito_nombre || this.edificioSeleccionado.distrito || 'N/A'}</div>
+              <div>🗺️ <strong>Dirección:</strong> ${this.edificioSeleccionado.direccion || 'N/A'}</div>
+              ${this.edificioSeleccionado.latitud ? `<div>📌 <strong>Coordenadas:</strong> ${parseFloat(this.edificioSeleccionado.latitud).toFixed(4)}, ${parseFloat(this.edificioSeleccionado.longitud).toFixed(4)}</div>` : ''}
+            </div>
+          </div>
         </div>
       `;
     }

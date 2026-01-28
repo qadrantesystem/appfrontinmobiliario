@@ -30,8 +30,13 @@ class BusquedasCards {
 
     const propId = prop.registro_cab_id;
 
-    // ⚠️ El API devuelve "imagenes" (array de strings) NO "fotos" (array de objetos)
-    const imagenesAPI = Array.isArray(prop.imagenes) ? prop.imagenes : [];
+    // ⚠️ El API devuelve "imagenes" (array de strings) y/o "imagen_principal" (string)
+    let imagenesAPI = Array.isArray(prop.imagenes) ? prop.imagenes : [];
+
+    // ✅ Si no hay array de imágenes pero hay imagen_principal, usarla
+    if (imagenesAPI.length === 0 && prop.imagen_principal) {
+      imagenesAPI = [prop.imagen_principal];
+    }
 
     console.log('📸 Imágenes desde API:', imagenesAPI.length, 'URLs');
 
@@ -120,7 +125,12 @@ class BusquedasCards {
         </div>
 
         <div class="property-info">
-          <h3 class="property-title">${prop.titulo || 'Sin título'}</h3>
+          <h3 class="property-title">${prop.titulo || prop.nombre_inmueble || 'Sin título'}</h3>
+          ${prop.edificio_nombre ? `
+            <div class="property-building" style="color: #0066CC; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">
+              🏢 ${prop.edificio_nombre}
+            </div>
+          ` : ''}
           <div class="property-location">📍 ${prop.direccion || 'Ubicación no disponible'}</div>
           <div class="property-price">${precio}</div>
           <div class="property-features">

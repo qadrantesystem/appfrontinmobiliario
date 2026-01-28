@@ -144,7 +144,7 @@ class BusquedasLista {
         <div class="saved-search-details">
           <div class="saved-search-detail">
             <i class="fas fa-handshake"></i>
-            <span><strong>Transacción:</strong> ${criterios.transaccion === 'alquiler' ? 'Alquiler' : 'Compra'}</span>
+            <span><strong>Transacción:</strong> ${criterios.transaccion === 'alquiler' ? 'Alquiler' : 'Venta'}</span>
           </div>
 
           ${criterios.tipo_inmueble_id ? `
