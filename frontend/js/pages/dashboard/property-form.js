@@ -3930,11 +3930,10 @@ class PropertyForm {
         });
 
         // 2️⃣ Renderizar oficinas NUEVAS (a crear)
-        // Usar formato: edificioId-pisoNumero (ej: 189-401, 189-402)
-        const edificioId = this.propId || 0;
+        // Nombre estándar: "Oficina {pisoNumero}" (ej: Oficina 501, Oficina 502)
         for (let i = 1; i <= oficinasNuevas; i++) {
           const nuevoNumero = (piso * 100) + cantidadExistentes + i;
-          const nombreOficina = edificioId ? `${edificioId}-${nuevoNumero}` : `+${nuevoNumero}`;
+          const nombreOficina = `Oficina ${nuevoNumero}`;
 
           html += `
             <div
