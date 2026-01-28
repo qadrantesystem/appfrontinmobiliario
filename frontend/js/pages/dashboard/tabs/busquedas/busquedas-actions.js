@@ -169,20 +169,24 @@ class BusquedasActions {
       if (!card) return;
 
       const isCombination = card.dataset.combination === 'true';
+      const propertyNumber = parseInt(card.dataset.propertyNumber);
 
       if (isCombination) {
-        // Es una combinación - buscar en currentResults por edificio_id y número
+        // Es una combinación - buscar por número de propiedad (índice en resultados)
         const comboId = checkbox.dataset.comboId;
-        const edificioId = parseInt(checkbox.dataset.edificioId);
-        const propertyNumber = parseInt(card.dataset.propertyNumber);
 
-        // Buscar la combinación en los resultados
-        const combo = this.tab.currentResults.find(r =>
-          r.tipo === 'combinacion' &&
-          r.edificio_id === edificioId
-        );
+        // Buscar la combinación que coincida con el comboId generado
+        const combo = this.tab.currentResults.find(r => {
+          if (r.tipo !== 'combinacion') return false;
 
-        if (combo) {
+          // Regenerar el comboId para comparar
+          const oficinaIds = (r.oficinas || []).map(o => o.registro_cab_id).sort().join('-');
+          const expectedComboId = `combo-${r.edificio_id}-${r.piso}-${oficinaIds}`;
+
+          return expectedComboId === comboId;
+        });
+
+        if (combo && !seleccionadas.includes(combo)) {
           seleccionadas.push(combo);
         }
       } else {
@@ -194,7 +198,7 @@ class BusquedasActions {
           r.registro_cab_id === propertyId
         );
 
-        if (prop) {
+        if (prop && !seleccionadas.includes(prop)) {
           seleccionadas.push(prop);
         }
       }

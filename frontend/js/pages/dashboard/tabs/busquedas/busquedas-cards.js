@@ -203,8 +203,9 @@ class BusquedasCards {
       </div>
     `).join('');
 
-    // Generar ID único para la combinación (basado en edificio_id y oficinas)
-    const comboId = `combo-${combo.edificio_id}-${combo.piso}`;
+    // Generar ID único para la combinación (basado en edificio_id, piso y IDs de oficinas)
+    const oficinaIds = (combo.oficinas || []).map(o => o.registro_cab_id).sort().join('-');
+    const comboId = `combo-${combo.edificio_id}-${combo.piso}-${oficinaIds}`;
 
     return `
       <div class="property-card combination-card" data-combination="true" data-combo-id="${comboId}" data-edificio-id="${combo.edificio_id}" data-property-number="${number}"
