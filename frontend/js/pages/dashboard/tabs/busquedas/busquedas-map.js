@@ -67,7 +67,7 @@ class BusquedasMap {
       marker.propertyNumber = number;
       marker.isCombination = esCombinacion;
 
-      // Popup (diferente para combinaciones)
+      // Popup (diferente para combinaciones vs individuales)
       const popupContent = esCombinacion
         ? `<div style="text-align: center;">
             <div style="background: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; font-size: 11px;">
@@ -78,8 +78,14 @@ class BusquedasMap {
             <small>📍 ${prop.distrito || ''}</small>
           </div>`
         : `<div style="text-align: center;">
-            <strong>${prop.titulo || 'Propiedad'}</strong><br>
-            <small>${prop.direccion || prop.distrito || ''}</small>
+            ${prop.edificio_nombre ? `
+              <div style="background: #0066CC; color: white; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; font-size: 11px;">
+                🏢 ${prop.edificio_nombre}
+              </div>
+            ` : ''}
+            <strong>${prop.titulo || prop.nombre_inmueble || 'Oficina'}</strong><br>
+            <small>📐 ${prop.area || 0} m²</small><br>
+            <small>📍 ${prop.direccion || prop.distrito || ''}</small>
           </div>`;
 
       marker.bindPopup(popupContent);
