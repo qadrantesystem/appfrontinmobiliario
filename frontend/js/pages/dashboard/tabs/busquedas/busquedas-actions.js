@@ -578,24 +578,38 @@ Equipo Quadrante`;
 
   /**
    * Obtener IDs de propiedades para PDFs (incluye oficinas de combinaciones)
+   * Usa Set para evitar duplicados
    */
   obtenerIDsParaPDFs(properties) {
-    const ids = [];
+    const idsSet = new Set();
+
     properties.forEach(prop => {
       if (prop.tipo === 'combinacion') {
         // Para combinaciones, agregar cada oficina individual
-        (prop.oficinas || []).forEach(ofi => {
+        const oficinas = prop.oficinas || [];
+        console.log(`🔗 Combinación ${prop.edificio_nombre} - Piso ${prop.piso}: ${oficinas.length} oficinas`);
+
+        oficinas.forEach(ofi => {
           if (ofi.registro_cab_id) {
-            ids.push(ofi.registro_cab_id);
+            console.log(`   📄 Oficina: ${ofi.nombre || ofi.titulo} - ID: ${ofi.registro_cab_id}`);
+            idsSet.add(ofi.registro_cab_id);
+          } else {
+            console.warn(`   ⚠️ Oficina sin registro_cab_id:`, ofi);
           }
         });
       } else {
         // Para individuales, agregar el ID directo
         if (prop.registro_cab_id) {
-          ids.push(prop.registro_cab_id);
+          console.log(`📋 Individual: ${prop.titulo || prop.nombre_inmueble} - ID: ${prop.registro_cab_id}`);
+          idsSet.add(prop.registro_cab_id);
+        } else {
+          console.warn(`⚠️ Propiedad individual sin registro_cab_id:`, prop);
         }
       }
     });
+
+    const ids = Array.from(idsSet);
+    console.log(`📎 Total IDs únicos para PDFs: ${ids.length}`, ids);
     return ids;
   }
 
@@ -755,7 +769,7 @@ Equipo Quadrante`;
 
   /**
    * Compartir por WhatsApp
-   * MEJORADO: Incluye edificio, criterios de búsqueda y formato mejorado
+   * MEJORADO: Incluye edificio, criterios de búsqueda, formato mejorado y links de descarga PDF
    * @param {Array} seleccionadas - Propiedades seleccionadas para compartir
    */
   async compartirPorWhatsApp(seleccionadas = null) {
@@ -772,11 +786,17 @@ Equipo Quadrante`;
       return;
     }
 
+    // Contar PDFs
+    const totalPDFs = this.contarPDFsAdjuntos(properties);
+
     // Pedir nombre del cliente y teléfono
     const { value: formValues } = await Swal.fire({
       title: '📱 Compartir por WhatsApp',
       html: `
         <div style="text-align: left;">
+          <p style="margin-bottom: 15px; color: #6B7280; font-size: 14px;">
+            Se generarán <strong>${totalPDFs}</strong> ficha(s) PDF con links de descarga
+          </p>
           <div style="margin-bottom: 15px;">
             <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">
               Nombre del Cliente:
@@ -801,6 +821,19 @@ Equipo Quadrante`;
               style="margin: 0; width: 100%;"
             >
           </div>
+          <div style="margin-bottom: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input
+                type="checkbox"
+                id="swal-wa-pdfs"
+                checked
+                style="margin: 0;"
+              >
+              <span style="font-size: 14px; color: #6B7280;">
+                Incluir links de descarga de fichas PDF
+              </span>
+            </label>
+          </div>
         </div>
       `,
       showCancelButton: true,
@@ -810,6 +843,7 @@ Equipo Quadrante`;
       preConfirm: () => {
         const name = document.getElementById('swal-wa-name').value;
         const phone = document.getElementById('swal-wa-phone').value;
+        const includePDFs = document.getElementById('swal-wa-pdfs').checked;
 
         if (!phone) {
           Swal.showValidationMessage('Por favor ingresa un número');
@@ -824,7 +858,7 @@ Equipo Quadrante`;
           return false;
         }
 
-        return { name, phone };
+        return { name, phone, includePDFs };
       }
     });
 
@@ -837,6 +871,56 @@ Equipo Quadrante`;
 
       // Generar resumen de búsqueda
       const resumenBusqueda = this.generarResumenBusqueda();
+
+      // Obtener IDs para PDFs
+      const idsParaPDFs = this.obtenerIDsParaPDFs(properties);
+
+      // Variable para almacenar URLs de fichas
+      let fichasUrls = [];
+
+      // Si se solicitaron PDFs, generarlos y subir a ImageKit
+      if (formValues.includePDFs && idsParaPDFs.length > 0) {
+        // Mostrar loading mientras genera PDFs
+        Swal.fire({
+          title: 'Generando Fichas PDF',
+          html: `
+            <div style="text-align: center;">
+              <p>Generando ${totalPDFs} ficha(s) PDF...</p>
+              <p style="color: #6B7280; font-size: 14px;">Esto puede tomar unos segundos</p>
+            </div>
+          `,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        try {
+          // Llamar endpoint para generar PDFs y obtener URLs
+          const response = await fetch(`${API_CONFIG.BASE_URL}/emails/generar-fichas-urls`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authService.getToken()}`
+            },
+            body: JSON.stringify({
+              propiedad_ids: idsParaPDFs
+            })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            fichasUrls = result.fichas || [];
+            console.log(`✅ PDFs generados: ${fichasUrls.length}`);
+          } else {
+            console.warn('⚠️ No se pudieron generar los PDFs, continuando sin links');
+          }
+        } catch (pdfError) {
+          console.warn('⚠️ Error generando PDFs:', pdfError);
+          // Continuar sin PDFs
+        }
+      }
 
       // Generar mensaje con resumen
       const total = properties.length;
@@ -851,7 +935,7 @@ Equipo Quadrante`;
 
       mensaje += `Te comparto los resultados de tu búsqueda:\n`;
       mensaje += `${resumenBusqueda.replace(/•/g, '▪️')}\n\n`;
-      mensaje += `📊 *${total} propiedades encontradas:*\n\n`;
+      mensaje += `📊 *${total} resultado(s) encontrado(s):*\n\n`;
 
       preview.forEach((prop, index) => {
         const esCombinacion = prop.tipo === 'combinacion';
@@ -879,7 +963,16 @@ Equipo Quadrante`;
       });
 
       if (total > 5) {
-        mensaje += `... y ${total - 5} propiedades más.\n\n`;
+        mensaje += `... y ${total - 5} resultado(s) más.\n\n`;
+      }
+
+      // Agregar links de descarga de PDFs si existen
+      if (fichasUrls.length > 0) {
+        mensaje += `📎 *Fichas PDF para descargar:*\n\n`;
+        fichasUrls.forEach((ficha, index) => {
+          mensaje += `${index + 1}. ${ficha.titulo || ficha.codigo}\n`;
+          mensaje += `   🔗 ${ficha.url}\n\n`;
+        });
       }
 
       mensaje += `---\n`;
@@ -892,6 +985,9 @@ Equipo Quadrante`;
       // Abrir WhatsApp
       const urlWhatsApp = `https://wa.me/${formValues.phone}?text=${mensajeCodificado}`;
       window.open(urlWhatsApp, '_blank');
+
+      // Cerrar loading si estaba abierto
+      Swal.close();
 
     } catch (error) {
       console.error('Error compartiendo por WhatsApp:', error);
