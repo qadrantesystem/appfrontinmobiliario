@@ -108,14 +108,22 @@ class BusquedasActions {
   }
 
   /**
-   * Compartir búsqueda
+   * Compartir búsqueda - Solo propiedades SELECCIONADAS
    */
   async compartir() {
-    if (this.tab.currentResults.length === 0) {
+    // Obtener propiedades seleccionadas
+    const seleccionadas = this.getSelectedProperties();
+
+    if (seleccionadas.length === 0) {
       await Swal.fire({
         icon: 'info',
-        title: 'Sin resultados',
-        text: 'No hay resultados para compartir',
+        title: 'Sin selección',
+        html: `
+          <p>No has seleccionado ninguna propiedad.</p>
+          <p style="color: #6B7280; font-size: 14px; margin-top: 10px;">
+            Usa los checkboxes ☑️ en las tarjetas para seleccionar las propiedades que deseas compartir.
+          </p>
+        `,
         confirmButtonColor: '#0066CC'
       });
       return;
@@ -123,8 +131,11 @@ class BusquedasActions {
 
     // Modal con botones para elegir método
     const { value: metodo } = await Swal.fire({
-      title: '📤 Compartir Resultados',
-      text: `${this.tab.currentResults.length} propiedades encontradas`,
+      title: '📤 Compartir Selección',
+      html: `
+        <p><strong>${seleccionadas.length}</strong> propiedad(es) seleccionada(s)</p>
+        <p style="color: #6B7280; font-size: 14px;">¿Cómo deseas compartirlas?</p>
+      `,
       icon: 'question',
       showCancelButton: true,
       showDenyButton: true,
@@ -137,40 +148,89 @@ class BusquedasActions {
 
     if (metodo === true) {
       // Confirmado = Correo
-      await this.compartirPorCorreo();
+      await this.compartirPorCorreo(seleccionadas);
     } else if (metodo === false) {
       // Denied = WhatsApp
-      await this.compartirPorWhatsApp();
+      await this.compartirPorWhatsApp(seleccionadas);
     }
+  }
+
+  /**
+   * Obtener propiedades seleccionadas (individuales + combinaciones)
+   */
+  getSelectedProperties() {
+    const seleccionadas = [];
+
+    // Obtener checkboxes marcados
+    const checkboxes = this.tab.container.querySelectorAll('.property-select-checkbox:checked');
+
+    checkboxes.forEach(checkbox => {
+      const card = checkbox.closest('.property-card');
+      if (!card) return;
+
+      const isCombination = card.dataset.combination === 'true';
+
+      if (isCombination) {
+        // Es una combinación - buscar en currentResults por edificio_id y número
+        const comboId = checkbox.dataset.comboId;
+        const edificioId = parseInt(checkbox.dataset.edificioId);
+        const propertyNumber = parseInt(card.dataset.propertyNumber);
+
+        // Buscar la combinación en los resultados
+        const combo = this.tab.currentResults.find(r =>
+          r.tipo === 'combinacion' &&
+          r.edificio_id === edificioId
+        );
+
+        if (combo) {
+          seleccionadas.push(combo);
+        }
+      } else {
+        // Es una propiedad individual
+        const propertyId = parseInt(checkbox.dataset.propertyId);
+
+        // Buscar la propiedad en los resultados
+        const prop = this.tab.currentResults.find(r =>
+          r.registro_cab_id === propertyId
+        );
+
+        if (prop) {
+          seleccionadas.push(prop);
+        }
+      }
+    });
+
+    return seleccionadas;
   }
 
   /**
    * Compartir por correo - Usa endpoint backend /api/v1/emails/enviar-fichas
    * MEJORADO: Incluye tabla resumen con edificio, tipo, área, etc.
+   * @param {Array} seleccionadas - Propiedades seleccionadas para compartir
    */
-  async compartirPorCorreo() {
-    // Máximo 4 propiedades por correo
-    const properties = this.tab.currentResults.slice(0, 4);
+  async compartirPorCorreo(seleccionadas = null) {
+    // Usar seleccionadas o todas (máximo 4)
+    const properties = seleccionadas || this.getSelectedProperties();
 
     if (properties.length === 0) {
       await Swal.fire({
         icon: 'info',
-        title: 'Sin resultados',
-        text: 'No hay propiedades para enviar',
+        title: 'Sin selección',
+        text: 'No hay propiedades seleccionadas para enviar',
         confirmButtonColor: '#0066CC'
       });
       return;
     }
 
     // Advertir si hay más de 4 propiedades
-    if (this.tab.currentResults.length > 4) {
+    if (properties.length > 4) {
       const confirmResult = await Swal.fire({
         icon: 'warning',
         title: 'Límite de envío',
         html: `
           <p>Se enviarán solo las primeras <strong>4 propiedades</strong></p>
           <p style="color: #6B7280; font-size: 14px;">
-            Total encontrado: ${this.tab.currentResults.length} propiedades
+            Seleccionadas: ${properties.length} propiedades
           </p>
         `,
         showCancelButton: true,
@@ -180,11 +240,13 @@ class BusquedasActions {
       });
 
       if (!confirmResult.isConfirmed) return;
+      // Limitar a 4
+      properties.splice(4);
     }
 
     // Obtener datos del usuario actual
     const user = authService.getCurrentUser();
-    const nombreUsuario = user?.nombre || 'Cliente';
+    const nombreUsuario = user?.nombre || 'Asesor Quadrante';
 
     // Obtener resumen de búsqueda
     const resumenBusqueda = this.generarResumenBusqueda();
@@ -192,17 +254,17 @@ class BusquedasActions {
     // Generar tabla de propiedades
     const tablaHTML = this.generarTablaResumen(properties);
 
-    // Generar mensaje predeterminado con saludo personalizado
+    // Contar PDFs que se adjuntarán (incluye oficinas de combinaciones)
+    const totalPDFs = this.contarPDFsAdjuntos(properties);
+    const idsParaPDFs = this.obtenerIDsParaPDFs(properties);
+
+    // Generar mensaje predeterminado con narrativa detallada
     const mensajeDefault = `Hola,
 
 Realizaste una búsqueda en Quadrante con los siguientes criterios:
 ${resumenBusqueda}
 
-A continuación encontrarás un resumen de las propiedades encontradas:
-
-${this.generarTablaTexto(properties)}
-
-Adjunto encontrarás las fichas detalladas en PDF de cada propiedad.
+${this.generarNarrativaResultados(properties)}
 
 Quedo atento a cualquier consulta.
 
@@ -216,7 +278,8 @@ Equipo Quadrante`;
       html: `
         <div style="text-align: left;">
           <p style="margin-bottom: 15px; color: #6B7280;">
-            Se enviarán <strong>${properties.length}</strong> ficha(s) adjuntas en PDF
+            Se enviarán <strong>${totalPDFs}</strong> ficha(s) PDF adjuntas
+            <span style="font-size: 12px;">(${properties.length} resultado(s) seleccionado(s))</span>
           </p>
 
           <!-- Tabla resumen de propiedades -->
@@ -370,10 +433,11 @@ Equipo Quadrante`;
           to_email: formValues.to,
           subject: formValues.subject,
           message: formValues.message || '',
-          propiedad_ids: properties.map(p => p.registro_cab_id || p.edificio_id),
+          // Enviar IDs de todas las oficinas (incluye las de combinaciones)
+          propiedad_ids: idsParaPDFs,
           send_copy: formValues.sendCopy,
           client_name: formValues.clientName,
-          // Enviar tabla resumen para incluir en email
+          // Enviar tabla resumen HTML para incluir en email
           tabla_resumen: this.generarTablaResumenHTML(properties)
         })
       });
@@ -393,7 +457,7 @@ Equipo Quadrante`;
           <p>Fichas enviadas correctamente a:</p>
           <p style="font-weight: 600; color: #2C5282;">${formValues.to}</p>
           <p style="color: #6B7280; font-size: 14px;">
-            ${result.propiedades_enviadas || properties.length} PDF(s) adjuntos
+            ${result.propiedades_enviadas || totalPDFs} PDF(s) adjuntos
           </p>
         `,
         confirmButtonColor: '#0066CC'
@@ -432,7 +496,7 @@ Equipo Quadrante`;
     // Área
     const area = fb.area || meta.metraje_original;
     if (area) {
-      partes.push(`• Área: ~${area} m²`);
+      partes.push(`• Área solicitada: ~${area} m²`);
     }
 
     // Presupuesto
@@ -445,35 +509,144 @@ Equipo Quadrante`;
   }
 
   /**
+   * Generar narrativa explicativa de los resultados
+   */
+  generarNarrativaResultados(properties) {
+    const individuales = properties.filter(p => p.tipo !== 'combinacion');
+    const combinaciones = properties.filter(p => p.tipo === 'combinacion');
+
+    let narrativa = `Encontré ${properties.length} resultado(s) que coinciden con tu búsqueda:\n\n`;
+
+    // Describir individuales
+    if (individuales.length > 0) {
+      narrativa += `📋 ${individuales.length} OFICINA(S) INDIVIDUAL(ES):\n`;
+      individuales.forEach((prop, i) => {
+        const edificio = prop.edificio_nombre ? `${prop.edificio_nombre} - ` : '';
+        const nombre = prop.titulo || prop.nombre_inmueble || 'Oficina';
+        const precio = this.formatPrecio(prop);
+        narrativa += `   ${i + 1}. ${edificio}${nombre}\n`;
+        narrativa += `      📍 ${prop.distrito || 'N/A'} | 📐 ${prop.area || 0} m² | 💰 ${precio}\n`;
+      });
+      narrativa += '\n';
+    }
+
+    // Describir combinaciones
+    if (combinaciones.length > 0) {
+      narrativa += `🔗 ${combinaciones.length} COMBINACIÓN(ES) DE OFICINAS:\n`;
+      narrativa += `   (Oficinas del mismo edificio/piso que juntas alcanzan el área solicitada)\n\n`;
+
+      combinaciones.forEach((combo, i) => {
+        const oficinas = combo.oficinas || [];
+        const precio = this.formatPrecio(combo);
+
+        narrativa += `   ${i + 1}. ${combo.edificio_nombre || 'Edificio'} - Piso ${combo.piso || 'N/A'}\n`;
+        narrativa += `      📍 ${combo.distrito || 'N/A'} | 📐 ${combo.area_total} m² (total) | 💰 ${precio}\n`;
+        narrativa += `      Compuesta por ${combo.cantidad_oficinas} oficinas:\n`;
+
+        oficinas.forEach(ofi => {
+          narrativa += `         • ${ofi.nombre}: ${ofi.area} m²\n`;
+        });
+        narrativa += '\n';
+      });
+    }
+
+    // Nota sobre PDFs adjuntos
+    const totalPDFs = this.contarPDFsAdjuntos(properties);
+    narrativa += `📎 Se adjuntan ${totalPDFs} ficha(s) PDF con información detallada de cada oficina.\n`;
+
+    return narrativa;
+  }
+
+  /**
+   * Contar total de PDFs a adjuntar (individuales + oficinas de combinaciones)
+   */
+  contarPDFsAdjuntos(properties) {
+    let total = 0;
+    properties.forEach(prop => {
+      if (prop.tipo === 'combinacion') {
+        total += (prop.oficinas || []).length;
+      } else {
+        total += 1;
+      }
+    });
+    return total;
+  }
+
+  /**
+   * Obtener IDs de propiedades para PDFs (incluye oficinas de combinaciones)
+   */
+  obtenerIDsParaPDFs(properties) {
+    const ids = [];
+    properties.forEach(prop => {
+      if (prop.tipo === 'combinacion') {
+        // Para combinaciones, agregar cada oficina individual
+        (prop.oficinas || []).forEach(ofi => {
+          if (ofi.registro_cab_id) {
+            ids.push(ofi.registro_cab_id);
+          }
+        });
+      } else {
+        // Para individuales, agregar el ID directo
+        if (prop.registro_cab_id) {
+          ids.push(prop.registro_cab_id);
+        }
+      }
+    });
+    return ids;
+  }
+
+  /**
    * Generar tabla HTML para mostrar en modal
    */
   generarTablaResumen(properties) {
-    const rows = properties.map((prop, index) => {
+    let rows = '';
+
+    properties.forEach((prop, index) => {
       const esCombinacion = prop.tipo === 'combinacion';
       const distrito = prop.distrito || 'N/A';
       const transaccion = prop.transaccion === 'alquiler' ? 'Alquiler' : 'Venta';
 
-      // Nombre con edificio
-      let nombre = '';
       if (esCombinacion) {
-        nombre = `🔗 ${prop.edificio_nombre || 'Combinación'} (${prop.cantidad_oficinas} oficinas)`;
+        // Fila principal de la combinación (verde)
+        rows += `
+          <tr style="background: rgba(76, 175, 80, 0.1); border-bottom: 2px solid #4CAF50;">
+            <td style="padding: 8px; font-size: 11px; font-weight: bold; color: #2e7d32;">${index + 1}</td>
+            <td style="padding: 8px; font-size: 11px;">${distrito}</td>
+            <td style="padding: 8px; font-size: 11px;">${transaccion}</td>
+            <td style="padding: 8px; font-size: 11px; font-weight: bold; color: #2e7d32;">
+              🔗 ${prop.edificio_nombre || 'Combinación'} - Piso ${prop.piso || 'N/A'}
+            </td>
+            <td style="padding: 8px; font-size: 11px; text-align: right; font-weight: bold; color: #2e7d32;">${prop.area_total} m²</td>
+          </tr>
+        `;
+        // Filas de detalle para cada oficina de la combinación
+        (prop.oficinas || []).forEach(ofi => {
+          rows += `
+            <tr style="background: rgba(76, 175, 80, 0.05); border-bottom: 1px solid #E5E7EB;">
+              <td style="padding: 4px 8px; font-size: 10px; color: #6B7280;"></td>
+              <td style="padding: 4px 8px; font-size: 10px; color: #6B7280;"></td>
+              <td style="padding: 4px 8px; font-size: 10px; color: #6B7280;"></td>
+              <td style="padding: 4px 8px 4px 24px; font-size: 10px; color: #4CAF50;">↳ ${ofi.nombre}</td>
+              <td style="padding: 4px 8px; font-size: 10px; text-align: right; color: #4CAF50;">${ofi.area} m²</td>
+            </tr>
+          `;
+        });
       } else {
+        // Fila de propiedad individual (azul)
         const edificio = prop.edificio_nombre ? `${prop.edificio_nombre} - ` : '';
-        nombre = `${edificio}${prop.titulo || prop.nombre_inmueble || 'Oficina'}`;
+        const nombre = `${edificio}${prop.titulo || prop.nombre_inmueble || 'Oficina'}`;
+
+        rows += `
+          <tr style="border-bottom: 1px solid #E5E7EB;">
+            <td style="padding: 8px; font-size: 11px;">${index + 1}</td>
+            <td style="padding: 8px; font-size: 11px;">${distrito}</td>
+            <td style="padding: 8px; font-size: 11px;">${transaccion}</td>
+            <td style="padding: 8px; font-size: 11px;">${nombre}</td>
+            <td style="padding: 8px; font-size: 11px; text-align: right;">${prop.area || 0} m²</td>
+          </tr>
+        `;
       }
-
-      const area = esCombinacion ? prop.area_total : (prop.area || 0);
-
-      return `
-        <tr style="border-bottom: 1px solid #E5E7EB;">
-          <td style="padding: 6px 8px; font-size: 11px;">${index + 1}</td>
-          <td style="padding: 6px 8px; font-size: 11px;">${distrito}</td>
-          <td style="padding: 6px 8px; font-size: 11px;">${transaccion}</td>
-          <td style="padding: 6px 8px; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${nombre}">${nombre}</td>
-          <td style="padding: 6px 8px; font-size: 11px; text-align: right;">${area} m²</td>
-        </tr>
-      `;
-    }).join('');
+    });
 
     return `
       <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
@@ -481,7 +654,7 @@ Equipo Quadrante`;
           <tr style="background: #F3F4F6;">
             <th style="padding: 8px; text-align: left; font-weight: 600; font-size: 11px;">#</th>
             <th style="padding: 8px; text-align: left; font-weight: 600; font-size: 11px;">Distrito</th>
-            <th style="padding: 8px; text-align: left; font-weight: 600; font-size: 11px;">Tipo</th>
+            <th style="padding: 8px; text-align: left; font-weight: 600; font-size: 11px;">Transacción</th>
             <th style="padding: 8px; text-align: left; font-weight: 600; font-size: 11px;">Edificio / Oficina</th>
             <th style="padding: 8px; text-align: right; font-weight: 600; font-size: 11px;">Área</th>
           </tr>
@@ -497,81 +670,104 @@ Equipo Quadrante`;
    * Generar tabla en texto plano para el mensaje
    */
   generarTablaTexto(properties) {
-    const lineas = ['#  | DISTRITO       | TIPO     | EDIFICIO / OFICINA                    | ÁREA'];
-    lineas.push('---|----------------|----------|---------------------------------------|--------');
-
-    properties.forEach((prop, index) => {
-      const esCombinacion = prop.tipo === 'combinacion';
-      const distrito = (prop.distrito || 'N/A').substring(0, 14).padEnd(14);
-      const transaccion = (prop.transaccion === 'alquiler' ? 'Alquiler' : 'Venta').padEnd(8);
-
-      let nombre = '';
-      if (esCombinacion) {
-        nombre = `${prop.edificio_nombre || 'Combinación'} (${prop.cantidad_oficinas} oficinas)`;
-      } else {
-        const edificio = prop.edificio_nombre ? `${prop.edificio_nombre} - ` : '';
-        nombre = `${edificio}${prop.titulo || prop.nombre_inmueble || 'Oficina'}`;
-      }
-      nombre = nombre.substring(0, 37).padEnd(37);
-
-      const area = esCombinacion ? prop.area_total : (prop.area || 0);
-      const areaStr = `${area} m²`.padStart(8);
-
-      lineas.push(`${(index + 1).toString().padStart(2)} | ${distrito} | ${transaccion} | ${nombre} | ${areaStr}`);
-    });
-
-    return lineas.join('\n');
+    // Ya no usamos tabla de texto, usamos narrativa
+    return this.generarNarrativaResultados(properties);
   }
 
   /**
    * Generar tabla HTML para incluir en email (backend)
    */
   generarTablaResumenHTML(properties) {
-    const rows = properties.map((prop, index) => {
+    let rows = '';
+
+    properties.forEach((prop, index) => {
       const esCombinacion = prop.tipo === 'combinacion';
       const distrito = prop.distrito || 'N/A';
       const transaccion = prop.transaccion === 'alquiler' ? 'Alquiler' : 'Venta';
+      const precio = this.formatPrecio(prop);
 
-      let nombre = '';
       if (esCombinacion) {
-        nombre = `🔗 ${prop.edificio_nombre || 'Combinación'} (${prop.cantidad_oficinas} oficinas)`;
+        // Fila principal de la combinación (verde)
+        rows += `<tr style="background: #E8F5E9;">
+          <td style="padding: 10px; border: 1px solid #4CAF50; font-weight: bold; color: #2e7d32;">${index + 1}</td>
+          <td style="padding: 10px; border: 1px solid #4CAF50;">${distrito}</td>
+          <td style="padding: 10px; border: 1px solid #4CAF50;">${transaccion}</td>
+          <td style="padding: 10px; border: 1px solid #4CAF50; font-weight: bold; color: #2e7d32;">
+            🔗 COMBINACIÓN: ${prop.edificio_nombre || 'Edificio'} - Piso ${prop.piso || 'N/A'}
+          </td>
+          <td style="padding: 10px; border: 1px solid #4CAF50; text-align: right; font-weight: bold; color: #2e7d32;">${prop.area_total} m²</td>
+          <td style="padding: 10px; border: 1px solid #4CAF50; text-align: right;">${precio}</td>
+        </tr>`;
+
+        // Filas de detalle para cada oficina
+        (prop.oficinas || []).forEach(ofi => {
+          const precioOfi = ofi.precio_venta ? `USD ${this.formatNumber(ofi.precio_venta)}` :
+                           ofi.precio_alquiler ? `USD ${this.formatNumber(ofi.precio_alquiler)}/mes` : '-';
+          rows += `<tr style="background: #F1F8E9;">
+            <td style="padding: 6px 10px; border: 1px solid #C8E6C9; color: #666;"></td>
+            <td style="padding: 6px 10px; border: 1px solid #C8E6C9; color: #666;"></td>
+            <td style="padding: 6px 10px; border: 1px solid #C8E6C9; color: #666;"></td>
+            <td style="padding: 6px 10px 6px 30px; border: 1px solid #C8E6C9; color: #4CAF50;">↳ ${ofi.nombre}</td>
+            <td style="padding: 6px 10px; border: 1px solid #C8E6C9; text-align: right; color: #4CAF50;">${ofi.area} m²</td>
+            <td style="padding: 6px 10px; border: 1px solid #C8E6C9; text-align: right; color: #666;">${precioOfi}</td>
+          </tr>`;
+        });
       } else {
+        // Fila de propiedad individual
         const edificio = prop.edificio_nombre ? `<strong>${prop.edificio_nombre}</strong> - ` : '';
-        nombre = `${edificio}${prop.titulo || prop.nombre_inmueble || 'Oficina'}`;
+        const nombre = `${edificio}${prop.titulo || prop.nombre_inmueble || 'Oficina'}`;
+
+        rows += `<tr>
+          <td style="padding: 10px; border: 1px solid #ddd;">${index + 1}</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${distrito}</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${transaccion}</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${nombre}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">${prop.area || 0} m²</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">${precio}</td>
+        </tr>`;
       }
+    });
 
-      const area = esCombinacion ? prop.area_total : (prop.area || 0);
-
-      return `<tr>
-        <td style="padding: 8px; border: 1px solid #ddd;">${index + 1}</td>
-        <td style="padding: 8px; border: 1px solid #ddd;">${distrito}</td>
-        <td style="padding: 8px; border: 1px solid #ddd;">${transaccion}</td>
-        <td style="padding: 8px; border: 1px solid #ddd;">${nombre}</td>
-        <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${area} m²</td>
-      </tr>`;
-    }).join('');
-
-    return `<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+    return `<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-family: Arial, sans-serif;">
       <thead>
         <tr style="background: #0066CC; color: white;">
-          <th style="padding: 10px; border: 1px solid #0066CC;">#</th>
-          <th style="padding: 10px; border: 1px solid #0066CC;">Distrito</th>
-          <th style="padding: 10px; border: 1px solid #0066CC;">Transacción</th>
-          <th style="padding: 10px; border: 1px solid #0066CC;">Edificio / Oficina</th>
-          <th style="padding: 10px; border: 1px solid #0066CC;">Área</th>
+          <th style="padding: 12px; border: 1px solid #0066CC;">#</th>
+          <th style="padding: 12px; border: 1px solid #0066CC;">Distrito</th>
+          <th style="padding: 12px; border: 1px solid #0066CC;">Transacción</th>
+          <th style="padding: 12px; border: 1px solid #0066CC;">Edificio / Oficina</th>
+          <th style="padding: 12px; border: 1px solid #0066CC;">Área</th>
+          <th style="padding: 12px; border: 1px solid #0066CC;">Precio</th>
         </tr>
       </thead>
       <tbody>
         ${rows}
       </tbody>
-    </table>`;
+    </table>
+    <p style="font-size: 12px; color: #666; margin-top: 10px;">
+      <strong>Nota:</strong> Las filas en <span style="color: #4CAF50;">verde</span> son combinaciones de oficinas del mismo edificio/piso que juntas alcanzan el área solicitada.
+      Se adjuntan fichas PDF individuales para cada oficina.
+    </p>`;
   }
 
   /**
    * Compartir por WhatsApp
    * MEJORADO: Incluye edificio, criterios de búsqueda y formato mejorado
+   * @param {Array} seleccionadas - Propiedades seleccionadas para compartir
    */
-  async compartirPorWhatsApp() {
+  async compartirPorWhatsApp(seleccionadas = null) {
+    // Usar seleccionadas o obtenerlas
+    const properties = seleccionadas || this.getSelectedProperties();
+
+    if (properties.length === 0) {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Sin selección',
+        text: 'No hay propiedades seleccionadas para compartir',
+        confirmButtonColor: '#0066CC'
+      });
+      return;
+    }
+
     // Pedir nombre del cliente y teléfono
     const { value: formValues } = await Swal.fire({
       title: '📱 Compartir por WhatsApp',
@@ -639,8 +835,8 @@ Equipo Quadrante`;
       const resumenBusqueda = this.generarResumenBusqueda();
 
       // Generar mensaje con resumen
-      const total = this.tab.currentResults.length;
-      const preview = this.tab.currentResults.slice(0, 5);
+      const total = properties.length;
+      const preview = properties.slice(0, 5);
 
       let mensaje = `🏢 *Propiedades Quadrante*\n\n`;
 

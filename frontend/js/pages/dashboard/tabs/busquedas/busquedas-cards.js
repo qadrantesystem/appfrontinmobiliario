@@ -203,14 +203,27 @@ class BusquedasCards {
       </div>
     `).join('');
 
+    // Generar ID único para la combinación (basado en edificio_id y oficinas)
+    const comboId = `combo-${combo.edificio_id}-${combo.piso}`;
+
     return `
-      <div class="property-card combination-card" data-combination="true" data-edificio-id="${combo.edificio_id}" data-property-number="${number}"
+      <div class="property-card combination-card" data-combination="true" data-combo-id="${comboId}" data-edificio-id="${combo.edificio_id}" data-property-number="${number}"
            style="border: 3px solid #4CAF50; background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(76, 175, 80, 0.1) 100%);">
 
         <div class="property-number" style="background: #4CAF50;">${number}</div>
 
+        <!-- ✅ Checkbox de Selección para Combinación -->
+        <div class="property-checkbox" style="top: 50px;">
+          <input type="checkbox"
+                 class="property-select-checkbox combination-checkbox"
+                 data-combo-id="${comboId}"
+                 data-edificio-id="${combo.edificio_id}"
+                 id="check-${comboId}">
+          <label for="check-${comboId}" class="checkbox-label" style="border-color: #4CAF50;"></label>
+        </div>
+
         <!-- Badge de Combinación -->
-        <div style="position: absolute; top: 10px; left: 10px; right: 10px; z-index: 25;">
+        <div style="position: absolute; top: 10px; left: 10px; right: 70px; z-index: 25;">
           <div style="background: #4CAF50; color: white; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; animation: pulse 2s infinite;">
             🔗 COMBINACIÓN DE ${combo.cantidad_oficinas} OFICINAS
           </div>
