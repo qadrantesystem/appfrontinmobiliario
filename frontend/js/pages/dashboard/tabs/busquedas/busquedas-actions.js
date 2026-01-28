@@ -146,6 +146,7 @@ class BusquedasActions {
 
   /**
    * Compartir por correo - Usa endpoint backend /api/v1/emails/enviar-fichas
+   * MEJORADO: Incluye tabla resumen con edificio, tipo, área, etc.
    */
   async compartirPorCorreo() {
     // Máximo 4 propiedades por correo
@@ -181,6 +182,34 @@ class BusquedasActions {
       if (!confirmResult.isConfirmed) return;
     }
 
+    // Obtener datos del usuario actual
+    const user = authService.getCurrentUser();
+    const nombreUsuario = user?.nombre || 'Cliente';
+
+    // Obtener resumen de búsqueda
+    const resumenBusqueda = this.generarResumenBusqueda();
+
+    // Generar tabla de propiedades
+    const tablaHTML = this.generarTablaResumen(properties);
+
+    // Generar mensaje predeterminado con saludo personalizado
+    const mensajeDefault = `Hola,
+
+Realizaste una búsqueda en Quadrante con los siguientes criterios:
+${resumenBusqueda}
+
+A continuación encontrarás un resumen de las propiedades encontradas:
+
+${this.generarTablaTexto(properties)}
+
+Adjunto encontrarás las fichas detalladas en PDF de cada propiedad.
+
+Quedo atento a cualquier consulta.
+
+Saludos cordiales,
+${nombreUsuario}
+Equipo Quadrante`;
+
     // Pedir datos del correo con modal completo
     const { value: formValues } = await Swal.fire({
       title: '📧 Enviar Fichas por Correo',
@@ -189,6 +218,24 @@ class BusquedasActions {
           <p style="margin-bottom: 15px; color: #6B7280;">
             Se enviarán <strong>${properties.length}</strong> ficha(s) adjuntas en PDF
           </p>
+
+          <!-- Tabla resumen de propiedades -->
+          <div style="margin-bottom: 15px; max-height: 150px; overflow-y: auto; border: 1px solid #E5E7EB; border-radius: 8px;">
+            ${tablaHTML}
+          </div>
+
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">
+              Nombre del Cliente:
+            </label>
+            <input
+              type="text"
+              id="swal-client-name"
+              class="swal2-input"
+              placeholder="Nombre del cliente"
+              style="margin: 0; width: 100%;"
+            >
+          </div>
 
           <div style="margin-bottom: 15px;">
             <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">
@@ -211,28 +258,21 @@ class BusquedasActions {
               type="text"
               id="swal-email-subject"
               class="swal2-input"
-              value="Propiedades Quadrante - Fichas Adjuntas"
+              value="Propiedades Quadrante - Oficinas según tu búsqueda"
               style="margin: 0; width: 100%;"
             >
           </div>
 
           <div style="margin-bottom: 15px;">
             <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">
-              Mensaje Personal (opcional):
+              Mensaje Personal:
             </label>
             <textarea
               id="swal-email-message"
               class="swal2-textarea"
               placeholder="Agrega un mensaje personalizado..."
-              style="margin: 0; width: 100%; min-height: 80px;"
-            >Estimado cliente,
-
-Adjunto encontrará las fichas de las propiedades seleccionadas que podrían ser de su interés.
-
-Quedo atento a cualquier consulta.
-
-Saludos cordiales,
-Equipo Quadrante</textarea>
+              style="margin: 0; width: 100%; min-height: 120px; font-size: 12px;"
+            >${mensajeDefault}</textarea>
           </div>
 
           <div style="margin-bottom: 10px;">
@@ -255,12 +295,29 @@ Equipo Quadrante</textarea>
       confirmButtonText: 'Enviar Fichas',
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#0066CC',
-      width: '600px',
+      width: '700px',
+      didOpen: () => {
+        // Actualizar mensaje cuando cambia el nombre del cliente
+        const clientNameInput = document.getElementById('swal-client-name');
+        const messageTextarea = document.getElementById('swal-email-message');
+        clientNameInput.addEventListener('input', () => {
+          const clientName = clientNameInput.value || 'Cliente';
+          const currentMessage = messageTextarea.value;
+          // Reemplazar solo el saludo inicial
+          messageTextarea.value = currentMessage.replace(/^Hola[^,]*,/, `Hola ${clientName},`);
+        });
+      },
       preConfirm: () => {
+        const clientName = document.getElementById('swal-client-name').value;
         const to = document.getElementById('swal-email-to').value;
         const subject = document.getElementById('swal-email-subject').value;
-        const message = document.getElementById('swal-email-message').value;
+        let message = document.getElementById('swal-email-message').value;
         const sendCopy = document.getElementById('swal-email-copy').checked;
+
+        // Actualizar saludo con nombre del cliente
+        if (clientName) {
+          message = message.replace(/^Hola[^,]*,/, `Hola ${clientName},`);
+        }
 
         // Validaciones
         if (!to) {
@@ -279,7 +336,7 @@ Equipo Quadrante</textarea>
           return false;
         }
 
-        return { to, subject, message, sendCopy };
+        return { to, subject, message, sendCopy, clientName };
       }
     });
 
@@ -313,8 +370,11 @@ Equipo Quadrante</textarea>
           to_email: formValues.to,
           subject: formValues.subject,
           message: formValues.message || '',
-          propiedad_ids: properties.map(p => p.registro_cab_id),
-          send_copy: formValues.sendCopy
+          propiedad_ids: properties.map(p => p.registro_cab_id || p.edificio_id),
+          send_copy: formValues.sendCopy,
+          client_name: formValues.clientName,
+          // Enviar tabla resumen para incluir en email
+          tabla_resumen: this.generarTablaResumenHTML(properties)
         })
       });
 
@@ -333,7 +393,7 @@ Equipo Quadrante</textarea>
           <p>Fichas enviadas correctamente a:</p>
           <p style="font-weight: 600; color: #2C5282;">${formValues.to}</p>
           <p style="color: #6B7280; font-size: 14px;">
-            ${result.propiedades_enviadas} PDF(s) adjuntos
+            ${result.propiedades_enviadas || properties.length} PDF(s) adjuntos
           </p>
         `,
         confirmButtonColor: '#0066CC'
@@ -351,60 +411,286 @@ Equipo Quadrante</textarea>
   }
 
   /**
+   * Generar resumen de búsqueda en texto
+   */
+  generarResumenBusqueda() {
+    const filters = this.tab.currentFilters || {};
+    const fg = filters.filtros_genericos || {};
+    const fb = filters.filtros_basicos || {};
+    const meta = filters._meta || {};
+
+    const partes = [];
+
+    // Tipo de inmueble
+    const tipoNombre = meta.tipo_inmueble_nombre || 'Inmueble';
+    partes.push(`• Tipo: ${tipoNombre}`);
+
+    // Transacción
+    const transaccion = fg.transaccion || filters.transaccion || 'venta';
+    partes.push(`• Transacción: ${transaccion === 'alquiler' ? 'Alquiler' : 'Venta'}`);
+
+    // Área
+    const area = fb.area || meta.metraje_original;
+    if (area) {
+      partes.push(`• Área: ~${area} m²`);
+    }
+
+    // Presupuesto
+    const precio = fb.precio || meta.presupuesto_original;
+    if (precio) {
+      partes.push(`• Presupuesto: ~USD ${this.formatNumber(precio)}`);
+    }
+
+    return partes.join('\n');
+  }
+
+  /**
+   * Generar tabla HTML para mostrar en modal
+   */
+  generarTablaResumen(properties) {
+    const rows = properties.map((prop, index) => {
+      const esCombinacion = prop.tipo === 'combinacion';
+      const distrito = prop.distrito || 'N/A';
+      const transaccion = prop.transaccion === 'alquiler' ? 'Alquiler' : 'Venta';
+
+      // Nombre con edificio
+      let nombre = '';
+      if (esCombinacion) {
+        nombre = `🔗 ${prop.edificio_nombre || 'Combinación'} (${prop.cantidad_oficinas} oficinas)`;
+      } else {
+        const edificio = prop.edificio_nombre ? `${prop.edificio_nombre} - ` : '';
+        nombre = `${edificio}${prop.titulo || prop.nombre_inmueble || 'Oficina'}`;
+      }
+
+      const area = esCombinacion ? prop.area_total : (prop.area || 0);
+
+      return `
+        <tr style="border-bottom: 1px solid #E5E7EB;">
+          <td style="padding: 6px 8px; font-size: 11px;">${index + 1}</td>
+          <td style="padding: 6px 8px; font-size: 11px;">${distrito}</td>
+          <td style="padding: 6px 8px; font-size: 11px;">${transaccion}</td>
+          <td style="padding: 6px 8px; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${nombre}">${nombre}</td>
+          <td style="padding: 6px 8px; font-size: 11px; text-align: right;">${area} m²</td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+        <thead>
+          <tr style="background: #F3F4F6;">
+            <th style="padding: 8px; text-align: left; font-weight: 600; font-size: 11px;">#</th>
+            <th style="padding: 8px; text-align: left; font-weight: 600; font-size: 11px;">Distrito</th>
+            <th style="padding: 8px; text-align: left; font-weight: 600; font-size: 11px;">Tipo</th>
+            <th style="padding: 8px; text-align: left; font-weight: 600; font-size: 11px;">Edificio / Oficina</th>
+            <th style="padding: 8px; text-align: right; font-weight: 600; font-size: 11px;">Área</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
+  }
+
+  /**
+   * Generar tabla en texto plano para el mensaje
+   */
+  generarTablaTexto(properties) {
+    const lineas = ['#  | DISTRITO       | TIPO     | EDIFICIO / OFICINA                    | ÁREA'];
+    lineas.push('---|----------------|----------|---------------------------------------|--------');
+
+    properties.forEach((prop, index) => {
+      const esCombinacion = prop.tipo === 'combinacion';
+      const distrito = (prop.distrito || 'N/A').substring(0, 14).padEnd(14);
+      const transaccion = (prop.transaccion === 'alquiler' ? 'Alquiler' : 'Venta').padEnd(8);
+
+      let nombre = '';
+      if (esCombinacion) {
+        nombre = `${prop.edificio_nombre || 'Combinación'} (${prop.cantidad_oficinas} oficinas)`;
+      } else {
+        const edificio = prop.edificio_nombre ? `${prop.edificio_nombre} - ` : '';
+        nombre = `${edificio}${prop.titulo || prop.nombre_inmueble || 'Oficina'}`;
+      }
+      nombre = nombre.substring(0, 37).padEnd(37);
+
+      const area = esCombinacion ? prop.area_total : (prop.area || 0);
+      const areaStr = `${area} m²`.padStart(8);
+
+      lineas.push(`${(index + 1).toString().padStart(2)} | ${distrito} | ${transaccion} | ${nombre} | ${areaStr}`);
+    });
+
+    return lineas.join('\n');
+  }
+
+  /**
+   * Generar tabla HTML para incluir en email (backend)
+   */
+  generarTablaResumenHTML(properties) {
+    const rows = properties.map((prop, index) => {
+      const esCombinacion = prop.tipo === 'combinacion';
+      const distrito = prop.distrito || 'N/A';
+      const transaccion = prop.transaccion === 'alquiler' ? 'Alquiler' : 'Venta';
+
+      let nombre = '';
+      if (esCombinacion) {
+        nombre = `🔗 ${prop.edificio_nombre || 'Combinación'} (${prop.cantidad_oficinas} oficinas)`;
+      } else {
+        const edificio = prop.edificio_nombre ? `<strong>${prop.edificio_nombre}</strong> - ` : '';
+        nombre = `${edificio}${prop.titulo || prop.nombre_inmueble || 'Oficina'}`;
+      }
+
+      const area = esCombinacion ? prop.area_total : (prop.area || 0);
+
+      return `<tr>
+        <td style="padding: 8px; border: 1px solid #ddd;">${index + 1}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${distrito}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${transaccion}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${nombre}</td>
+        <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${area} m²</td>
+      </tr>`;
+    }).join('');
+
+    return `<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+      <thead>
+        <tr style="background: #0066CC; color: white;">
+          <th style="padding: 10px; border: 1px solid #0066CC;">#</th>
+          <th style="padding: 10px; border: 1px solid #0066CC;">Distrito</th>
+          <th style="padding: 10px; border: 1px solid #0066CC;">Transacción</th>
+          <th style="padding: 10px; border: 1px solid #0066CC;">Edificio / Oficina</th>
+          <th style="padding: 10px; border: 1px solid #0066CC;">Área</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>`;
+  }
+
+  /**
    * Compartir por WhatsApp
+   * MEJORADO: Incluye edificio, criterios de búsqueda y formato mejorado
    */
   async compartirPorWhatsApp() {
-    // Pedir teléfono con validación
-    const { value: telefono } = await Swal.fire({
+    // Pedir nombre del cliente y teléfono
+    const { value: formValues } = await Swal.fire({
       title: '📱 Compartir por WhatsApp',
-      input: 'tel',
-      inputLabel: 'Número de WhatsApp',
-      inputPlaceholder: 'Ej: 51999999999 (con código de país)',
+      html: `
+        <div style="text-align: left;">
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">
+              Nombre del Cliente:
+            </label>
+            <input
+              type="text"
+              id="swal-wa-name"
+              class="swal2-input"
+              placeholder="Nombre del cliente"
+              style="margin: 0; width: 100%;"
+            >
+          </div>
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #374151;">
+              Número de WhatsApp:
+            </label>
+            <input
+              type="tel"
+              id="swal-wa-phone"
+              class="swal2-input"
+              placeholder="51999999999 (con código de país)"
+              style="margin: 0; width: 100%;"
+            >
+          </div>
+        </div>
+      `,
       showCancelButton: true,
       confirmButtonText: 'Enviar',
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#25D366',
-      inputValidator: (value) => {
-        if (!value) {
-          return 'Por favor ingresa un número';
+      preConfirm: () => {
+        const name = document.getElementById('swal-wa-name').value;
+        const phone = document.getElementById('swal-wa-phone').value;
+
+        if (!phone) {
+          Swal.showValidationMessage('Por favor ingresa un número');
+          return false;
         }
-        if (!/^\d+$/.test(value)) {
-          return 'Número inválido (solo números)';
+        if (!/^\d+$/.test(phone)) {
+          Swal.showValidationMessage('Número inválido (solo números)');
+          return false;
         }
-        if (value.length < 10) {
-          return 'Número muy corto (mín. 10 dígitos)';
+        if (phone.length < 10) {
+          Swal.showValidationMessage('Número muy corto (mín. 10 dígitos)');
+          return false;
         }
+
+        return { name, phone };
       }
     });
 
-    if (!telefono) return;
+    if (!formValues) return;
 
     try {
+      // Obtener usuario actual
+      const user = authService.getCurrentUser();
+      const nombreUsuario = user?.nombre || 'Asesor';
+
+      // Generar resumen de búsqueda
+      const resumenBusqueda = this.generarResumenBusqueda();
+
       // Generar mensaje con resumen
       const total = this.tab.currentResults.length;
       const preview = this.tab.currentResults.slice(0, 5);
 
-      let mensaje = `🏢 *Propiedades Encontradas*\n\n`;
-      mensaje += `Total: ${total} propiedades\n\n`;
+      let mensaje = `🏢 *Propiedades Quadrante*\n\n`;
+
+      // Saludo personalizado
+      if (formValues.name) {
+        mensaje += `Hola ${formValues.name},\n\n`;
+      }
+
+      mensaje += `Te comparto los resultados de tu búsqueda:\n`;
+      mensaje += `${resumenBusqueda.replace(/•/g, '▪️')}\n\n`;
+      mensaje += `📊 *${total} propiedades encontradas:*\n\n`;
 
       preview.forEach((prop, index) => {
-        mensaje += `${index + 1}. ${prop.titulo || 'Sin título'}\n`;
-        mensaje += `   📍 ${prop.direccion || prop.distrito || 'N/A'}\n`;
-        mensaje += `   💰 ${this.formatPrecio(prop)}\n`;
-        mensaje += `   📐 ${prop.area || 'N/A'} m²\n\n`;
+        const esCombinacion = prop.tipo === 'combinacion';
+
+        if (esCombinacion) {
+          // Combinación
+          mensaje += `*${index + 1}. 🔗 ${prop.edificio_nombre || 'Combinación'}*\n`;
+          mensaje += `   └ ${prop.cantidad_oficinas} oficinas combinadas\n`;
+          mensaje += `   📍 ${prop.distrito || 'N/A'} | Piso ${prop.piso || 'N/A'}\n`;
+          mensaje += `   📐 ${prop.area_total || 0} m² (total)\n`;
+          mensaje += `   💰 ${this.formatPrecio(prop)}\n\n`;
+        } else {
+          // Individual
+          const edificio = prop.edificio_nombre ? `🏢 ${prop.edificio_nombre}` : '';
+          const titulo = prop.titulo || prop.nombre_inmueble || 'Oficina';
+
+          mensaje += `*${index + 1}. ${titulo}*\n`;
+          if (edificio) {
+            mensaje += `   ${edificio}\n`;
+          }
+          mensaje += `   📍 ${prop.distrito || prop.direccion || 'N/A'}\n`;
+          mensaje += `   📐 ${prop.area || 0} m²\n`;
+          mensaje += `   💰 ${this.formatPrecio(prop)}\n\n`;
+        }
       });
 
       if (total > 5) {
         mensaje += `... y ${total - 5} propiedades más.\n\n`;
       }
 
-      mensaje += `Enviado desde Quadrante`;
+      mensaje += `---\n`;
+      mensaje += `Enviado por ${nombreUsuario}\n`;
+      mensaje += `_Quadrante Inmobiliaria_`;
 
       // Codificar mensaje para URL
       const mensajeCodificado = encodeURIComponent(mensaje);
 
       // Abrir WhatsApp
-      const urlWhatsApp = `https://wa.me/${telefono}?text=${mensajeCodificado}`;
+      const urlWhatsApp = `https://wa.me/${formValues.phone}?text=${mensajeCodificado}`;
       window.open(urlWhatsApp, '_blank');
 
     } catch (error) {
@@ -419,9 +705,23 @@ Equipo Quadrante</textarea>
   }
 
   /**
-   * Formatear precio para WhatsApp
+   * Formatear precio para WhatsApp/Email
+   * Soporta propiedades individuales y combinaciones
    */
   formatPrecio(prop) {
+    const esCombinacion = prop.tipo === 'combinacion';
+
+    // Para combinaciones
+    if (esCombinacion) {
+      if (prop.precio_venta_total && prop.precio_venta_total > 0) {
+        return `USD ${this.formatNumber(prop.precio_venta_total)} (Venta)`;
+      }
+      if (prop.precio_alquiler_total && prop.precio_alquiler_total > 0) {
+        return `USD ${this.formatNumber(prop.precio_alquiler_total)}/mes (Alquiler)`;
+      }
+    }
+
+    // Para propiedades individuales
     if (prop.precio_venta && prop.precio_venta > 0) {
       return `USD ${this.formatNumber(prop.precio_venta)} (Venta)`;
     }
@@ -431,7 +731,7 @@ Equipo Quadrante</textarea>
     if (prop.precio_compra && prop.precio_compra > 0) {
       return `USD ${this.formatNumber(prop.precio_compra)} (Venta)`;
     }
-    return 'Precio no disponible';
+    return 'Precio a consultar';
   }
 
   /**
