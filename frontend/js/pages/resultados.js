@@ -486,55 +486,53 @@ class ResultadosPage {
 
       console.log(`🔍 Cargando datos con tipo_inmueble_id: ${tipoInmuebleId}`);
       console.log(`📋 Filtros simplificados:`, this.filtrosSimplificados);
-      
-      // ✅ Construir query params con filtros del modal
-      const params = new URLSearchParams();
-      params.append('limit', '100');
-      
-      if (this.filtrosSimplificados?.tipo_inmueble_id) {
-        params.append('tipo_inmueble_id', this.filtrosSimplificados.tipo_inmueble_id);
-        console.log('🔍 Filtrando por tipo_inmueble_id:', this.filtrosSimplificados.tipo_inmueble_id);
+
+      // ✅ Construir objeto de filtros para búsqueda avanzada (igual que dashboard)
+      const filtrosBusqueda = {
+        filtros_genericos: {
+          tipo_inmueble_id: this.filtrosSimplificados?.tipo_inmueble_id ? parseInt(this.filtrosSimplificados.tipo_inmueble_id) : null,
+          distrito_ids: this.filtrosSimplificados?.distritos_ids?.length > 0
+            ? this.filtrosSimplificados.distritos_ids.map(d => parseInt(d))
+            : [],
+          transaccion: this.filtrosSimplificados?.transaccion || 'venta'
+        },
+        filtros_basicos: {
+          area: this.filtrosSimplificados?.area ? parseInt(this.filtrosSimplificados.area) : null,
+          precio: this.filtrosSimplificados?.presupuesto_compra
+            ? parseInt(this.filtrosSimplificados.presupuesto_compra)
+            : (this.filtrosSimplificados?.presupuesto_alquiler
+              ? parseInt(this.filtrosSimplificados.presupuesto_alquiler)
+              : null)
+        },
+        filtros_avanzados: [],
+        page: 1,
+        limit: 100,
+        incluir_combinaciones: true  // ✅ Clave para obtener oficinas combinadas
+      };
+
+      console.log('🔍 Filtros para búsqueda avanzada:', filtrosBusqueda);
+
+      // ✅ Headers: sin token para búsqueda pública (invitados)
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+
+      // Si hay usuario logueado, agregar token
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        console.log('🔐 Usuario autenticado, usando token');
+      } else {
+        console.log('👤 Usuario invitado, búsqueda pública');
       }
-      
-      if (this.filtrosSimplificados?.distritos_ids?.length > 0) {
-        // Backend espera distrito_id (singular), enviar el primero
-        params.append('distrito_id', this.filtrosSimplificados.distritos_ids[0]);
-        console.log('🔍 Filtrando por distrito_id:', this.filtrosSimplificados.distritos_ids[0]);
-      }
-      
-      if (this.filtrosSimplificados?.transaccion) {
-        params.append('transaccion', this.filtrosSimplificados.transaccion);
-        console.log('🔍 Filtrando por transacción:', this.filtrosSimplificados.transaccion);
-      }
-      
-      if (this.filtrosSimplificados?.area) {
-        const area = parseInt(this.filtrosSimplificados.area);
-        const tolerancia = area * 0.15; // ±15%
-        params.append('area_min', Math.floor(area - tolerancia));
-        params.append('area_max', Math.ceil(area + tolerancia));
-        console.log('🔍 Filtrando por área:', area, '±15%');
-      }
-      
-      if (this.filtrosSimplificados?.presupuesto_compra) {
-        const presupuesto = parseInt(this.filtrosSimplificados.presupuesto_compra);
-        const tolerancia = presupuesto * 0.15; // ±15%
-        params.append('precio_min', Math.floor(presupuesto - tolerancia));
-        params.append('precio_max', Math.ceil(presupuesto + tolerancia));
-        console.log('🔍 Filtrando por precio compra:', presupuesto, '±15%');
-      }
-      
-      if (this.filtrosSimplificados?.presupuesto_alquiler) {
-        const presupuesto = parseInt(this.filtrosSimplificados.presupuesto_alquiler);
-        const tolerancia = presupuesto * 0.15; // ±15%
-        params.append('precio_min', Math.floor(presupuesto - tolerancia));
-        params.append('precio_max', Math.ceil(presupuesto + tolerancia));
-        console.log('🔍 Filtrando por precio alquiler:', presupuesto, '±15%');
-      }
-      
-      console.log('🌐 URL final:', `${API_BASE}/propiedades?${params.toString()}`);
-      
+
       const [propiedadesRes, caracteristicasRes, tiposRes, distritosRes, configFiltrosRes] = await Promise.all([
-        fetch(`${API_BASE}/propiedades?${params.toString()}`),  // ✅ Con filtros del modal
+        // ✅ Usar endpoint de búsqueda avanzada con POST (soporta combinaciones)
+        fetch(`${API_BASE}/propiedades/buscar-avanzada`, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(filtrosBusqueda)
+        }),
         fetch(`${API_BASE}/caracteristicas`),
         fetch(`${API_BASE}/tipos-inmueble`),
         fetch(`${API_BASE}/distritos`),
@@ -543,7 +541,7 @@ class ResultadosPage {
 
       // ✅ Mejor manejo de errores - identificar cuál endpoint falló
       const responses = [
-        { name: 'propiedades', res: propiedadesRes, url: `/propiedades/publicas` },
+        { name: 'propiedades', res: propiedadesRes, url: `/propiedades/buscar-avanzada` },
         { name: 'caracteristicas', res: caracteristicasRes, url: `/caracteristicas` },
         { name: 'tipos', res: tiposRes, url: `/tipos-inmueble` },
         { name: 'distritos', res: distritosRes, url: `/distritos` },
