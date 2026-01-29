@@ -1,5 +1,5 @@
 /**
- * 🔐 Login Page - Quadrante
+ * 🔐 Login Page - Qadrante
  * Integración con Backend API
  */
 

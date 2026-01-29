@@ -1,5 +1,5 @@
 /**
- * 📝 Registro Page - Quadrante
+ * 📝 Registro Page - Qadrante
  * Integración con Backend API + Modal de Verificación
  */
 

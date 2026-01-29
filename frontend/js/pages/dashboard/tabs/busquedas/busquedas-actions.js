@@ -250,7 +250,7 @@ class BusquedasActions {
 
     // Obtener datos del usuario actual
     const user = authService.getCurrentUser();
-    const nombreUsuario = user?.nombre || 'Asesor Quadrante';
+    const nombreUsuario = user?.nombre || 'Asesor Qadrante';
 
     // Obtener resumen de búsqueda
     const resumenBusqueda = this.generarResumenBusqueda();
@@ -265,7 +265,7 @@ class BusquedasActions {
     // Generar mensaje predeterminado con narrativa detallada
     const mensajeDefault = `Hola,
 
-Realizaste una búsqueda en Quadrante con los siguientes criterios:
+Realizaste una búsqueda en Qadrante con los siguientes criterios:
 ${resumenBusqueda}
 
 ${this.generarNarrativaResultados(properties)}
@@ -274,7 +274,7 @@ Quedo atento a cualquier consulta.
 
 Saludos cordiales,
 ${nombreUsuario}
-Equipo Quadrante`;
+Equipo Qadrante`;
 
     // Pedir datos del correo con modal completo
     const { value: formValues } = await Swal.fire({
@@ -325,7 +325,7 @@ Equipo Quadrante`;
               type="text"
               id="swal-email-subject"
               class="swal2-input"
-              value="Propiedades Quadrante - Oficinas según tu búsqueda"
+              value="Propiedades Qadrante - Oficinas según tu búsqueda"
               style="margin: 0; width: 100%;"
             >
           </div>
@@ -926,7 +926,7 @@ Equipo Quadrante`;
       const total = properties.length;
       const preview = properties.slice(0, 5);
 
-      let mensaje = `🏢 *Propiedades Quadrante*\n\n`;
+      let mensaje = `🏢 *Propiedades Qadrante*\n\n`;
 
       // Saludo personalizado
       if (formValues.name) {
@@ -977,7 +977,7 @@ Equipo Quadrante`;
 
       mensaje += `---\n`;
       mensaje += `Enviado por ${nombreUsuario}\n`;
-      mensaje += `_Quadrante Inmobiliaria_`;
+      mensaje += `_Qadrante Inmobiliaria_`;
 
       // Codificar mensaje para URL
       const mensajeCodificado = encodeURIComponent(mensaje);

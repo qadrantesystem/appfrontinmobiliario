@@ -1,5 +1,5 @@
 /**
- * 🔑 Recuperar Contraseña Page - Quadrante
+ * 🔑 Recuperar Contraseña Page - Qadrante
  * Integración con Backend API
  */
 

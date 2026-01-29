@@ -1,4 +1,4 @@
-// Página de Resultados con Filtros Dinámicos - Quadrante
+// Página de Resultados con Filtros Dinámicos - Qadrante
 class ResultadosPage {
   constructor() {
     this.propiedades = [];
@@ -42,10 +42,10 @@ class ResultadosPage {
         : '—';
 
       const metragem = fs.area ? `${fs.area} m²` : '—';
-      const condicion = fs.transaccion ? (fs.transaccion === 'compra' ? 'Compra' : 'Alquiler') : '—';
+      const condicion = fs.transaccion ? (fs.transaccion === 'venta' ? 'Venta' : 'Alquiler') : '—';
 
       let presupuesto = '—';
-      if (fs.transaccion === 'compra' && fs.presupuesto_compra) {
+      if (fs.transaccion === 'venta' && fs.presupuesto_compra) {
         presupuesto = `${Number(fs.presupuesto_compra).toLocaleString()} USD`;
       } else if (fs.transaccion === 'alquiler' && fs.presupuesto_alquiler) {
         presupuesto = `${Number(fs.presupuesto_alquiler).toLocaleString()} USD/mes`;
@@ -146,8 +146,8 @@ class ResultadosPage {
           <label style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">Transacción</label>
           <div style="display: flex; gap: 6px;">
             <label style="display: flex; align-items: center; cursor: pointer; flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px;">
-              <input type="radio" name="gen_transaccion_mob" value="compra" ${fs.transaccion === 'compra' ? 'checked' : ''} style="margin-right: 5px;">
-              <span>Compra</span>
+              <input type="radio" name="gen_transaccion_mob" value="venta" ${fs.transaccion === 'venta' ? 'checked' : ''} style="margin-right: 5px;">
+              <span>Venta</span>
             </label>
             <label style="display: flex; align-items: center; cursor: pointer; flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px;">
               <input type="radio" name="gen_transaccion_mob" value="alquiler" ${fs.transaccion === 'alquiler' ? 'checked' : ''} style="margin-right: 5px;">
@@ -158,15 +158,15 @@ class ResultadosPage {
 
         <div class="form-group" style="margin-bottom: 8px;" id="gen_presupuesto_group_mob">
           <label for="gen_presupuesto_mob" style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">
-            Presupuesto ${fs.transaccion === 'compra' ? '(USD)' : '(USD/mes)'}
+            Presupuesto ${fs.transaccion === 'venta' ? '(USD)' : '(USD/mes)'}
           </label>
           <input
             type="number"
             id="gen_presupuesto_mob"
             class="form-control"
             style="padding: 8px 10px; font-size: 13px;"
-            placeholder="${fs.transaccion === 'compra' ? 'Ej: 200000' : 'Ej: 1500'}"
-            value="${fs.transaccion === 'compra' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '')}"
+            placeholder="${fs.transaccion === 'venta' ? 'Ej: 200000' : 'Ej: 1500'}"
+            value="${fs.transaccion === 'venta' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '')}"
           >
         </div>
 
@@ -211,7 +211,7 @@ class ResultadosPage {
         transaccion: transaccion
       };
 
-      if (transaccion === 'compra') {
+      if (transaccion === 'venta') {
         this.filtrosSimplificados.presupuesto_compra = presupuesto;
         delete this.filtrosSimplificados.presupuesto_alquiler;
       } else if (transaccion === 'alquiler') {
@@ -255,11 +255,11 @@ class ResultadosPage {
         const label = presupuestoGroup?.querySelector('label');
 
         if (label && presupuestoInput) {
-          label.innerHTML = `Presupuesto ${transaccion === 'compra' ? '(USD)' : '(USD/mes)'}`;
-          presupuestoInput.placeholder = transaccion === 'compra' ? 'Ej: 200000' : 'Ej: 1500';
+          label.innerHTML = `Presupuesto ${transaccion === 'venta' ? '(USD)' : '(USD/mes)'}`;
+          presupuestoInput.placeholder = transaccion === 'venta' ? 'Ej: 200000' : 'Ej: 1500';
 
           const fs = this.filtrosSimplificados || {};
-          presupuestoInput.value = transaccion === 'compra' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '');
+          presupuestoInput.value = transaccion === 'venta' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '');
         }
 
         // Aplicar cambios automáticamente
@@ -729,7 +729,7 @@ class ResultadosPage {
       if (this.filtrosSimplificados.presupuesto) {
         const margen = this.filtrosSimplificados.presupuesto * 0.15;
 
-        if (this.filtrosSimplificados.transaccion === 'compra' && prop.precio_venta) {
+        if (this.filtrosSimplificados.transaccion === 'venta' && prop.precio_venta) {
           if (prop.precio_venta < (this.filtrosSimplificados.presupuesto - margen) ||
             prop.precio_venta > (this.filtrosSimplificados.presupuesto + margen)) {
             return false;
@@ -1158,7 +1158,7 @@ class ResultadosPage {
     if (fs.area) genericos.push({ label: `Área ≥ ${fs.area} m²`, kind: 'generico', key: 'area' });
 
     // Presupuesto
-    if (fs.presupuesto_compra) genericos.push({ label: `Compra ≤ ${Number(fs.presupuesto_compra).toLocaleString()} USD`, kind: 'generico', key: 'presupuesto_compra' });
+    if (fs.presupuesto_compra) genericos.push({ label: `Venta ≤ ${Number(fs.presupuesto_compra).toLocaleString()} USD`, kind: 'generico', key: 'presupuesto_compra' });
     if (fs.presupuesto_alquiler) genericos.push({ label: `Alquiler ≤ ${Number(fs.presupuesto_alquiler).toLocaleString()} USD/mes`, kind: 'generico', key: 'presupuesto_alquiler' });
 
     // Básico (solo campos propios, sin duplicar genéricos)
@@ -1320,10 +1320,10 @@ class ResultadosPage {
         : '—';
 
       const metragem = fs.area ? `${fs.area} m²` : '—';
-      const condicion = fs.transaccion ? (fs.transaccion === 'compra' ? 'Compra' : 'Alquiler') : '—';
+      const condicion = fs.transaccion ? (fs.transaccion === 'venta' ? 'Venta' : 'Alquiler') : '—';
 
       let presupuesto = '—';
-      if (fs.transaccion === 'compra' && fs.presupuesto_compra) {
+      if (fs.transaccion === 'venta' && fs.presupuesto_compra) {
         presupuesto = `${Number(fs.presupuesto_compra).toLocaleString()} USD`;
       } else if (fs.transaccion === 'alquiler' && fs.presupuesto_alquiler) {
         presupuesto = `${Number(fs.presupuesto_alquiler).toLocaleString()} USD/mes`;
@@ -1425,8 +1425,8 @@ class ResultadosPage {
           <label style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">Transacción</label>
           <div style="display: flex; gap: 6px;">
             <label style="display: flex; align-items: center; cursor: pointer; flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px;">
-              <input type="radio" name="gen_transaccion" value="compra" ${fs.transaccion === 'compra' ? 'checked' : ''} style="margin-right: 5px;">
-              <span>Compra</span>
+              <input type="radio" name="gen_transaccion" value="venta" ${fs.transaccion === 'venta' ? 'checked' : ''} style="margin-right: 5px;">
+              <span>Venta</span>
             </label>
             <label style="display: flex; align-items: center; cursor: pointer; flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px;">
               <input type="radio" name="gen_transaccion" value="alquiler" ${fs.transaccion === 'alquiler' ? 'checked' : ''} style="margin-right: 5px;">
@@ -1437,15 +1437,15 @@ class ResultadosPage {
 
         <div class="form-group" style="margin-bottom: 8px;" id="gen_presupuesto_group">
           <label for="gen_presupuesto" style="font-size: 11px; color: #666; margin-bottom: 3px; display: block; font-weight: 500;">
-            Presupuesto ${fs.transaccion === 'compra' ? '(USD)' : '(USD/mes)'}
+            Presupuesto ${fs.transaccion === 'venta' ? '(USD)' : '(USD/mes)'}
           </label>
           <input
             type="number"
             id="gen_presupuesto"
             class="form-control"
             style="padding: 8px 10px; font-size: 13px;"
-            placeholder="${fs.transaccion === 'compra' ? 'Ej: 200000' : 'Ej: 1500'}"
-            value="${fs.transaccion === 'compra' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '')}"
+            placeholder="${fs.transaccion === 'venta' ? 'Ej: 200000' : 'Ej: 1500'}"
+            value="${fs.transaccion === 'venta' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '')}"
           >
         </div>
 
@@ -1490,7 +1490,7 @@ class ResultadosPage {
         transaccion: transaccion
       };
 
-      if (transaccion === 'compra') {
+      if (transaccion === 'venta') {
         this.filtrosSimplificados.presupuesto_compra = presupuesto;
         delete this.filtrosSimplificados.presupuesto_alquiler;
       } else if (transaccion === 'alquiler') {
@@ -1523,11 +1523,11 @@ class ResultadosPage {
         const label = presupuestoGroup?.querySelector('label');
 
         if (label && presupuestoInput) {
-          label.innerHTML = `Presupuesto ${transaccion === 'compra' ? '(USD)' : '(USD/mes)'}`;
-          presupuestoInput.placeholder = transaccion === 'compra' ? 'Ej: 200000' : 'Ej: 1500';
+          label.innerHTML = `Presupuesto ${transaccion === 'venta' ? '(USD)' : '(USD/mes)'}`;
+          presupuestoInput.placeholder = transaccion === 'venta' ? 'Ej: 200000' : 'Ej: 1500';
 
           const fs = this.filtrosSimplificados || {};
-          presupuestoInput.value = transaccion === 'compra' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '');
+          presupuestoInput.value = transaccion === 'venta' ? (fs.presupuesto_compra || '') : (fs.presupuesto_alquiler || '');
         }
 
         aplicarCambios();
@@ -2571,7 +2571,7 @@ class ResultadosPage {
 
     this.propiedadesFiltradas = this.propiedadesFiltradas.filter(prop => {
       // Filtro por transacción (compra/alquiler)
-      if (filtros.transaccion === 'compra') {
+      if (filtros.transaccion === 'venta') {
         // Si busca compra, la propiedad debe tener precio de venta
         if (!prop.precio_venta) {
           return false;

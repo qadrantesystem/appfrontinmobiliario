@@ -103,7 +103,7 @@ class EmailService {
               type="text"
               id="swal-email-subject"
               class="swal2-input"
-              value="Fichas de Propiedades - Quadrante"
+              value="Fichas de Propiedades - Qadrante"
               style="margin: 0; width: 100%;"
             >
           </div>
@@ -124,7 +124,7 @@ Adjunto encontrará las fichas de las propiedades seleccionadas.
 Quedo atento a cualquier consulta.
 
 Saludos cordiales,
-Equipo Quadrante</textarea>
+Equipo Qadrante</textarea>
           </div>
 
           <div style="margin-bottom: 10px;">
@@ -238,7 +238,7 @@ Equipo Quadrante</textarea>
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Fichas de Propiedades - Quadrante</title>
+        <title>Fichas de Propiedades - Qadrante</title>
       </head>
       <body style="
         font-family: Arial, sans-serif;
@@ -259,7 +259,7 @@ Equipo Quadrante</textarea>
             margin: 0;
             color: #2C5282;
             font-size: 28px;
-          ">Quadrante</h1>
+          ">Qadrante</h1>
           <p style="
             margin: 5px 0 0 0;
             color: #6B7280;
@@ -304,7 +304,7 @@ Equipo Quadrante</textarea>
           font-size: 13px;
         ">
           <p style="margin: 0 0 10px 0;">
-            <strong>Quadrante</strong>
+            <strong>Qadrante</strong>
           </p>
           <p style="margin: 0;">
             www.quadrante.com | contacto@quadrante.com | +51 XXX XXX XXX

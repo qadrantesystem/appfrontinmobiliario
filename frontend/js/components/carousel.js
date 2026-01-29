@@ -1,4 +1,4 @@
-// Carrusel Hero - Quadrante
+// Carrusel Hero - Qadrante
 class Carousel {
   constructor() {
     this.currentSlide = 0;

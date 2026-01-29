@@ -1,4 +1,4 @@
-// Página de Búsqueda Simplificada - Quadrante
+// Página de Búsqueda Simplificada - Qadrante
 class BusquedaPage {
   constructor() {
     this.distritos = [];
@@ -10,7 +10,7 @@ class BusquedaPage {
       distritos_ids: [],
       tipo_inmueble_id: null,
       metraje: null,
-      transaccion: 'compra',
+      transaccion: 'venta',
       presupuesto: null
     };
 
@@ -54,23 +54,23 @@ class BusquedaPage {
   }
 
   setupPresupuestoDinamico() {
-    const radioCompra = document.querySelector('input[name="transaccion"][value="compra"]');
+    const radioVenta = document.querySelector('input[name="transaccion"][value="venta"]');
     const radioAlquiler = document.querySelector('input[name="transaccion"][value="alquiler"]');
     const labelPresupuesto = document.getElementById('labelPresupuesto');
     const inputPresupuesto = document.getElementById('presupuesto');
     const helperPresupuesto = document.getElementById('helperPresupuesto');
 
     // 🔥 Validar que los elementos existan
-    if (!radioCompra || !radioAlquiler || !labelPresupuesto || !inputPresupuesto || !helperPresupuesto) {
+    if (!radioVenta || !radioAlquiler || !labelPresupuesto || !inputPresupuesto || !helperPresupuesto) {
       console.warn('⚠️ Elementos de presupuesto no encontrados en esta página');
       return;
     }
 
     const actualizarCampo = () => {
-      const esCompra = radioCompra.checked;
-      
-      if (esCompra) {
-        labelPresupuesto.textContent = '💰 Presupuesto Compra (USD)';
+      const esVenta = radioVenta.checked;
+
+      if (esVenta) {
+        labelPresupuesto.textContent = '💰 Presupuesto Venta (USD)';
         inputPresupuesto.placeholder = '750,000';
         helperPresupuesto.textContent = '💡 Tolerancia ±15% (Sin IGV)';
       } else {
@@ -80,10 +80,10 @@ class BusquedaPage {
       }
 
       // Actualizar valor en filtros
-      this.filtrosSeleccionados.transaccion = esCompra ? 'compra' : 'alquiler';
+      this.filtrosSeleccionados.transaccion = esVenta ? 'venta' : 'alquiler';
     };
 
-    radioCompra.addEventListener('change', actualizarCampo);
+    radioVenta.addEventListener('change', actualizarCampo);
     radioAlquiler.addEventListener('change', actualizarCampo);
   }
 
@@ -327,7 +327,7 @@ class BusquedaPage {
       area: this.filtrosSeleccionados.metraje, // Renombrado de metraje a area
       transaccion: this.filtrosSeleccionados.transaccion,
       // Presupuesto separado según tipo de transacción
-      presupuesto_compra: this.filtrosSeleccionados.transaccion === 'compra' ? this.filtrosSeleccionados.presupuesto : null,
+      presupuesto_compra: this.filtrosSeleccionados.transaccion === 'venta' ? this.filtrosSeleccionados.presupuesto : null,
       presupuesto_alquiler: this.filtrosSeleccionados.transaccion === 'alquiler' ? this.filtrosSeleccionados.presupuesto : null
     };
 

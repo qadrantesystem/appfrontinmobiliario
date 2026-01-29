@@ -812,7 +812,7 @@ class PropertyForm {
         
         const response = await fetch(url, {
           headers: {
-            'User-Agent': 'QuadranteInmobiliaria/1.0'
+            'User-Agent': 'QadranteInmobiliaria/1.0'
           }
         });
         
@@ -960,7 +960,7 @@ class PropertyForm {
       const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=pe`;
       
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'QuadranteInmobiliaria/1.0' }
+        headers: { 'User-Agent': 'QadranteInmobiliaria/1.0' }
       });
       
       const data = await response.json();
@@ -981,7 +981,7 @@ class PropertyForm {
       const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
       
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'QuadranteInmobiliaria/1.0' }
+        headers: { 'User-Agent': 'QadranteInmobiliaria/1.0' }
       });
       
       const data = await response.json();

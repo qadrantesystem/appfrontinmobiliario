@@ -2858,7 +2858,7 @@ class BusquedasTab {
           </div>
           <div style="margin-bottom: 15px;">
             <label style="display: block; margin-bottom: 5px; font-weight: 600;">Asunto</label>
-            <input type="text" id="emailSubject" class="swal2-input" value="Propiedades Quadrante" style="margin: 0; width: 100%;">
+            <input type="text" id="emailSubject" class="swal2-input" value="Propiedades Qadrante" style="margin: 0; width: 100%;">
           </div>
           <div style="margin-bottom: 15px;">
             <label style="display: block; margin-bottom: 5px; font-weight: 600;">Mensaje</label>
@@ -2889,7 +2889,7 @@ class BusquedasTab {
         }
         return {
           to: email,
-          subject: document.getElementById('emailSubject').value || 'Propiedades Quadrante',
+          subject: document.getElementById('emailSubject').value || 'Propiedades Qadrante',
           message: document.getElementById('emailMessage').value || '',
           sendCopy: document.getElementById('emailCopy').checked
         };
@@ -2964,7 +2964,7 @@ class BusquedasTab {
 
     // Construir mensaje
     const selectedProps = this.currentResults.filter(p => this.selectedProperties.has(p.id));
-    let mensaje = `🏢 *Propiedades Quadrante*\n\n`;
+    let mensaje = `🏢 *Propiedades Qadrante*\n\n`;
     selectedProps.forEach(p => {
       mensaje += `📍 *${p.codigo}* - ${p.titulo}\n`;
       mensaje += `   💰 $${this.formatNumber(p.precio)}\n`;
@@ -3062,7 +3062,7 @@ class BusquedasTab {
       ">
         <!-- Header con Logo -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #2C5282;">
-          <img src="${logoUrl}" alt="Quadrante" style="height: 50px;">
+          <img src="${logoUrl}" alt="Qadrante" style="height: 50px;">
           <div style="text-align: right;">
             <div style="font-size: 24px; font-weight: bold; color: #2C5282;">${prop.codigo || 'N/A'}</div>
             <div style="font-size: 12px; color: #6B7280;">${new Date().toLocaleDateString('es-PE')}</div>
@@ -3186,7 +3186,7 @@ class BusquedasTab {
           color: #6B7280;
           text-align: center;
         ">
-          <strong>Quadrante</strong> - Sistema Inmobiliario Profesional<br>
+          <strong>Qadrante</strong> - Sistema Inmobiliario Profesional<br>
           www.quadrante.com | contacto@quadrante.com
         </div>
       </div>

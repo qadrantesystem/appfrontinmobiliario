@@ -1,5 +1,5 @@
 /**
- * ✅ Verificar Email Page - Quadrante
+ * ✅ Verificar Email Page - Qadrante
  * Integración con Backend API
  */
 

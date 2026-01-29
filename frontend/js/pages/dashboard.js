@@ -1,5 +1,5 @@
 /**
- * 🎯 Dashboard Universal - Quadrante
+ * 🎯 Dashboard Universal - Qadrante
  * Sistema de tabs dinámico con data real según perfil de usuario
  */
 

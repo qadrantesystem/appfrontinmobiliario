@@ -1,5 +1,5 @@
 /**
- * 📊 Charts Utility - Quadrante
+ * 📊 Charts Utility - Qadrante
  * Gráficos de torta y barras sin librerías externas
  */
 

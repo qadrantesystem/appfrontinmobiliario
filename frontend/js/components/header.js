@@ -1,5 +1,5 @@
 /**
- * 📌 Header Component - Quadrante
+ * 📌 Header Component - Qadrante
  * Componente reutilizable de header con navegación y menú de usuario
  */
 

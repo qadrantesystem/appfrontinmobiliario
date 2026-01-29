@@ -6,7 +6,7 @@
  * - 4 imágenes
  * - Características
  * - Detalles
- * - Logo Quadrante
+ * - Logo Qadrante
  * - Grilla con propiedades generales
  *
  * Requiere: jsPDF y html2canvas
@@ -15,7 +15,7 @@
 class PDFGenerator {
   constructor(mainApp) {
     this.mainApp = mainApp;
-    this.logoUrl = 'assets/images/logos/logo.jpg'; // Logo de Quadrante
+    this.logoUrl = 'assets/images/logos/logo.jpg'; // Logo de Qadrante
   }
 
   /**
@@ -146,7 +146,7 @@ class PDFGenerator {
           padding-bottom: 15px;
           border-bottom: 3px solid #2C5282;
         ">
-          <img src="${this.logoUrl}" alt="Quadrante" style="height: 50px;">
+          <img src="${this.logoUrl}" alt="Qadrante" style="height: 50px;">
           <div style="text-align: right;">
             <h2 style="margin: 0; color: #2C5282; font-size: 24px;">
               ${property.codigo || 'N/A'}
@@ -288,7 +288,7 @@ class PDFGenerator {
           color: #6B7280;
         ">
           <p style="margin: 0;">
-            Documento generado automáticamente por <strong>Quadrante</strong>
+            Documento generado automáticamente por <strong>Qadrante</strong>
           </p>
           <p style="margin: 5px 0 0 0;">
             www.quadrante.com | contacto@quadrante.com | +51 XXX XXX XXX

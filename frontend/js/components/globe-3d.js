@@ -1,4 +1,4 @@
-// Globo 3D con Edificios Épico - Quadrante
+// Globo 3D con Edificios Épico - Qadrante
 class Globe3D {
   constructor() {
     this.container = document.querySelector('.globe-container');

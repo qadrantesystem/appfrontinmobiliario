@@ -1,4 +1,4 @@
-// Home Page - Quadrante
+// Home Page - Qadrante
 class HomePage {
   constructor() {
     this.distritos = [];
@@ -238,8 +238,8 @@ class HomePage {
     if (!selectTransaccion || !labelPresupuesto) return;
     
     selectTransaccion.addEventListener('change', (e) => {
-      if (e.target.value === 'compra') {
-        labelPresupuesto.textContent = 'Presupuesto Compra (USD)';
+      if (e.target.value === 'venta') {
+        labelPresupuesto.textContent = 'Presupuesto Venta (USD)';
         if (helperPresupuesto) helperPresupuesto.textContent = 'Tolerancia ±15%';
       } else {
         labelPresupuesto.textContent = 'Presupuesto Alquiler (USD/mes)';
@@ -364,7 +364,7 @@ class HomePage {
       ).map(cb => parseInt(cb.value));
 
       const tipo = document.getElementById('tipoInmueble').value;
-      const transaccion = document.getElementById('transaccion')?.value || 'compra';
+      const transaccion = document.getElementById('transaccion')?.value || 'venta';
       const metraje = document.getElementById('metraje')?.value;
       const presupuesto = document.getElementById('presupuesto')?.value;
 
@@ -381,7 +381,7 @@ class HomePage {
         tipo_inmueble_id: parseInt(tipo),
         transaccion: transaccion,
         area: metraje ? parseInt(metraje) : null,
-        presupuesto_compra: transaccion === 'compra' && presupuesto ? parseInt(presupuesto) : null,
+        presupuesto_compra: transaccion === 'venta' && presupuesto ? parseInt(presupuesto) : null,
         presupuesto_alquiler: transaccion === 'alquiler' && presupuesto ? parseInt(presupuesto) : null
       };
 
