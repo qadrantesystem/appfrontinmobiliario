@@ -4175,6 +4175,7 @@ class PropertyForm {
             <div
               class="oficina-seleccionable ${estaSeleccionada ? 'selected' : ''}"
               data-oficina-id="${oficinaNum}"
+              data-piso="${piso}"
               data-metraje="${oficinaExistente?.area || 50}"
               data-registro-cab-id="${oficinaExistente?.registro_cab_id || ''}"
               style="
