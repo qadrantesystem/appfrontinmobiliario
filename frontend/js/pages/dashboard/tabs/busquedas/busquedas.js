@@ -359,7 +359,7 @@ class BusquedasTab {
                 </div>
 
                 <div class="form-group-custom">
-                  <label id="modalLabelPresupuesto">Presupuesto Compra (USD)</label>
+                  <label id="modalLabelPresupuesto">Presupuesto Venta (USD)</label>
                   <input type="number" id="modalPresupuesto" class="form-control-custom" placeholder="750,000">
                   <small class="help-text" id="modalHelperPresupuesto">Tolerancia ±15%</small>
                 </div>
@@ -1618,7 +1618,7 @@ class BusquedasTab {
           label.textContent = 'Presupuesto Alquiler (USD/mes)';
           helper.textContent = 'Tolerancia ±15%';
         } else {
-          label.textContent = 'Presupuesto Compra (USD)';
+          label.textContent = 'Presupuesto Venta (USD)';
           helper.textContent = 'Tolerancia ±15%';
         }
       }

@@ -244,7 +244,7 @@ class BusquedasTab {
                   <small class="help-text">El sistema busca ±15%</small>
                 </div>
                 <div class="form-group-custom">
-                  <label id="modalLabelPresupuesto">Presupuesto Compra (USD)</label>
+                  <label id="modalLabelPresupuesto">Presupuesto Venta (USD)</label>
                   <input type="number" id="modalPresupuesto" class="form-control-custom" placeholder="750,000">
                   <small class="help-text" id="modalHelperPresupuesto">Tolerancia ±15%</small>
                 </div>
@@ -653,7 +653,7 @@ class BusquedasTab {
       ? (this.allTipos?.find(t => t.tipo_inmueble_id == filters.tipo_inmueble)?.nombre || '—')
       : '—';
 
-    const transaccion = filters.tipo_transaccion === 'alquiler' ? 'Alquiler' : 'Compra';
+    const transaccion = filters.tipo_transaccion === 'alquiler' ? 'Alquiler' : 'Venta';
     const presupuesto = filters.presupuesto
       ? `${Number(filters.presupuesto).toLocaleString()} USD${filters.tipo_transaccion === 'alquiler' ? '/mes' : ''}`
       : '—';
@@ -703,7 +703,7 @@ class BusquedasTab {
     }
 
     console.log('✅ Contenedor básico encontrado');
-    const transaccionActual = filters.tipo_transaccion || 'compra';
+    const transaccionActual = filters.tipo_transaccion || 'venta';
     const esAlquiler = transaccionActual === 'alquiler';
 
     // Definir filtros básicos dinámicos (igual que resultados.js)
@@ -713,16 +713,16 @@ class BusquedasTab {
         nombre: 'Transacción',
         tipo_input: 'pills',
         opciones: [
-          { value: 'compra', label: 'Compra' },
+          { value: 'venta', label: 'Venta' },
           { value: 'alquiler', label: 'Alquiler' }
         ]
       },
       {
-        id: 'precio_compra',
-        nombre: 'Precio Compra (USD)',
+        id: 'precio_venta',
+        nombre: 'Precio Venta (USD)',
         tipo_input: 'number',
         placeholder: 'Ej: 500000',
-        visible_cuando: 'transaccion=compra'
+        visible_cuando: 'transaccion=venta'
       },
       {
         id: 'precio_alquiler',
@@ -766,7 +766,7 @@ class BusquedasTab {
     // Inicializar valores
     const valores = {
       transaccion: transaccionActual,
-      precio_compra: filters.presupuesto && !esAlquiler ? filters.presupuesto : '',
+      precio_venta: filters.presupuesto && !esAlquiler ? filters.presupuesto : '',
       precio_alquiler: filters.presupuesto && esAlquiler ? filters.presupuesto : '',
       area: filters.metraje || '',
       parqueos: '',
@@ -788,7 +788,7 @@ class BusquedasTab {
    */
   renderFiltroBasicoItem(filtro, valores) {
     const value = valores[filtro.id] || '';
-    const transaccionActual = valores.transaccion || 'compra';
+    const transaccionActual = valores.transaccion || 'venta';
 
     // Verificar visibilidad condicional
     if (filtro.visible_cuando) {

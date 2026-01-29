@@ -323,7 +323,7 @@ class BusquedasForm {
           if (label) label.textContent = 'Presupuesto Alquiler (USD)';
           if (helper) helper.textContent = 'Tolerancia ±15%';
         } else {
-          if (label) label.textContent = 'Presupuesto Compra (USD)';
+          if (label) label.textContent = 'Presupuesto Venta (USD)';
           if (helper) helper.textContent = 'Tolerancia ±15%';
         }
       });
