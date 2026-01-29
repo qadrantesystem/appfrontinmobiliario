@@ -307,7 +307,7 @@ Equipo Qadrante</textarea>
             <strong>Qadrante</strong>
           </p>
           <p style="margin: 0;">
-            www.quadrante.com | contacto@quadrante.com | +51 XXX XXX XXX
+            www.qadrante.com | contacto@qadrante.com | +51 XXX XXX XXX
           </p>
           <p style="margin: 10px 0 0 0; font-size: 11px;">
             Este correo fue generado automáticamente. Por favor no responder.

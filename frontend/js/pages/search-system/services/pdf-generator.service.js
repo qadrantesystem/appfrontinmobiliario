@@ -291,7 +291,7 @@ class PDFGenerator {
             Documento generado automáticamente por <strong>Qadrante</strong>
           </p>
           <p style="margin: 5px 0 0 0;">
-            www.quadrante.com | contacto@quadrante.com | +51 XXX XXX XXX
+            www.qadrante.com | contacto@qadrante.com | +51 XXX XXX XXX
           </p>
         </div>
       </div>

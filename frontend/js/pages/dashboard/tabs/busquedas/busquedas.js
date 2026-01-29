@@ -2470,7 +2470,7 @@ class BusquedasTab {
                     <i class="fas fa-phone"></i> +51 999 457 538
                   </div>
                   <div class="contact-item">
-                    <i class="fas fa-envelope"></i> info@quadrante.pe
+                    <i class="fas fa-envelope"></i> info@qadrante.pe
                   </div>
                 ` : ''}
               </div>
@@ -3187,7 +3187,7 @@ class BusquedasTab {
           text-align: center;
         ">
           <strong>Qadrante</strong> - Sistema Inmobiliario Profesional<br>
-          www.quadrante.com | contacto@quadrante.com
+          www.qadrante.com | contacto@qadrante.com
         </div>
       </div>
     `;

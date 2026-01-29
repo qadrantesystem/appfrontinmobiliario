@@ -46,7 +46,7 @@ class Globe3D {
   createTitle() {
     const title = document.createElement('div');
     title.className = 'globe-title';
-    title.innerHTML = '<span class="title-porque">POR QUÉ</span><br><span class="title-match">QUADRANTE</span><span class="title-property">?</span>';
+    title.innerHTML = '<span class="title-porque">POR QUÉ</span><br><span class="title-match">QADRANTE</span><span class="title-property">?</span>';
     this.container.appendChild(title);
   }
 
