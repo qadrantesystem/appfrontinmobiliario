@@ -247,12 +247,12 @@ class ProfileModal {
                   </svg>
                   Teléfono
                 </label>
-                <input type="tel" 
-                       id="telefono" 
-                       name="telefono" 
+                <input type="tel"
+                       id="telefono"
+                       name="telefono"
                        value="${this.userData?.telefono || ''}"
-                       placeholder="999 999 999"
-                       pattern="[0-9]{9}">
+                       placeholder="999999999"
+                       pattern="[0-9]{7,15}">
               </div>
 
               <!-- Info adicional (solo lectura) -->
