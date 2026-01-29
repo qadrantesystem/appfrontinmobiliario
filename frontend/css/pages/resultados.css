@@ -1831,6 +1831,33 @@
   box-shadow: 0 6px 20px rgba(245, 166, 35, 0.6);
 }
 
+/* 🔗 Marcadores de Combinaciones - Color Verde/Azul Degradado */
+.marker-number.marker-combinacion {
+  background: linear-gradient(135deg, #10B981 0%, #3B82F6 100%);
+  border: 3px solid #059669;
+  color: var(--blanco);
+  font-size: 1rem;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.marker-number.marker-combinacion:hover,
+.marker-number.marker-combinacion.highlighted {
+  background: linear-gradient(135deg, #059669 0%, #2563EB 100%);
+  border-color: #047857;
+  transform: scale(1.4);
+  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.6);
+}
+
+/* Popup de combinaciones */
+.marker-popup-combinacion {
+  text-align: center;
+}
+
+.marker-popup-combinacion strong:first-child {
+  color: #059669;
+  font-size: 0.95rem;
+}
+
 /* ===========================
    HAMBURGER MENU
    =========================== */

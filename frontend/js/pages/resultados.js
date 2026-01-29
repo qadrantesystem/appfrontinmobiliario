@@ -2986,7 +2986,7 @@ class ResultadosPage {
     }
 
     return `
-      <div class="property-card property-card-combinacion" data-combination-id="${combinacion.edificio_id || 'combo'}">
+      <div class="property-card property-card-combinacion" data-property-id="combo-${combinacion.edificio_id || 'unknown'}">
         <div class="property-number">${number}</div>
 
         <!-- 🔗 Badge de Combinación -->
@@ -3319,23 +3319,39 @@ class ResultadosPage {
       lat += offsetLat;
       lng += offsetLng;
 
+      // 🔗 Detectar si es combinación para usar marcador diferenciado
+      const esCombinacion = prop.tipo === 'combinacion';
+      const markerClass = esCombinacion ? 'marker-number marker-combinacion' : 'marker-number';
+      const markerIcon = esCombinacion ? '🔗' : (index + 1);
+      const markerId = esCombinacion
+        ? `combo-${prop.edificio_id || 'unknown'}`
+        : (prop.registro_cab_id || prop.id);
+
       const customIcon = L.divIcon({
         className: 'custom-marker',
-        html: `<div class="marker-number" data-marker-id="${prop.registro_cab_id || prop.id}">${index + 1}</div>`,
+        html: `<div class="${markerClass}" data-marker-id="${markerId}">${markerIcon}</div>`,
         iconSize: [40, 40],
         iconAnchor: [20, 20]
       });
 
-      const marker = L.marker([lat, lng], { icon: customIcon })
-        .addTo(this.map)
-        .bindPopup(`
-          <div class="marker-popup">
+      // Construir popup según tipo
+      const popupContent = esCombinacion
+        ? `<div class="marker-popup marker-popup-combinacion">
+            <strong>🔗 ${prop.cantidad_oficinas || 2} Oficinas Combinadas</strong><br>
+            <span>${prop.area_total || '—'} m² total</span><br>
+            <strong class="popup-price">USD ${prop.precio_venta_total?.toLocaleString() || prop.precio_alquiler_total?.toLocaleString() || '—'}</strong>
+          </div>`
+        : `<div class="marker-popup">
             <strong>${prop.titulo}</strong><br>
             <strong class="popup-price">USD ${prop.precio_venta?.toLocaleString() || prop.precio_alquiler?.toLocaleString()}</strong>
-          </div>
-        `);
+          </div>`;
 
-      const propId = prop.registro_cab_id || prop.id;
+      const marker = L.marker([lat, lng], { icon: customIcon })
+        .addTo(this.map)
+        .bindPopup(popupContent);
+
+      // Usar el mismo ID calculado para el marcador
+      const propId = markerId;
       
       marker.on('click', () => {
         this.activarPropiedad(propId);
