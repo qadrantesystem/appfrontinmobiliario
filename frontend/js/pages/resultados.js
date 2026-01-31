@@ -517,18 +517,21 @@ class ResultadosPage {
         'Content-Type': 'application/json'
       };
 
-      // Si hay usuario logueado, agregar token
+      // Si hay usuario logueado, agregar token y usar endpoint autenticado
       const token = localStorage.getItem('token');
+      let propiedadesEndpoint = `${API_BASE}/propiedades/buscar-avanzada-publica`; // Default: público
+
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
-        console.log('🔐 Usuario autenticado, usando token');
+        propiedadesEndpoint = `${API_BASE}/propiedades/buscar-avanzada`; // Con auth
+        console.log('🔐 Usuario autenticado, usando endpoint privado');
       } else {
-        console.log('👤 Usuario invitado, búsqueda pública');
+        console.log('👤 Usuario invitado, usando endpoint público');
       }
 
       const [propiedadesRes, caracteristicasRes, tiposRes, distritosRes, configFiltrosRes] = await Promise.all([
-        // ✅ Usar endpoint de búsqueda avanzada con POST (soporta combinaciones)
-        fetch(`${API_BASE}/propiedades/buscar-avanzada`, {
+        // ✅ Usar endpoint público o privado según autenticación
+        fetch(propiedadesEndpoint, {
           method: 'POST',
           headers: headers,
           body: JSON.stringify(filtrosBusqueda)
