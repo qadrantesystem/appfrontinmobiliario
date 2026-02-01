@@ -390,13 +390,15 @@ class ResultadosPage {
   }
 
   async init() {
-    // 1. Cargar datos del backend PRIMERO
+    // 1. Cargar filtros de localStorage PRIMERO (antes de llamar al API)
+    this.cargarFiltrosSimplificados();
+
+    // 2. Cargar datos del backend CON los filtros ya cargados
     await this.cargarDatos();
 
-    // 2. Cargar configuración del usuario
+    // 3. Cargar configuración del usuario
     this.cargarUsuarioLogueado();
     this.cargarFavoritos();
-    this.cargarFiltrosSimplificados();
 
     // 3. Aplicar filtros
     this.aplicarFiltrosIniciales();
