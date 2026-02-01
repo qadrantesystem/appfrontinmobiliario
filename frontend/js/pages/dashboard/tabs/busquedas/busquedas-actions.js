@@ -64,6 +64,33 @@ class BusquedasActions {
         }
       });
 
+      // Calcular desglose de resultados
+      const resultados = this.tab.currentResults || [];
+      const individuales = resultados.filter(r => r.tipo !== 'combinacion').length;
+      const combinaciones = resultados.filter(r => r.tipo === 'combinacion').length;
+
+      // Enriquecer criterios con nombres para visualización
+      const criteriosEnriquecidos = { ...this.tab.currentFilters };
+
+      // Agregar nombre de tipo de inmueble si no existe
+      if (!criteriosEnriquecidos.tipo_inmueble_nombre) {
+        const tipoSelect = document.getElementById('modalTipoInmueble');
+        if (tipoSelect && tipoSelect.selectedIndex > 0) {
+          criteriosEnriquecidos.tipo_inmueble_nombre = tipoSelect.options[tipoSelect.selectedIndex].text;
+        }
+      }
+
+      // Agregar nombres de distritos si no existen
+      if (!criteriosEnriquecidos.distrito_nombres) {
+        const distritoCheckboxes = document.querySelectorAll('#modalDistritosContainer input[type="checkbox"]:checked');
+        if (distritoCheckboxes.length > 0) {
+          criteriosEnriquecidos.distrito_nombres = Array.from(distritoCheckboxes).map(cb => {
+            const label = cb.parentElement?.querySelector('span')?.textContent || cb.nextSibling?.textContent?.trim();
+            return label || `Distrito ${cb.value}`;
+          });
+        }
+      }
+
       const response = await fetch(`${API_CONFIG.BASE_URL}/busquedas/guardadas`, {
         method: 'POST',
         headers: {
@@ -72,9 +99,12 @@ class BusquedasActions {
         },
         body: JSON.stringify({
           nombre_busqueda: nombre,
-          criterios_json: this.tab.currentFilters,
+          criterios_json: criteriosEnriquecidos,
           frecuencia_alerta: 'inmediata',  // Por defecto alertas inmediatas
-          alerta_activa: true
+          alerta_activa: true,
+          cantidad_resultados: resultados.length,
+          cantidad_individuales: individuales,
+          cantidad_combinaciones: combinaciones
         })
       });
 

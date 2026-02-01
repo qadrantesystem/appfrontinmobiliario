@@ -347,6 +347,14 @@ class BusquedasForm {
     const tipoSelect = this.tab.container.querySelector('#modalTipoInmueble');
     const tipoNombre = tipoSelect?.options[tipoSelect.selectedIndex]?.text || '';
 
+    // Obtener nombres de distritos seleccionados
+    const distritoNombres = this.selectedDistritos.map(id => {
+      const distrito = this.allDistritos.find(d =>
+        (d.ubigeo || d.distrito_id || d.id) == id
+      );
+      return distrito?.nombre || distrito?.distrito || `Distrito ${id}`;
+    });
+
     // Estructura compatible con backend /propiedades/buscar-avanzada
     const filters = {
       filtros_genericos: {
@@ -368,6 +376,7 @@ class BusquedasForm {
       metraje: metraje || null,
       presupuesto: presupuesto || null,
       distritos: this.selectedDistritos.length > 0 ? this.selectedDistritos.map(d => parseInt(d)) : [],
+      distrito_nombres: distritoNombres,
       tipo_transaccion: transaccion
     };
 

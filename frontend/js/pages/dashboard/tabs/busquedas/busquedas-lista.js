@@ -11,12 +11,15 @@ class BusquedasLista {
     this.filteredSearches = [];
     this.currentPage = 1;
     this.itemsPerPage = 5;
+    this.distritosCache = {}; // Cache de ID -> nombre
   }
 
   /**
    * Cargar búsquedas guardadas del API
    */
   async load() {
+    // Cargar distritos para resolver nombres
+    await this.loadDistritos();
     const container = this.tab.container.querySelector('#savedSearchesList');
     if (!container) return;
 
@@ -64,6 +67,38 @@ class BusquedasLista {
       this.filteredSearches = [];
       this.render();
     }
+  }
+
+  /**
+   * Cargar distritos para resolver nombres desde IDs
+   */
+  async loadDistritos() {
+    if (Object.keys(this.distritosCache).length > 0) return; // Ya cargado
+
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/distritos?limit=100`, {
+        headers: { 'Authorization': `Bearer ${authService.getToken()}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const distritos = Array.isArray(data) ? data : (data.data || []);
+        distritos.forEach(d => {
+          const id = d.distrito_id || d.ubigeo || d.id;
+          this.distritosCache[id] = d.nombre || d.distrito;
+        });
+        console.log(`✅ Distritos cacheados: ${Object.keys(this.distritosCache).length}`);
+      }
+    } catch (error) {
+      console.warn('⚠️ No se pudieron cargar distritos:', error);
+    }
+  }
+
+  /**
+   * Resolver nombres de distritos desde IDs
+   */
+  resolverDistritoNombres(ids) {
+    if (!ids || ids.length === 0) return [];
+    return ids.map(id => this.distritosCache[id] || `Distrito ${id}`);
   }
 
   /**
@@ -121,16 +156,22 @@ class BusquedasLista {
     const filtrosAvanzados = criterios.filtros_avanzados || [];
     const meta = criterios._meta || {};
 
-    // Transacción (buscar en estructura anidada o legacy)
-    const transaccion = filtrosGenericos.transaccion || criterios.transaccion || 'venta';
-    const transaccionTexto = transaccion === 'alquiler' ? 'Alquiler' : 'Venta';
+    // Transacción
+    const transaccion = filtrosGenericos.transaccion || criterios.tipo_transaccion || criterios.transaccion || 'venta';
+    const transaccionTexto = transaccion === 'alquiler' ? '🔄 Alquiler' : '💰 Venta';
 
-    // Tipo de inmueble
-    const tipoInmuebleId = filtrosGenericos.tipo_inmueble_id || criterios.tipo_inmueble_id;
-    const tipoNombre = meta.tipo_inmueble_nombre || this.getTipoNombre(tipoInmuebleId);
+    // Tipo de inmueble (nombre guardado o lookup)
+    const tipoInmuebleId = filtrosGenericos.tipo_inmueble_id || criterios.tipo_inmueble_id || criterios.tipo_inmueble;
+    const tipoNombre = criterios.tipo_inmueble_nombre || meta.tipo_inmueble_nombre || this.getTipoNombre(tipoInmuebleId);
 
-    // Distritos
-    const distritoIds = filtrosGenericos.distrito_ids || criterios.distritos_ids || [];
+    // Distritos (nombres guardados o resolver desde IDs)
+    const distritoIds = filtrosGenericos.distrito_ids || criterios.distritos_ids || criterios.distritos || [];
+    let distritoNombres = meta.distrito_nombres || criterios.distrito_nombres || [];
+
+    // Si no hay nombres guardados, resolver desde cache
+    if (distritoNombres.length === 0 && distritoIds.length > 0) {
+      distritoNombres = this.resolverDistritoNombres(distritoIds);
+    }
 
     // Área/Metraje
     const area = filtrosBasicos.area || meta.metraje_original || criterios.metraje || criterios.area_min;
@@ -146,6 +187,15 @@ class BusquedasLista {
       tipoBusquedaBadge = `<span style="background: #0066CC; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">📋 BÁSICA</span>`;
     } else {
       tipoBusquedaBadge = `<span style="background: #6b7280; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">🔍 GENÉRICA</span>`;
+    }
+
+    // Formatear ubicación (usar nombres resueltos)
+    let ubicacionTexto = '';
+    if (distritoNombres.length > 0) {
+      ubicacionTexto = distritoNombres.slice(0, 3).join(', ');
+      if (distritoNombres.length > 3) {
+        ubicacionTexto += ` (+${distritoNombres.length - 3} más)`;
+      }
     }
 
     return `
@@ -176,56 +226,62 @@ class BusquedasLista {
           <span class="saved-search-date">📅 ${fecha}</span>
         </div>
 
-        <!-- Detalles de la búsqueda -->
-        <div class="saved-search-details">
-          <div class="saved-search-detail">
-            <i class="fas fa-handshake"></i>
-            <span><strong>Transacción:</strong> ${transaccionTexto}</span>
-          </div>
-
-          ${tipoInmuebleId ? `
-            <div class="saved-search-detail">
-              <i class="fas fa-building"></i>
-              <span><strong>Tipo:</strong> ${tipoNombre}</span>
-            </div>
+        <!-- Resumen visual de criterios -->
+        <div class="saved-search-criteria" style="display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; padding: 12px; background: #f8fafc; border-radius: 8px;">
+          ${tipoNombre ? `
+            <span style="background: #0066CC; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+              🏢 ${tipoNombre}
+            </span>
           ` : ''}
-
-          ${distritoIds.length > 0 ? `
-            <div class="saved-search-detail">
-              <i class="fas fa-map-marker-alt"></i>
-              <span><strong>Ubicación:</strong> ${distritoIds.length} distrito(s)</span>
-            </div>
+          <span style="background: ${transaccion === 'alquiler' ? '#10b981' : '#f59e0b'}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+            ${transaccionTexto}
+          </span>
+          ${ubicacionTexto ? `
+            <span style="background: #6366f1; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+              📍 ${ubicacionTexto}
+            </span>
           ` : ''}
-
           ${area ? `
-            <div class="saved-search-detail">
-              <i class="fas fa-ruler-combined"></i>
-              <span><strong>Área:</strong> ~${area} m²</span>
-            </div>
+            <span style="background: #8b5cf6; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+              📐 ${area} m²
+            </span>
           ` : ''}
-
           ${presupuesto ? `
-            <div class="saved-search-detail">
-              <i class="fas fa-dollar-sign"></i>
-              <span><strong>Presupuesto:</strong> ~USD ${this.formatNumber(presupuesto)}</span>
-            </div>
+            <span style="background: #059669; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+              💵 USD ${this.formatNumber(presupuesto)}
+            </span>
           ` : ''}
+        </div>
 
-          <div class="saved-search-detail">
-            <i class="fas fa-list"></i>
+        <!-- Resultados -->
+        <div class="saved-search-results" style="display: flex; align-items: center; gap: 16px; padding: 8px 0; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-chart-bar" style="color: #0066CC;"></i>
             <span><strong>Resultados:</strong> ${busqueda.cantidad_resultados || 0}</span>
           </div>
-
-          ${busqueda.es_guardada ? `
-            <div class="saved-search-detail" style="color: #10b981;">
-              <i class="fas fa-bookmark"></i>
-              <span><strong>Búsqueda guardada</strong></span>
+          ${(busqueda.cantidad_individuales !== null && busqueda.cantidad_individuales !== undefined) ? `
+            <div style="display: flex; gap: 12px; font-size: 0.85rem;">
+              <span style="color: #0066CC; background: #e0f2fe; padding: 2px 8px; border-radius: 4px;">
+                <i class="fas fa-building"></i> ${busqueda.cantidad_individuales} individuales
+              </span>
+              <span style="color: #10b981; background: #d1fae5; padding: 2px 8px; border-radius: 4px;">
+                <i class="fas fa-layer-group"></i> ${busqueda.cantidad_combinaciones || 0} combinaciones
+              </span>
             </div>
+          ` : `
+            <span style="color: #9ca3af; font-size: 0.8rem; font-style: italic;">
+              (Sin desglose - búsqueda anterior)
+            </span>
+          `}
+          ${busqueda.es_guardada ? `
+            <span style="color: #10b981; margin-left: auto;">
+              <i class="fas fa-bookmark"></i> Guardada
+            </span>
           ` : ''}
         </div>
 
         <!-- Acciones -->
-        <div class="saved-search-actions" style="justify-content: flex-end;">
+        <div class="saved-search-actions" style="justify-content: flex-end; margin-top: 8px;">
           <button class="btn btn-primary" data-action="ejecutar" data-search-id="${busqueda.busqueda_id}" style="width: auto; padding: 8px 20px;">
             <i class="fas fa-search"></i> Ejecutar Búsqueda
           </button>

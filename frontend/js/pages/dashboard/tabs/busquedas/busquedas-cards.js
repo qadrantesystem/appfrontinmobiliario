@@ -181,100 +181,98 @@ class BusquedasCards {
   }
 
   /**
-   * 🔗 Renderizar tarjeta de COMBINACIÓN (verde)
+   * 🔗 Renderizar tarjeta de COMBINACIÓN (verde) - Diseño mejorado
    */
   renderCombinacion(combo, number) {
     const oficinas = combo.oficinas || [];
-    const primeraImagen = oficinas[0]?.imagen_principal || 'https://placehold.co/800x600/4CAF50/ffffff?text=Combinación';
+    const primeraImagen = oficinas[0]?.imagen_principal || 'https://placehold.co/800x600/059669/ffffff?text=Combinación';
 
     // Precio total
     let precio = '';
     if (combo.precio_venta_total && combo.precio_venta_total > 0) {
-      precio = `<strong>USD ${this.formatNumber(combo.precio_venta_total)}</strong>`;
+      precio = `USD ${this.formatNumber(combo.precio_venta_total)}`;
     } else if (combo.precio_alquiler_total && combo.precio_alquiler_total > 0) {
-      precio = `<strong>USD ${this.formatNumber(combo.precio_alquiler_total)}/mes</strong>`;
+      precio = `USD ${this.formatNumber(combo.precio_alquiler_total)}/mes`;
+    } else {
+      precio = 'Consultar';
     }
 
-    // Lista de oficinas incluidas
+    // Lista de oficinas incluidas (compacta)
     const oficinasHTML = oficinas.map(of => `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(76, 175, 80, 0.2);">
-        <span style="font-weight: 500;">${of.nombre}</span>
-        <span style="color: #4CAF50; font-weight: 600;">${of.area} m²</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: white; border-radius: 4px; margin-bottom: 4px;">
+        <span style="font-size: 0.8rem; color: #374151;">${of.nombre}</span>
+        <span style="font-size: 0.8rem; color: #059669; font-weight: 600;">${of.area} m²</span>
       </div>
     `).join('');
 
-    // Generar ID único para la combinación (basado en edificio_id, piso y IDs de oficinas)
-    const oficinaIds = (combo.oficinas || []).map(o => o.registro_cab_id).sort().join('-');
+    // Generar ID único para la combinación
+    const oficinaIds = oficinas.map(o => o.registro_cab_id).sort().join('-');
     const comboId = `combo-${combo.edificio_id}-${combo.piso}-${oficinaIds}`;
+
+    // Nombre del edificio limpio
+    const edificioNombre = combo.edificio_nombre || 'Edificio';
 
     return `
       <div class="property-card combination-card" data-combination="true" data-combo-id="${comboId}" data-edificio-id="${combo.edificio_id}" data-property-number="${number}"
-           style="border: 3px solid #4CAF50; background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(76, 175, 80, 0.1) 100%);">
+           style="border: 2px solid #059669; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);">
 
-        <div class="property-number" style="background: #4CAF50;">${number}</div>
+        <div class="property-number" style="background: #059669;">${number}</div>
 
-        <!-- ✅ Checkbox de Selección para Combinación -->
-        <div class="property-checkbox" style="top: 50px;">
+        <!-- ✅ Checkbox de Selección -->
+        <div class="property-checkbox" style="top: 12px; right: 12px;">
           <input type="checkbox"
                  class="property-select-checkbox combination-checkbox"
                  data-combo-id="${comboId}"
                  data-edificio-id="${combo.edificio_id}"
                  id="check-${comboId}">
-          <label for="check-${comboId}" class="checkbox-label" style="border-color: #4CAF50;"></label>
+          <label for="check-${comboId}" class="checkbox-label" style="border-color: #059669;"></label>
         </div>
 
-        <!-- Badge de Combinación -->
-        <div style="position: absolute; top: 10px; left: 10px; right: 70px; z-index: 25;">
-          <div style="background: #4CAF50; color: white; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; animation: pulse 2s infinite;">
-            🔗 COMBINACIÓN DE ${combo.cantidad_oficinas} OFICINAS
+        <!-- Header verde con info principal -->
+        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 16px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;">
+              🔗 ${combo.cantidad_oficinas} OFICINAS
+            </span>
+            <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;">
+              ${combo.transaccion === 'venta' ? '💰 VENTA' : '🔄 ALQUILER'}
+            </span>
           </div>
-        </div>
-
-        <!-- Imagen principal -->
-        <div class="property-image-carousel" style="border-bottom: 3px solid #4CAF50;">
-          <img src="${primeraImagen}" alt="Combinación de oficinas"
-               style="width: 100%; height: 200px; object-fit: cover;"
-               onerror="this.src='https://placehold.co/800x600/4CAF50/ffffff?text=Combinación'">
-        </div>
-
-        <div class="property-info" style="padding: 1rem;">
-          <!-- Glosa descriptiva -->
-          <h3 class="property-title" style="color: #2e7d32; font-size: 1rem; margin-bottom: 0.5rem;">
-            ${combo.glosa}
+          <h3 style="margin: 0 0 4px 0; font-size: 1.1rem; font-weight: 700;">
+            🏢 ${edificioNombre}
           </h3>
+          <div style="opacity: 0.9; font-size: 0.85rem;">
+            📍 ${combo.distrito} · Piso ${combo.piso}
+          </div>
+        </div>
 
-          <!-- Ubicación -->
-          <div class="property-location" style="margin-bottom: 0.75rem;">
-            📍 ${combo.distrito} | Piso ${combo.piso}
+        <!-- Imagen -->
+        <div style="height: 140px; overflow: hidden;">
+          <img src="${primeraImagen}" alt="${edificioNombre}"
+               style="width: 100%; height: 100%; object-fit: cover;"
+               onerror="this.src='https://placehold.co/800x400/059669/ffffff?text=Oficinas'">
+        </div>
+
+        <!-- Contenido -->
+        <div style="padding: 16px;">
+          <!-- Área y Precio destacados -->
+          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <div style="flex: 1; background: #ecfdf5; border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #059669; font-weight: 600;">ÁREA TOTAL</div>
+              <div style="font-size: 1.3rem; font-weight: 700; color: #047857;">📐 ${combo.area_total} m²</div>
+            </div>
+            <div style="flex: 1; background: #f0fdf4; border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="font-size: 0.7rem; color: #059669; font-weight: 600;">PRECIO TOTAL</div>
+              <div style="font-size: 1rem; font-weight: 700; color: #047857;">💵 ${precio}</div>
+            </div>
           </div>
 
-          <!-- Área Total destacada -->
-          <div style="background: #4CAF50; color: white; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 1rem;">
-            <div style="font-size: 0.75rem; opacity: 0.9;">ÁREA TOTAL</div>
-            <div style="font-size: 1.5rem; font-weight: 700;">📐 ${combo.area_total} m²</div>
-          </div>
-
-          <!-- Precio Total -->
-          <div class="property-price" style="font-size: 1.1rem; margin-bottom: 1rem;">
-            💰 ${precio}
-          </div>
-
-          <!-- Lista de oficinas incluidas -->
-          <div style="background: rgba(76, 175, 80, 0.1); border-radius: 8px; padding: 12px; margin-bottom: 0.75rem;">
-            <div style="font-size: 0.75rem; color: #2e7d32; font-weight: 600; margin-bottom: 8px;">
-              📋 OFICINAS INCLUIDAS:
+          <!-- Oficinas incluidas -->
+          <div style="background: #f0fdf4; border-radius: 8px; padding: 10px;">
+            <div style="font-size: 0.7rem; color: #059669; font-weight: 600; margin-bottom: 6px;">
+              📋 OFICINAS INCLUIDAS
             </div>
             ${oficinasHTML}
-          </div>
-
-          <!-- Transacción -->
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <span style="background: white; border: 2px solid #4CAF50; color: #4CAF50; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
-              ${combo.transaccion === 'venta' ? '💰 Venta' : '🏠 Alquiler'}
-            </span>
-            <span style="background: white; border: 2px solid #4CAF50; color: #4CAF50; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
-              ${combo.moneda}
-            </span>
           </div>
         </div>
       </div>
