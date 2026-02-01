@@ -699,6 +699,11 @@ class ResultadosPage {
     }
 
     this.propiedadesFiltradas = this.propiedades.filter(prop => {
+      // 🔗 Las combinaciones ya vienen filtradas del backend, no filtrar de nuevo
+      if (prop.tipo === 'combinacion') {
+        return true;
+      }
+
       // Filtro por distritos múltiples - Comparar por NOMBRE
       if (Array.isArray(this.filtrosSimplificados.distritos_ids) && this.filtrosSimplificados.distritos_ids.length > 0) {
         const nombresDistritos = this.filtrosSimplificados.distritos_ids
@@ -720,7 +725,7 @@ class ResultadosPage {
 
       // Filtro por área (±15%) - Convertir string a número
       if (this.filtrosSimplificados.area) {
-        const areaPropiedad = parseFloat(prop.area);
+        const areaPropiedad = parseFloat(prop.area || prop.area_total);
         const margen = this.filtrosSimplificados.area * 0.15;
         if (areaPropiedad < (this.filtrosSimplificados.area - margen) ||
           areaPropiedad > (this.filtrosSimplificados.area + margen)) {
@@ -2573,6 +2578,11 @@ class ResultadosPage {
     }
 
     this.propiedadesFiltradas = this.propiedadesFiltradas.filter(prop => {
+      // 🔗 Las combinaciones ya vienen filtradas del backend
+      if (prop.tipo === 'combinacion') {
+        return true;
+      }
+
       // Filtro por transacción (compra/alquiler)
       if (filtros.transaccion === 'venta') {
         // Si busca compra, la propiedad debe tener precio de venta
@@ -2650,6 +2660,11 @@ class ResultadosPage {
     if (!hasFilters) return;
 
     this.propiedadesFiltradas = this.propiedadesFiltradas.filter(prop => {
+      // 🔗 Las combinaciones ya vienen filtradas del backend
+      if (prop.tipo === 'combinacion') {
+        return true;
+      }
+
       // Iterate through all categories
       for (const [categoria, filtros] of Object.entries(this.filtrosAdicionales.avanzado)) {
         // Skip empty categories
