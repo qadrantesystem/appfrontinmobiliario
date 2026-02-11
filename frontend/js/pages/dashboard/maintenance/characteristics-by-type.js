@@ -18,10 +18,8 @@ class CharacteristicsByTypeModule {
 
   async render() {
     try {
-      console.log('📋 CharacteristicsByTypeModule render() iniciado');
       await this.loadTipos();
       const html = '<div class="maintenance-module"><div class="module-header"><button class="btn btn-back" onclick="window.maintenanceController.closeModule()"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Volver</button><div class="module-title"><h2>Características por Tipo</h2><p>Asignar características a tipos de inmueble</p></div><div id="saveButtonContainer">'+this.renderSaveButton()+'</div></div><div class="module-content"><div class="tree-view-container" id="treeViewContainer">'+this.renderTreeView()+'</div></div></div>';
-      console.log('✅ HTML generado, length:', html.length);
       return html;
     } catch(e) {
       console.error('❌ Error en render():', e);
@@ -73,8 +71,19 @@ class CharacteristicsByTypeModule {
   renderTipoNode(t) {
     const exp=this.expandedTypes.has(t.tipo_inmueble_id);
     const categorias=this.categoriasPorTipo[t.tipo_inmueble_id]||[];
-    const total=categorias.reduce((sum,c)=>(c.caracteristicas||[]).filter(car=>this.isChecked(t.tipo_inmueble_id, car.caracteristica_id)).length+sum,0);
-    return '<div class="tree-node tipo-node"><div class="tree-node-header" onclick="window.characteristicsByTypeModule.toggleTipo('+t.tipo_inmueble_id+')"><span class="tree-toggle">'+(exp?'▼':'▶')+'</span><span class="tree-icon">'+this.getIconoTipo(t.nombre)+'</span><span class="tree-label">'+t.nombre+'</span><span class="tree-badge">'+total+' asignadas</span></div>'+(exp?'<div class="tree-children">'+(categorias.length?categorias.map(c=>this.renderCategoriaNode(t.tipo_inmueble_id,c)).join(''):'<p class="loading">Cargando...</p>')+'</div>':'')+'</div>';
+    const cargado=this.categoriasPorTipo.hasOwnProperty(t.tipo_inmueble_id);
+    // Si ya se cargaron las categorías, calcular conteo real
+    // Si no, usar total_caracteristicas del endpoint (precargado)
+    let badgeText;
+    if(cargado) {
+      const total=categorias.reduce((sum,c)=>(c.caracteristicas||[]).filter(car=>this.isChecked(t.tipo_inmueble_id, car.caracteristica_id)).length+sum,0);
+      const totalDisponibles=categorias.reduce((sum,c)=>(c.caracteristicas||[]).length+sum,0);
+      badgeText=total+'/'+totalDisponibles+' asignadas';
+    } else {
+      const preconteo=t.total_caracteristicas||0;
+      badgeText=preconteo+' asignadas';
+    }
+    return '<div class="tree-node tipo-node"><div class="tree-node-header" onclick="window.characteristicsByTypeModule.toggleTipo('+t.tipo_inmueble_id+')"><span class="tree-toggle">'+(exp?'▼':'▶')+'</span><span class="tree-icon">'+this.getIconoTipo(t.nombre)+'</span><span class="tree-label">'+t.nombre+'</span><span class="tree-badge">'+badgeText+'</span></div>'+(exp?'<div class="tree-children">'+(categorias.length?categorias.map(c=>this.renderCategoriaNode(t.tipo_inmueble_id,c)).join(''):'<p class="loading">Cargando...</p>')+'</div>':'')+'</div>';
   }
 
   renderCategoriaNode(tid,cat) {

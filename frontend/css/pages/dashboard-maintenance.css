@@ -890,12 +890,13 @@
 }
 
 .tipo-node > .tree-node-header {
-  background: #f3f4f6;
+  background: #e8f0fe;
   font-weight: 600;
+  border-left: 3px solid var(--azul-corporativo);
 }
 
 .tipo-node > .tree-node-header:hover {
-  background: #e5e7eb;
+  background: #d4e4fc;
 }
 
 .categoria-node > .tree-node-header {
@@ -930,11 +931,17 @@
 
 .tree-badge {
   background: var(--azul-corporativo);
-  color: #2c5282;
+  color: #ffffff;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.tree-badge-pending {
+  background: #e5e7eb;
+  color: #6b7280;
+  font-style: italic;
 }
 
 .tree-badge-small {
