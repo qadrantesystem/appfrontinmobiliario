@@ -92,6 +92,16 @@
   border-radius: 8px;
 }
 
+/* Título primero (izquierda), botón Volver al final (derecha) */
+.module-header .module-title {
+  order: 1;
+}
+
+.module-header .btn-back {
+  order: 3;
+  margin-left: auto;
+}
+
 .btn-back {
   padding: 0.75rem 1.25rem;
   background: white;
@@ -678,6 +688,11 @@
   .module-header {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .module-header .btn-back {
+    margin-left: 0;
+    align-self: flex-end;
   }
 
   .module-title h2 {
