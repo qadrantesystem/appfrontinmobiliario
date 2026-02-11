@@ -46,7 +46,7 @@ class MaintenanceService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+        throw new Error(errorData.detail || errorData.message || `Error ${response.status}: ${response.statusText}`);
       }
 
       return await response.json();

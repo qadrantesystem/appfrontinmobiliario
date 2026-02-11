@@ -145,44 +145,58 @@ class CharacteristicsByTypeModule {
     try {
       console.log('💾 Guardando cambios:', this.pendingChanges.size);
 
-      for(const change of this.pendingChanges) {
+      const promises = Array.from(this.pendingChanges).map(change => {
         const parts = change.split('_');
         const tid = parseInt(parts[0]);
         const action = parts[1];
         const caracId = parseInt(parts[2]);
 
-        if(action === 'add') {
-          console.log('➕ Agregando:', tid, caracId);
-          await maintenanceService.request('/caracteristicas-x-inmueble', 'POST', {
+        if (action === 'add') {
+          return maintenanceService.request('/caracteristicas-x-inmueble', 'POST', {
             tipo_inmueble_id: tid,
             caracteristica_id: caracId,
             requerido: false,
             visible_en_filtro: true,
             orden: 0
-          }, true);
-          this.originalState[tid+'_'+caracId] = true;
-        } else if(action === 'del') {
-          console.log("➖ Eliminando:", tid, caracId);
-          // Delete directly using tipo_inmueble_id and caracteristica_id
-          await maintenanceService.request(
-            "/caracteristicas-x-inmueble/tipo/"+tid+"/caracteristica/"+caracId,
-            "DELETE",
-            null,
-            true
-          );
-          this.originalState[tid+"_"+caracId] = false;
+          }, true).then(() => { this.originalState[tid+'_'+caracId] = true; });
+        } else {
+          return maintenanceService.request(
+            '/caracteristicas-x-inmueble/tipo/'+tid+'/caracteristica/'+caracId,
+            'DELETE', null, true
+          ).then(() => { this.originalState[tid+'_'+caracId] = false; });
         }
-      }
-
-      // Clear pending changes
-      this.pendingChanges.clear();
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Cambios guardados',
-        timer: 2000,
-        showConfirmButton: false
       });
+
+      const results = await Promise.allSettled(promises);
+
+      const failed = results.filter(r => r.status === 'rejected');
+
+      if (failed.length === 0) {
+        this.pendingChanges.clear();
+        Swal.fire({
+          icon: 'success',
+          title: 'Cambios guardados',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } else if (failed.length < results.length) {
+        // Parcial: remover solo los exitosos de pendingChanges
+        const changesArr = Array.from(this.pendingChanges);
+        results.forEach((r, i) => {
+          if (r.status === 'fulfilled') this.pendingChanges.delete(changesArr[i]);
+        });
+        Swal.fire({
+          icon: 'warning',
+          title: 'Guardado parcial',
+          text: `${results.length - failed.length} cambios guardados, ${failed.length} fallaron. Reintenta los pendientes.`
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron guardar los cambios. Intenta nuevamente.'
+        });
+      }
 
       // Reload data to sync
       if(this.selectedTipo) {

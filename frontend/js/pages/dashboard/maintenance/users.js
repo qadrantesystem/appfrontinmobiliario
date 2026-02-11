@@ -150,7 +150,8 @@ class UsersModule {
     }
     
     // Si hay perfiles pero no stats, mostrar ceros
-    if (Object.keys(this.stats).length === 0) {
+    const porPerfil = this.stats.porPerfil || this.stats;
+    if (Object.keys(porPerfil).length === 0) {
       return this.perfiles.map((perfil, index) => {
         const color = colors[index % colors.length];
         
@@ -176,7 +177,7 @@ class UsersModule {
     
     // Renderizar estadísticas normales
     return this.perfiles.map((perfil, index) => {
-      const count = this.stats[perfil.perfil_id] || 0;
+      const count = porPerfil[perfil.perfil_id] || 0;
       const color = colors[index % colors.length];
       
       return `
@@ -296,7 +297,15 @@ class UsersModule {
             <button
               class="btn-icon"
               title="Cambiar perfil"
-              onclick="window.usersModule.showChangeProfileModal(${usuario.usuario_id}, ${usuario.perfil_id}, '${usuario.nombre} ${usuario.apellido}')"
+              data-usuario-id="${usuario.usuario_id}"
+              data-perfil-id="${usuario.perfil_id}"
+              data-nombre="${(usuario.nombre || '').replace(/"/g, '&quot;')}"
+              data-apellido="${(usuario.apellido || '').replace(/"/g, '&quot;')}"
+              onclick="window.usersModule.showChangeProfileModal(
+                Number(this.dataset.usuarioId),
+                Number(this.dataset.perfilId),
+                this.dataset.nombre + ' ' + this.dataset.apellido
+              )"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -308,7 +317,9 @@ class UsersModule {
             <button
               class="btn-icon ${usuario.estado === 'activo' ? 'btn-warning' : 'btn-success'}"
               title="${usuario.estado === 'activo' ? 'Suspender' : 'Activar'}"
-              onclick="window.usersModule.toggleUserStatus(${usuario.usuario_id}, '${usuario.estado}')"
+              data-usuario-id="${usuario.usuario_id}"
+              data-estado="${usuario.estado}"
+              onclick="window.usersModule.toggleUserStatus(Number(this.dataset.usuarioId), this.dataset.estado)"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 ${usuario.estado === 'activo'
@@ -379,79 +390,26 @@ class UsersModule {
 
   async loadStats() {
     try {
-      console.log('📊 Calculando estadísticas...');
+      const params = new URLSearchParams();
+      if (this.filters.estado) params.set('estado', this.filters.estado);
+      if (this.filters.anio) params.set('anio', this.filters.anio);
+      if (this.filters.mes) params.set('mes', this.filters.mes);
 
-      // Obtener TODOS los usuarios con paginación (máximo 50 por request para evitar 422)
-      let allUsers = [];
-      let page = 1;
-      let hasMore = true;
+      const stats = await maintenanceService.request(
+        `/usuarios/stats?${params}`, 'GET', null, true
+      );
 
-      while (hasMore) {
-        const params = new URLSearchParams({
-          page: page,
-          limit: 50 // Límite seguro para evitar error 422
-        });
+      this.stats = {
+        total: stats.total || 0,
+        porPerfil: stats.por_perfil || {}
+      };
 
-        // Aplicar los mismos filtros que en la tabla
-        if (this.filters.search) params.append('search', this.filters.search);
-        if (this.filters.perfil_id) params.append('perfil_id', this.filters.perfil_id);
-        if (this.filters.estado) params.append('estado', this.filters.estado);
-        if (this.filters.anio) params.append('anio', this.filters.anio);
-        if (this.filters.mes) params.append('mes', this.filters.mes);
-
-        const response = await maintenanceService.request(`/usuarios?${params}`, 'GET');
-        const users = response.data || [];
-        
-        allUsers = allUsers.concat(users);
-        
-        // Verificar si hay más páginas
-        const pagination = response.pagination || {};
-        hasMore = users.length === 50 && page < (pagination.total_pages || 1);
-        page++;
-      }
-
-      console.log('📊 Total usuarios obtenidos:', allUsers.length);
-
-      // Calcular stats por perfil
-      this.stats = {};
-      allUsers.forEach(u => {
-        // Usar el campo correcto para el perfil
-        const perfilId = u.perfil_id || u.perfilId || u.perfil || u.id_perfil;
-        const perfilNombre = u.perfil_nombre || u.perfilNombre || u.perfil_nombre;
-        
-        // Si no hay perfil_id pero hay perfil_nombre, buscar por nombre
-        if (!perfilId && perfilNombre) {
-          const perfil = this.perfiles.find(p => p.nombre === perfilNombre);
-          if (perfil) {
-            const id = perfil.perfil_id;
-            if (!this.stats[id]) {
-              this.stats[id] = 0;
-            }
-            this.stats[id]++;
-          }
-        } else if (perfilId) {
-          if (!this.stats[perfilId]) {
-            this.stats[perfilId] = 0;
-          }
-          this.stats[perfilId]++;
-        }
-      });
-
-      console.log('✅ Estadísticas calculadas:', this.stats);
-
-      // Actualizar stats en la UI
       const statsContainer = document.querySelector('.stats-grid');
       if (statsContainer) {
         statsContainer.innerHTML = this.renderStats();
       }
-    } catch(e) {
-      console.error('❌ Error calculando estadísticas:', e);
-      this.stats = {};
-      // Mostrar stats vacías en caso de error
-      const statsContainer = document.querySelector('.stats-grid');
-      if (statsContainer) {
-        statsContainer.innerHTML = this.renderStats();
-      }
+    } catch (error) {
+      console.error('Error cargando stats:', error);
     }
   }
 
@@ -483,10 +441,6 @@ class UsersModule {
       
       
       console.log('✅ Usuarios cargados:', this.usuarios.length);
-      
-      // Recalcular estadísticas
-      await this.loadStats();
-
 
       this.refreshTable();
     } catch(e) {
@@ -523,6 +477,7 @@ class UsersModule {
     this.filters[filterName] = value || null;
     this.pagination.page = 1;
     this.loadUsuarios();
+    this.loadStats();
   }
 
   clearFilters() {
@@ -549,6 +504,7 @@ class UsersModule {
 
     this.pagination.page = 1;
     this.loadUsuarios();
+    this.loadStats();
   }
 
   goToPage(page) {
@@ -558,6 +514,11 @@ class UsersModule {
   }
 
   async showChangeProfileModal(usuarioId, perfilActual, nombreCompleto) {
+    // Sanitizar HTML para prevenir XSS
+    const safeNombre = (nombreCompleto || '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     const perfilesOptions = this.perfiles.map(p =>
       `<option value="${p.perfil_id}" ${p.perfil_id === perfilActual ? 'selected' : ''}>${p.nombre}</option>`
     ).join('');
@@ -565,7 +526,7 @@ class UsersModule {
     const result = await Swal.fire({
       title: 'Cambiar Perfil',
       html: `
-        <p style="margin-bottom: 1rem;">Usuario: <strong>${nombreCompleto}</strong></p>
+        <p style="margin-bottom: 1rem;">Usuario: <strong>${safeNombre}</strong></p>
         <select id="swalPerfilSelect" class="swal2-input" style="width: 80%; display: block; margin: 0 auto;">
           ${perfilesOptions}
         </select>
