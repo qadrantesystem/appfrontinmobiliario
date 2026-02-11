@@ -6,9 +6,9 @@
  * - Tipos de Inmueble
  * - Distritos
  * - Características
- * - Características por Tipo
  * - Perfiles
  * - Planes
+ * - Usuarios
  */
 
 class MaintenanceService {
@@ -105,13 +105,6 @@ class MaintenanceService {
   // ==========================================
 
   /**
-   * Listar todos los distritos
-   */
-  async getDistritos() {
-    return await this.request('/distritos', 'GET', null, false);
-  }
-
-  /**
    * Listar distritos con paginación
    */
   async getDistritosPaginado(page = 1, pageSize = 5, search = '') {
@@ -157,13 +150,6 @@ class MaintenanceService {
   /**
    * Listar categorías con paginación
    */
-  /**
-   * Listar características agrupadas por tipo de inmueble
-   */
-  async getCaracteristicasPorTipoAgrupadas(tipoInmuebleId) {
-    return await this.request(`/caracteristicas-x-inmueble/tipo-inmueble/${tipoInmuebleId}/mantenimiento`, 'GET', null, false);
-  }
-
   async getCategoriasPaginado(page = 1, pageSize = 5, search = '') {
     let url = `/categorias/paginado?page=${page}&page_size=${pageSize}`;
     if (search) {
@@ -198,13 +184,6 @@ class MaintenanceService {
   // ==========================================
 
   /**
-   * Listar todas las características
-   */
-  async getCaracteristicas() {
-    return await this.request('/caracteristicas', 'GET', null, false);
-  }
-
-  /**
    * Listar características con paginación
    */
   async getCaracteristicasPaginado(page = 1, pageSize = 5, search = '') {
@@ -236,29 +215,11 @@ class MaintenanceService {
     return await this.request(`/caracteristicas/${id}`, 'DELETE', null, true);
   }
 
-  // ==========================================
-  // 🔗 CARACTERÍSTICAS POR TIPO
-  // ==========================================
-
   /**
-   * Obtener características asignadas a un tipo de inmueble
-   * Endpoint: GET /tipos-inmueble/{id}/caracteristicas
+   * Listar características agrupadas por tipo de inmueble
    */
-  async getCaracteristicasPorTipo(tipoInmuebleId) {
-    return await this.request(`/tipos-inmueble/${tipoInmuebleId}/caracteristicas`, 'GET', null, false);
-  }
-
-  /**
-   * Asignar características a tipo de inmueble
-   * Endpoint: POST /tipos-inmueble/{id}/caracteristicas
-   */
-  async asignarCaracteristicasATipo(tipoInmuebleId, caracteristicasIds) {
-    return await this.request(
-      `/tipos-inmueble/${tipoInmuebleId}/caracteristicas`,
-      'POST',
-      { caracteristicas_ids: caracteristicasIds },
-      true
-    );
+  async getCaracteristicasPorTipoAgrupadas(tipoInmuebleId) {
+    return await this.request(`/caracteristicas-x-inmueble/tipo-inmueble/${tipoInmuebleId}/mantenimiento`, 'GET', null, false);
   }
 
   // ==========================================
@@ -345,6 +306,51 @@ class MaintenanceService {
    */
   async deletePlan(id) {
     return await this.request(`/planes/${id}`, 'DELETE', null, true);
+  }
+
+  // ==========================================
+  // 👤 USUARIOS
+  // ==========================================
+
+  /**
+   * Listar usuarios con paginación y filtros
+   * @param {number} page - Página actual
+   * @param {number} limit - Registros por página
+   * @param {string} search - Búsqueda por nombre o email
+   * @param {number|null} perfilId - Filtrar por perfil
+   * @param {string} estado - Filtrar por estado (activo/inactivo)
+   * @param {number|null} anio - Filtrar por año de registro
+   * @param {number|null} mes - Filtrar por mes de registro
+   * @returns {Promise<Object>} Lista paginada de usuarios
+   */
+  async getUsuarios(page = 1, limit = 10, search = '', perfilId = null, estado = '', anio = null, mes = null) {
+    const params = new URLSearchParams({ page, limit });
+    if (search) params.set('search', search);
+    if (perfilId) params.set('perfil_id', perfilId);
+    if (estado) params.set('estado', estado);
+    if (anio) params.set('anio', anio);
+    if (mes) params.set('mes', mes);
+    return this.request(`/usuarios?${params}`, 'GET', null, true);
+  }
+
+  /**
+   * Cambiar el perfil de un usuario
+   * @param {number} userId - ID del usuario
+   * @param {number} perfilId - Nuevo perfil a asignar
+   * @returns {Promise<Object>} Usuario actualizado
+   */
+  async changeUserProfile(userId, perfilId) {
+    return this.request(`/usuarios/${userId}/perfil`, 'POST', { perfil_id: perfilId }, true);
+  }
+
+  /**
+   * Activar o desactivar un usuario
+   * @param {number} userId - ID del usuario
+   * @param {string} estado - Nuevo estado (activo/inactivo)
+   * @returns {Promise<Object>} Usuario actualizado
+   */
+  async toggleUserStatus(userId, estado) {
+    return this.request(`/usuarios/${userId}/estado?estado=${estado}`, 'PATCH', null, true);
   }
 }
 

@@ -32,7 +32,7 @@ class CharacteristicsModule {
 
   renderTable() {
     if (!this.data.length) return '<div class="empty-state"><p>No hay características</p></div>';
-    return `<table class="data-table"><thead><tr><th>ID</th><th>Nombre</th><th>Categoría</th><th>Icono</th><th>Activo</th><th>Acciones</th></tr></thead><tbody>${this.data.map(i => `<tr><td>${i.caracteristica_id}</td><td>${i.nombre}</td><td>${i.categoria?.nombre||'-'}</td><td>${i.icono||'-'}</td><td><span class="badge ${i.activo?'badge-success':'badge-danger'}">${i.activo?'Activo':'Inactivo'}</span></td><td><div class="table-actions"><button class="btn-icon" onclick="window.characteristicsModule.editItem(${i.caracteristica_id})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button><button class="btn-icon btn-delete" onclick="window.characteristicsModule.deleteItem(${i.caracteristica_id})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div></td></tr>`).join('')}</tbody></table>`;
+    return `<table class="data-table"><thead><tr><th>ID</th><th>Nombre</th><th>Categoría</th><th>Tipo Input</th><th>Orden</th><th>Activo</th><th>Acciones</th></tr></thead><tbody>${this.data.map(i => `<tr><td>${i.caracteristica_id}</td><td>${i.nombre}</td><td>${i.categoria?.nombre||'-'}</td><td>${i.tipo_input||'-'}</td><td>${i.orden!=null?i.orden:'-'}</td><td><span class="badge ${i.activo?'badge-success':'badge-danger'}">${i.activo?'Activo':'Inactivo'}</span></td><td><div class="table-actions"><button class="btn-icon" onclick="window.characteristicsModule.editItem(${i.caracteristica_id})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button><button class="btn-icon btn-delete" onclick="window.characteristicsModule.deleteItem(${i.caracteristica_id})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div></td></tr>`).join('')}</tbody></table>`;
   }
 
   renderPagination() {
@@ -41,7 +41,7 @@ class CharacteristicsModule {
   }
 
   renderModal() {
-    return `<div class="modal" id="characteristicModal" style="display:none;"><div class="modal-content"><div class="modal-header"><h3>${this.isEditing?'Editar':'Nueva'} Característica</h3><button class="modal-close" onclick="window.characteristicsModule.closeModal()">×</button></div><form id="characteristicForm" onsubmit="window.characteristicsModule.saveItem(event)"><div class="form-group"><label>Nombre *</label><input type="text" id="nombre" required minlength="3" maxlength="100" class="form-control"></div><div class="form-group"><label>Categoría *</label><select id="categoria_id" required class="form-control"><option value="">Seleccionar</option>${(this.categories||[]).map(c=>`<option value="${c.categoria_id}">${c.nombre}</option>`).join('')}</select></div><div class="form-group"><label>Icono</label><input type="text" id="icono" class="form-control" maxlength="50"></div><div class="form-group"><label><input type="checkbox" id="activo" checked> Activo</label></div><div class="modal-actions"><button type="button" class="btn btn-outline" onclick="window.characteristicsModule.closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">${this.isEditing?'Actualizar':'Crear'}</button></div></form></div></div>`;
+    return `<div class="modal" id="characteristicModal" style="display:none;"><div class="modal-content"><div class="modal-header"><h3>${this.isEditing?'Editar':'Nueva'} Característica</h3><button class="modal-close" onclick="window.characteristicsModule.closeModal()">×</button></div><form id="characteristicForm" onsubmit="window.characteristicsModule.saveItem(event)"><div class="form-group"><label>Nombre *</label><input type="text" id="nombre" required minlength="3" maxlength="100" class="form-control"></div><div class="form-group"><label>Categoría *</label><select id="categoria_id" required class="form-control"><option value="">Seleccionar</option>${(this.categories||[]).map(c=>`<option value="${c.categoria_id}">${c.nombre}</option>`).join('')}</select></div><div class="form-group"><label>Tipo Input *</label><select id="tipo_input" required class="form-control"><option value="">Seleccionar</option><option value="checkbox">checkbox</option><option value="number">number</option><option value="select">select</option></select></div><div class="form-group"><label>Unidad</label><select id="unidad" class="form-control"><option value="">Sin unidad</option><option value="m2">m2</option><option value="USD">USD</option><option value="unid">unid</option></select></div><div class="form-group"><label>Orden</label><input type="number" id="orden" class="form-control" min="0" value="0"></div><div class="form-group"><label>Descripción</label><textarea id="descripcion" class="form-control" maxlength="500" rows="3"></textarea></div><div class="form-group"><label><input type="checkbox" id="activo" checked> Activo</label></div><div class="modal-actions"><button type="button" class="btn btn-outline" onclick="window.characteristicsModule.closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">${this.isEditing?'Actualizar':'Crear'}</button></div></form></div></div>`;
   }
 
   setupEventListeners() {
@@ -103,7 +103,7 @@ class CharacteristicsModule {
       `;
     }
 
-    if (f) { f.reset(); document.getElementById('activo').checked = true; }
+    if (f) { f.reset(); document.getElementById('activo').checked = true; document.getElementById('orden').value = '0'; }
     if (m) m.style.display = 'flex';
   }
 
@@ -134,7 +134,10 @@ class CharacteristicsModule {
 
     document.getElementById('nombre').value = i.nombre;
     document.getElementById('categoria_id').value = i.categoria_id||'';
-    document.getElementById('icono').value = i.icono||'';
+    document.getElementById('tipo_input').value = i.tipo_input||'';
+    document.getElementById('unidad').value = i.unidad||'';
+    document.getElementById('orden').value = i.orden!=null?i.orden:0;
+    document.getElementById('descripcion').value = i.descripcion||'';
     document.getElementById('activo').checked = i.activo;
     document.getElementById('characteristicModal').style.display = 'flex';
   }
@@ -143,19 +146,27 @@ class CharacteristicsModule {
     e.preventDefault();
     const nombre = document.getElementById('nombre').value.trim();
     const categoria_id = parseInt(document.getElementById('categoria_id').value);
-    const icono = document.getElementById('icono').value.trim() || null;
-    
+    const tipo_input = document.getElementById('tipo_input').value;
+    const unidad = document.getElementById('unidad').value || null;
+    const orden = parseInt(document.getElementById('orden').value) || 0;
+    const descripcion = document.getElementById('descripcion').value.trim() || null;
+
     if (!nombre || nombre.length < 3) {
       Swal.fire({ icon: 'error', title: 'Error', text: 'El nombre debe tener al menos 3 caracteres' });
       return;
     }
-    
+
     if (isNaN(categoria_id)) {
       Swal.fire({ icon: 'error', title: 'Error', text: 'Debe seleccionar una categoria' });
       return;
     }
-    
-    const d = { nombre, categoria_id, icono, activo: document.getElementById('activo').checked };
+
+    if (!tipo_input) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Debe seleccionar un tipo de input' });
+      return;
+    }
+
+    const d = { nombre, categoria_id, tipo_input, unidad, orden, descripcion, activo: document.getElementById('activo').checked };
     try {
       if (this.isEditing) await maintenanceService.updateCaracteristica(this.editingId, d); else await maintenanceService.createCaracteristica(d);
       Swal.fire({ icon: 'success', title: this.isEditing?'Actualizado':'Creado', timer: 2000, showConfirmButton: false });
