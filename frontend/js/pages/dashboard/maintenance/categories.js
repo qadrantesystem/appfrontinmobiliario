@@ -210,7 +210,6 @@ class CategoriesModule {
       `;
 
     } catch (error) {
-      console.error('❌ Error renderizando módulo:', error);
       return `
         <div class="empty-state">
           <h3>Error al cargar datos</h3>
@@ -309,9 +308,7 @@ class CategoriesModule {
         total: response.total
       };
 
-      console.log('✅ Categorías cargadas:', this.data);
     } catch (error) {
-      console.error('❌ Error cargando datos:', error);
       showNotification('Error al cargar categorías', 'error');
       this.data = [];
     }
@@ -455,7 +452,6 @@ class CategoriesModule {
       await this.refreshTable();
 
     } catch (error) {
-      console.error('❌ Error guardando:', error);
       showNotification(error.message || 'Error al guardar categoría', 'error');
     }
   }
@@ -478,7 +474,6 @@ class CategoriesModule {
       await this.refreshTable();
 
     } catch (error) {
-      console.error('❌ Error eliminando:', error);
       showNotification(error.message || 'Error al eliminar categoría', 'error');
     }
   }

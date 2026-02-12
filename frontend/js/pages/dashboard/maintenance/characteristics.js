@@ -62,9 +62,7 @@ class CharacteristicsModule {
     try {
       const r = await maintenanceService.getCategorias();
       this.categories = Array.isArray(r) ? r : (r.data || []);
-      console.log('✅ Categorías cargadas:', this.categories.length);
     } catch(e) {
-      console.error('❌ Error cargando categorías:', e);
       this.categories = [];
     }
   }

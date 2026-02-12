@@ -23,13 +23,10 @@ class UsersModule {
       total_pages: 0
     };
     window.usersModule = this;
-    console.log('👥 UsersModule constructor');
   }
 
   async render() {
     try {
-      console.log('📋 UsersModule render() iniciado');
-
       // Cargar perfiles para filtros
       await this.loadPerfiles();
       
@@ -130,7 +127,6 @@ class UsersModule {
 
       return html;
     } catch(e) {
-      console.error('❌ Error en render():', e);
       return `<div class="error-message">Error: ${e.message}</div>`;
     }
   }
@@ -378,12 +374,9 @@ class UsersModule {
 
   async loadPerfiles() {
     try {
-      console.log('🔄 Cargando perfiles...');
       const response = await maintenanceService.request('/perfiles-mae', 'GET');
       this.perfiles = response.data || response || [];
-      console.log('✅ Perfiles cargados:', this.perfiles.length);
     } catch(e) {
-      console.error('❌ Error cargando perfiles:', e);
       this.perfiles = [];
     }
   }
@@ -409,14 +402,11 @@ class UsersModule {
         statsContainer.innerHTML = this.renderStats();
       }
     } catch (error) {
-      console.error('Error cargando stats:', error);
     }
   }
 
   async loadUsuarios() {
     try {
-      console.log('🔄 Cargando usuarios...');
-
       // Construir query params
       const params = new URLSearchParams({
         page: this.pagination.page,
@@ -438,13 +428,8 @@ class UsersModule {
         total: 0,
         total_pages: 0
       };
-      
-      
-      console.log('✅ Usuarios cargados:', this.usuarios.length);
-
       this.refreshTable();
     } catch(e) {
-      console.error('❌ Error cargando usuarios:', e);
       this.usuarios = [];
       this.refreshTable();
     }
@@ -568,7 +553,6 @@ class UsersModule {
 
       this.loadUsuarios();
     } catch(e) {
-      console.error('❌ Error cambiando perfil:', e);
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -610,7 +594,6 @@ class UsersModule {
 
         this.loadUsuarios();
       } catch(e) {
-        console.error('❌ Error actualizando estado:', e);
         Swal.fire({
           icon: 'error',
           title: 'Error',

@@ -154,11 +154,8 @@ class MaintenanceController {
    * Abrir módulo específico
    */
   async openModule(moduleName) {
-    console.log(`📂 Abriendo módulo: ${moduleName}`);
-
     const container = document.getElementById('maintenanceModuleContainer');
     if (!container) {
-      console.error('❌ Contenedor de módulos no encontrado');
       return;
     }
 
@@ -280,7 +277,6 @@ class MaintenanceController {
     }
 
     this.currentModule = null;
-    console.log('✅ Módulo cerrado');
   }
 }
 

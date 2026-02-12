@@ -13,7 +13,6 @@ class CharacteristicsByTypeModule {
     this.originalState = {}; // Format: "1_5": true/false
     this.isSaving = false;
     window.characteristicsByTypeModule = this;
-    console.log('🔧 CharacteristicsByTypeModule v14 constructor - Mobile Optimized');
   }
 
   async render() {
@@ -39,7 +38,6 @@ class CharacteristicsByTypeModule {
   }
 
   renderTreeView() {
-    console.log('🌳 renderTreeView(), tipos:', this.tiposInmueble.length);
     if(!this.tiposInmueble || this.tiposInmueble.length === 0) {
       return '<div class="empty-state"><p>No hay tipos de inmueble disponibles</p></div>';
     }
@@ -113,7 +111,6 @@ class CharacteristicsByTypeModule {
   }
 
   markChange(tid, caracId, checked) {
-    console.log('📝 markChange:', tid, caracId, checked);
     this.selectedTipo = tid;
     const stateKey = tid+'_'+caracId;
     const original = this.originalState[stateKey] || false;
@@ -143,8 +140,6 @@ class CharacteristicsByTypeModule {
     this.refreshView();
 
     try {
-      console.log('💾 Guardando cambios:', this.pendingChanges.size);
-
       const promises = Array.from(this.pendingChanges).map(change => {
         const parts = change.split('_');
         const tid = parseInt(parts[0]);
@@ -204,7 +199,6 @@ class CharacteristicsByTypeModule {
       }
 
     } catch(e) {
-      console.error('❌ Error guardando cambios:', e);
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -217,18 +211,13 @@ class CharacteristicsByTypeModule {
   }
 
   async loadTipos() {
-    console.log('🔄 Cargando tipos de inmueble...');
     const t=await maintenanceService.getTiposInmueble();
-    console.log('📦 Respuesta tipos inmueble:', t);
     this.tiposInmueble=(t.data||t||[]);
-    console.log('✅ Tipos cargados:', this.tiposInmueble.length);
   }
 
   async loadCategoriasParaTipo(tipoId) {
     try {
-      console.log('🔄 Cargando categorías para tipo:', tipoId);
       const r=await maintenanceService.getCaracteristicasPorTipoAgrupadas(tipoId);
-      console.log('📦 Respuesta categorías:', r);
       this.categoriasPorTipo[tipoId]=(r.categorias||[]);
 
       // Store original state
@@ -239,15 +228,12 @@ class CharacteristicsByTypeModule {
         });
       });
 
-      console.log('✅ Categorías cargadas:', this.categoriasPorTipo[tipoId].length);
     } catch(e) {
-      console.error('❌ Error cargando categorías:',e);
       this.categoriasPorTipo[tipoId]=[];
     }
   }
 
   async toggleTipo(tipoId) {
-    console.log('🔀 Toggle tipo:', tipoId);
     if(this.expandedTypes.has(tipoId)) {
       this.expandedTypes.delete(tipoId);
     } else {
@@ -261,7 +247,6 @@ class CharacteristicsByTypeModule {
   }
 
   toggleCategoria(tid,catId) {
-    console.log('🔀 Toggle categoria:', tid, catId);
     const catKey = tid+'_'+catId;
     if(this.expandedCategories.has(catKey)) {
       this.expandedCategories.delete(catKey);
@@ -272,7 +257,6 @@ class CharacteristicsByTypeModule {
   }
 
   refreshView() {
-    console.log('🔄 Refresh view');
     const c=document.getElementById('treeViewContainer');
     if(c) c.innerHTML=this.renderTreeView();
     const s=document.getElementById('saveButtonContainer');
