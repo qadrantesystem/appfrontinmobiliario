@@ -52,7 +52,6 @@ class MaintenanceService {
       return await response.json();
 
     } catch (error) {
-      console.error(`❌ Error en petición ${method} ${endpoint}:`, error);
       throw error;
     }
   }
@@ -317,16 +316,16 @@ class MaintenanceService {
    * @param {number} page - Página actual
    * @param {number} limit - Registros por página
    * @param {string} search - Búsqueda por nombre o email
-   * @param {number|null} perfilId - Filtrar por perfil
+   * @param {number|null} perfil_id - Filtrar por perfil
    * @param {string} estado - Filtrar por estado (activo/inactivo)
    * @param {number|null} anio - Filtrar por año de registro
    * @param {number|null} mes - Filtrar por mes de registro
    * @returns {Promise<Object>} Lista paginada de usuarios
    */
-  async getUsuarios(page = 1, limit = 10, search = '', perfilId = null, estado = '', anio = null, mes = null) {
+  async getUsuarios(page = 1, limit = 10, search = '', perfil_id = null, estado = '', anio = null, mes = null) {
     const params = new URLSearchParams({ page, limit });
     if (search) params.set('search', search);
-    if (perfilId) params.set('perfil_id', perfilId);
+    if (perfil_id) params.set('perfil_id', perfil_id);
     if (estado) params.set('estado', estado);
     if (anio) params.set('anio', anio);
     if (mes) params.set('mes', mes);
@@ -336,11 +335,11 @@ class MaintenanceService {
   /**
    * Cambiar el perfil de un usuario
    * @param {number} userId - ID del usuario
-   * @param {number} perfilId - Nuevo perfil a asignar
+   * @param {number} perfil_id - Nuevo perfil a asignar
    * @returns {Promise<Object>} Usuario actualizado
    */
-  async changeUserProfile(userId, perfilId) {
-    return this.request(`/usuarios/${userId}/perfil`, 'POST', { perfil_id: perfilId }, true);
+  async changeUserProfile(userId, perfil_id) {
+    return this.request(`/usuarios/${userId}/perfil`, 'POST', { perfil_id }, true);
   }
 
   /**
