@@ -217,7 +217,7 @@
 }
 
 .btn-icon:hover {
-  background: #f3f4f6;
+  background: var(--gris-claro, #f3f4f6);
 }
 
 .btn-icon:focus-visible {
@@ -225,9 +225,13 @@
   outline-offset: 2px;
 }
 
+.btn-icon:active {
+  transform: scale(0.95);
+}
+
 .btn-icon-danger:hover {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--error-light, #fee2e2);
+  color: var(--error, #dc2626);
 }
 
 /* Badges */
@@ -237,11 +241,12 @@
   font-size: 0.75rem;
   font-weight: 600;
   display: inline-block;
+  transition: all 0.2s ease;
 }
 
 .badge-success {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--success-light, #d1fae5);
+  color: var(--success-dark, #065f46);
 }
 
 .badge-secondary {
@@ -250,8 +255,8 @@
 }
 
 .badge-info {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--info-light, #dbeafe);
+  color: var(--info-dark, #1e40af);
 }
 
 .icon-emoji {
@@ -319,7 +324,7 @@
 }
 
 .modal-close:hover {
-  background: #f3f4f6;
+  background: var(--gris-claro, #f3f4f6);
 }
 
 .modal-body {
@@ -361,6 +366,12 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+.form-control:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--gris-claro, #f3f4f6);
+}
+
 .form-control-lg {
   padding: 1rem;
   font-size: 1rem;
@@ -380,7 +391,7 @@
 }
 
 .required {
-  color: #dc2626;
+  color: var(--error, #dc2626);
 }
 
 .checkbox-label {
@@ -580,6 +591,10 @@
   border-color: var(--primary-color);
 }
 
+.btn-outline:active {
+  transform: scale(0.97);
+}
+
 .btn-sm {
   padding: 0.5rem 1rem;
   font-size: 0.813rem;
@@ -602,7 +617,7 @@
 }
 
 .empty-state svg {
-  color: #d1d5db;
+  color: var(--borde, #d1d5db);
   margin-bottom: 1rem;
 }
 
@@ -761,14 +776,14 @@
   .data-table td:nth-child(2) {
     grid-column: 1 / -1;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary, #1f2937);
   }
 
   /* Nombre ocupa 2 columnas */
   .data-table td:nth-child(3) {
     grid-column: 1 / -1;
     font-size: 0.875rem;
-    color: #374151;
+    color: var(--text-secondary, #374151);
   }
 
   /* Teléfono columna izquierda */
@@ -915,17 +930,17 @@
 }
 
 .tipo-node > .tree-node-header {
-  background: #e8f0fe;
+  background: var(--bg-blue-light, #e8f0fe);
   font-weight: 600;
   border-left: 3px solid var(--azul-corporativo);
 }
 
 .tipo-node > .tree-node-header:hover {
-  background: #d4e4fc;
+  background: var(--bg-blue-hover, #d4e4fc);
 }
 
 .categoria-node > .tree-node-header {
-  background: #fafafa;
+  background: var(--bg-neutral-light, #fafafa);
   font-weight: 500;
   cursor: default;
 }
@@ -934,19 +949,24 @@
   margin-right: 0.5rem;
   font-size: 0.875rem;
   width: 20px;
+  transition: color 0.2s ease;
+}
+
+.tree-toggle:hover {
+  color: var(--azul-corporativo, #2c5282);
 }
 
 .tree-icon {
   margin-right: 0.5rem;
   font-size: 1.25rem;
-  color: #2c5282;
+  color: var(--azul-corporativo, #2c5282);
 }
 
 .tree-icon-small {
   margin-left: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #3d6ba3;
+  color: var(--azul-medio, #3d6ba3);
   opacity: 0.8;
 }
 
@@ -971,7 +991,7 @@
 
 .tree-badge-small {
   background: var(--border-light, #e5e7eb);
-  color: #374151;
+  color: var(--text-secondary, #374151);
   padding: 0.125rem 0.5rem;
   border-radius: 10px;
   font-size: 0.75rem;
@@ -1002,6 +1022,11 @@
   cursor: pointer;
 }
 
+.tree-checkbox input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--azul-corporativo, #2c5282);
+  outline-offset: 2px;
+}
+
 .caracteristica-node {
   margin: 0.25rem 0;
 }
@@ -1009,23 +1034,23 @@
 
 /* Iconos monocromáticos corporativos para tree view */
 .tree-node .tree-icon {
-  color: #2c5282 !important; /* Azul corporativo */
+  color: var(--azul-corporativo, #2c5282) !important;
   font-weight: 600;
 }
 
 .tree-node .tree-icon-small {
-  color: #3d6ba3 !important; /* Azul medio */
+  color: var(--azul-medio, #3d6ba3) !important;
   font-weight: 700;
   font-size: 1rem;
   opacity: 0.85;
 }
 
 .tipo-node > .tree-node-header .tree-icon {
-  color: #2c5282 !important;
+  color: var(--azul-corporativo, #2c5282) !important;
 }
 
 .categoria-node .tree-node-header .tree-icon {
-  color: #4a7bb7 !important; /* Azul claro */
+  color: var(--azul-claro, #4a7bb7) !important;
 }
 
 .caracteristica-node .tree-icon-small {
@@ -1061,15 +1086,15 @@
   }
 
   .tipo-node > .tree-node-header {
-    background: white; border: 2px solid #2c5282;
-    color: #2c5282;
+    background: white; border: 2px solid var(--azul-corporativo, #2c5282);
+    color: var(--azul-corporativo, #2c5282);
     font-size: 1rem;
     font-weight: 600;
     border-radius: 12px;
   }
 
   .tipo-node > .tree-node-header:active {
-    background: #f0f9ff; border-color: #1e3a5f;
+    background: var(--bg-info-light, #f0f9ff); border-color: var(--azul-oscuro, #1e3a5f);
   }
 
   .tipo-node > .tree-node-header .tree-icon {
@@ -1078,30 +1103,30 @@
   }
 
   .tipo-node > .tree-node-header .tree-label {
-    color: #2c5282;
+    color: var(--azul-corporativo, #2c5282);
   }
 
   .tipo-node > .tree-node-header .tree-badge {
-    background: #e0f2fe;
-    color: #2c5282;
+    background: var(--bg-info-lighter, #e0f2fe);
+    color: var(--azul-corporativo, #2c5282);
     font-weight: 600;
   }
 
   .categoria-node {
     margin: 0.5rem 0;
-    background: #f8fafc;
+    background: var(--bg-slate-50, #f8fafc);
     border-radius: 8px;
   }
 
   .categoria-node > .tree-node-header {
-    background: #f1f5f9;
+    background: var(--bg-slate-100, #f1f5f9);
     min-height: 44px;
     padding: 0.875rem;
     border-radius: 8px;
   }
 
   .categoria-node > .tree-node-header:active {
-    background: #e2e8f0;
+    background: var(--bg-slate-200, #e2e8f0);
   }
 
   .tree-toggle {
@@ -1117,7 +1142,7 @@
 
   .tipo-node > .tree-children {
     padding: 0.75rem;
-    background: #fafbfc;
+    background: var(--bg-neutral, #fafbfc);
     border-radius: 0 0 12px 12px;
   }
 
@@ -1131,7 +1156,7 @@
   }
 
   .tree-checkbox:active {
-    background: #f0f9ff;
+    background: var(--bg-info-light, #f0f9ff);
     border-color: var(--azul-corporativo);
   }
 
@@ -1197,7 +1222,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .stat-card:hover {
@@ -1230,7 +1255,7 @@
 .stat-number {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-dark, #111827);
   margin: 0;
   line-height: 1;
 }
@@ -1302,7 +1327,7 @@
 .filter-group select {
   flex: 1;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--borde, #d1d5db);
   border-radius: 6px;
   font-size: 0.875rem;
   transition: border-color 0.2s;
