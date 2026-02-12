@@ -402,6 +402,7 @@ class UsersModule {
         statsContainer.innerHTML = this.renderStats();
       }
     } catch (error) {
+      // Stats are non-critical; silently fail to avoid blocking the module
     }
   }
 

@@ -478,5 +478,3 @@ class CategoriesModule {
     }
   }
 }
-
-let categoriesModule;
