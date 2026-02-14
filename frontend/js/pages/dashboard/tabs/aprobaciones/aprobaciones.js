@@ -1,6 +1,10 @@
 /**
  * Aprobaciones Tab - Workflow de aprobación de corredores (Admin)
  * Archivo: tabs/aprobaciones/aprobaciones.js
+ *
+ * Muestra dos secciones:
+ *   1. Corredores Pendientes (tarjetas con acciones aprobar/rechazar)
+ *   2. Corredores Aprobados (tabla con datos de comisión y vigencia)
  */
 
 class AprobacionesTab {
@@ -8,26 +12,30 @@ class AprobacionesTab {
     this.app = app;
     this.stats = { pendientes: 0, aprobados: 0, rechazados: 0, total: 0 };
     this.corredoresPendientes = [];
+    this.corredoresAprobados = [];
   }
 
   /**
-   * Cargar datos desde API
+   * Cargar datos desde API (stats, pendientes y aprobados en paralelo)
    */
   async cargarDatos() {
     try {
       const token = localStorage.getItem('access_token');
       const headers = { 'Authorization': `Bearer ${token}` };
 
-      const [statsRes, pendientesRes] = await Promise.all([
+      const [statsRes, pendientesRes, aprobadosRes] = await Promise.all([
         fetch(`${API_CONFIG.BASE_URL}/corredores/stats`, { headers }),
-        fetch(`${API_CONFIG.BASE_URL}/corredores/pendientes`, { headers })
+        fetch(`${API_CONFIG.BASE_URL}/corredores/pendientes`, { headers }),
+        fetch(`${API_CONFIG.BASE_URL}/corredores/aprobados`, { headers })
       ]);
 
       const statsData = await statsRes.json();
       const pendientesData = await pendientesRes.json();
+      const aprobadosData = await aprobadosRes.json();
 
       if (statsData.success) this.stats = statsData.data;
       if (pendientesData.success) this.corredoresPendientes = pendientesData.data;
+      if (aprobadosData.success) this.corredoresAprobados = aprobadosData.data;
 
     } catch (error) {
       console.error('Error cargando datos de corredores:', error);
@@ -41,7 +49,8 @@ class AprobacionesTab {
     await this.cargarDatos();
 
     const statsHTML = this.renderStats();
-    const listaHTML = this.renderListaPendientes();
+    const listaPendientesHTML = this.renderListaPendientes();
+    const tablaAprobadosHTML = this.renderTablaAprobados();
 
     return `
       <div class="tab-header">
@@ -55,7 +64,11 @@ class AprobacionesTab {
         </div>
 
         <div id="corredores-pendientes-container">
-          ${listaHTML}
+          ${listaPendientesHTML}
+        </div>
+
+        <div id="corredores-aprobados-container">
+          ${tablaAprobadosHTML}
         </div>
       </div>
     `;
@@ -91,7 +104,7 @@ class AprobacionesTab {
   }
 
   /**
-   * Renderizar lista de corredores pendientes
+   * Renderizar lista de corredores pendientes (tarjetas)
    */
   renderListaPendientes() {
     if (this.corredoresPendientes.length === 0) {
@@ -115,7 +128,7 @@ class AprobacionesTab {
   }
 
   /**
-   * Renderizar tarjeta individual de corredor
+   * Renderizar tarjeta individual de corredor pendiente
    */
   renderCorredorCard(corredor) {
     const iniciales = `${(corredor.nombre || '')[0] || ''}${(corredor.apellido || '')[0] || ''}`.toUpperCase();
@@ -160,6 +173,81 @@ class AprobacionesTab {
         </div>
       </div>
     `;
+  }
+
+  /**
+   * Renderizar tabla de corredores aprobados
+   */
+  renderTablaAprobados() {
+    if (this.corredoresAprobados.length === 0) {
+      return `
+        <div class="empty-state empty-state--aprobados">
+          ${this.getIcon('check-circle')}
+          <h3>Sin corredores aprobados</h3>
+          <p>Los corredores aprobados aparecerán aquí</p>
+        </div>
+      `;
+    }
+
+    const filas = this.corredoresAprobados.map(corredor => {
+      const nombreCompleto = `${corredor.nombre || ''} ${corredor.apellido || ''}`.trim();
+      const email = corredor.email || '-';
+      const comision = corredor.comision_porcentaje != null
+        ? `${corredor.comision_porcentaje}%`
+        : '-';
+      const vigencia = corredor.fecha_vigencia_corredor
+        ? this.formatearFecha(corredor.fecha_vigencia_corredor)
+        : '-';
+      const fechaAprobacion = corredor.aprobado_at
+        ? this.formatearFecha(corredor.aprobado_at)
+        : '-';
+
+      return `
+        <tr class="corredor-aprobado-row">
+          <td data-label="Nombre">${nombreCompleto}</td>
+          <td data-label="Email">${email}</td>
+          <td data-label="Comisión">${comision}</td>
+          <td data-label="Vigencia">${vigencia}</td>
+          <td data-label="Aprobado el">${fechaAprobacion}</td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+      <h3 class="section-title">Corredores aprobados</h3>
+      <div class="tabla-aprobados-wrapper">
+        <table class="corredores-aprobados-table">
+          <thead>
+            <tr>
+              <th>Nombre Completo</th>
+              <th>Email</th>
+              <th>Comisión %</th>
+              <th>Vigencia</th>
+              <th>Aprobado el</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filas}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  /**
+   * Formatear fecha a dd/MMM/yyyy en español (es-PE)
+   */
+  formatearFecha(fechaStr) {
+    try {
+      const fecha = new Date(fechaStr);
+      return fecha.toLocaleDateString('es-PE', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch {
+      return '-';
+    }
   }
 
   /**
@@ -340,6 +428,7 @@ class AprobacionesTab {
    */
   async destroy() {
     this.corredoresPendientes = [];
+    this.corredoresAprobados = [];
     this.stats = { pendientes: 0, aprobados: 0, rechazados: 0, total: 0 };
   }
 
