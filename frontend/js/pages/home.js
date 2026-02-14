@@ -1,5 +1,8 @@
 // Home Page - Qadrante
 class HomePage {
+  static SWAL_COLOR = '#ff9700';
+  static UBICACION_DEFECTO = { pais: 'PERU', departamento: 'LIMA', provincia: 'LIMA' };
+
   constructor() {
     this.distritos = [];
     this.tiposInmuebles = [];
@@ -235,7 +238,7 @@ class HomePage {
           text: 'Selecciona un tipo de inmueble y al menos un distrito para iniciar la búsqueda.',
           icon: 'warning',
           confirmButtonText: 'Entendido',
-          confirmButtonColor: '#ff9700'
+          confirmButtonColor: HomePage.SWAL_COLOR
         });
         return;
       }
@@ -246,7 +249,7 @@ class HomePage {
           text: 'Selecciona el tipo de inmueble que estás buscando.',
           icon: 'warning',
           confirmButtonText: 'Entendido',
-          confirmButtonColor: '#ff9700'
+          confirmButtonColor: HomePage.SWAL_COLOR
         });
         return;
       }
@@ -257,15 +260,13 @@ class HomePage {
           text: 'Selecciona al menos un distrito donde deseas buscar.',
           icon: 'warning',
           confirmButtonText: 'Entendido',
-          confirmButtonColor: '#ff9700'
+          confirmButtonColor: HomePage.SWAL_COLOR
         });
         return;
       }
 
       const filtros = {
-        pais: 'PERU',
-        departamento: 'LIMA',
-        provincia: 'LIMA',
+        ...HomePage.UBICACION_DEFECTO,
         distritos_ids: this.distritosSeleccionadosHero,
         tipo_inmueble_id: parseInt(tipo),
         transaccion: transaccion,
@@ -528,15 +529,13 @@ class HomePage {
           text: 'Selecciona un tipo de inmueble y al menos un distrito para iniciar la búsqueda.',
           icon: 'warning',
           confirmButtonText: 'Entendido',
-          confirmButtonColor: '#ff9700'
+          confirmButtonColor: HomePage.SWAL_COLOR
         });
         return;
       }
 
       const filtros = {
-        pais: 'PERU',
-        departamento: 'LIMA',
-        provincia: 'LIMA',
+        ...HomePage.UBICACION_DEFECTO,
         distritos_ids: distritosSeleccionados,
         tipo_inmueble_id: parseInt(tipo),
         transaccion: transaccion,
@@ -598,7 +597,7 @@ class HomePage {
             icon: 'success',
             title: 'Mensaje enviado',
             text: 'Hemos recibido tu mensaje. Te contactaremos pronto.',
-            confirmButtonColor: '#ff9700'
+            confirmButtonColor: HomePage.SWAL_COLOR
           });
           form.reset();
         } else {
@@ -606,7 +605,7 @@ class HomePage {
             icon: 'error',
             title: 'Error al enviar',
             text: 'Hubo un error al enviar tu mensaje. Intenta nuevamente.',
-            confirmButtonColor: '#ff9700'
+            confirmButtonColor: HomePage.SWAL_COLOR
           });
         }
       } catch {
@@ -614,7 +613,7 @@ class HomePage {
           icon: 'error',
           title: 'Sin conexion',
           text: 'No se pudo conectar con el servidor. Intenta mas tarde.',
-          confirmButtonColor: '#ff9700'
+          confirmButtonColor: HomePage.SWAL_COLOR
         });
       }
     });
