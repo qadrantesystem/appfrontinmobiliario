@@ -573,7 +573,6 @@ class HomePage {
 
   setupContactoForm() {
     const form = document.getElementById('contactoForm');
-    const mensaje = document.getElementById('contactoMensaje');
     if (!form) return;
 
     form.addEventListener('submit', async (e) => {
@@ -595,13 +594,28 @@ class HomePage {
         });
 
         if (response.ok) {
-          if (mensaje) mensaje.textContent = 'Mensaje enviado correctamente. Te contactaremos pronto.';
+          Swal.fire({
+            icon: 'success',
+            title: 'Mensaje enviado',
+            text: 'Hemos recibido tu mensaje. Te contactaremos pronto.',
+            confirmButtonColor: '#ff9700'
+          });
           form.reset();
         } else {
-          if (mensaje) mensaje.textContent = 'Hubo un error al enviar. Intenta nuevamente.';
+          Swal.fire({
+            icon: 'error',
+            title: 'Error al enviar',
+            text: 'Hubo un error al enviar tu mensaje. Intenta nuevamente.',
+            confirmButtonColor: '#ff9700'
+          });
         }
       } catch {
-        if (mensaje) mensaje.textContent = 'No se pudo conectar con el servidor. Intenta más tarde.';
+        Swal.fire({
+          icon: 'error',
+          title: 'Sin conexion',
+          text: 'No se pudo conectar con el servidor. Intenta mas tarde.',
+          confirmButtonColor: '#ff9700'
+        });
       }
     });
   }
