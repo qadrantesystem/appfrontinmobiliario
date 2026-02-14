@@ -1,3 +1,8 @@
+/* Scroll offset para header fijo */
+section[id] {
+  scroll-margin-top: 90px;
+}
+
 /* Header - Transparente con scroll */
 .header {
   background: transparent;
@@ -68,18 +73,21 @@
 
 .nav-menu .btn-outline {
   color: var(--blanco);
-  border-color: var(--blanco);
+  border: 2px solid var(--blanco);
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px 24px;
 }
 
 .header--scrolled .nav-menu .btn-outline {
   color: var(--azul-corporativo);
   border-color: var(--azul-corporativo);
+  background: transparent;
 }
 
 .nav-menu .btn-outline:hover {
-  background: var(--azul-corporativo);
+  background: var(--dorado);
   color: var(--blanco);
-  border-color: var(--azul-corporativo);
+  border-color: var(--dorado);
 }
 
 /* Hamburger Menu */
