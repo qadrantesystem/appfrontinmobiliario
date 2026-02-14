@@ -112,6 +112,157 @@
 }
 
 /* ========================================
+   STAT CARD VARIANTES
+   ======================================== */
+
+.stat-card--warning {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.stat-card--success {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+}
+
+.stat-card--danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+/* ========================================
+   CORREDORES GRID & CARDS
+   ======================================== */
+
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--azul-corporativo);
+  margin-bottom: var(--spacing-lg);
+}
+
+.corredores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.corredor-card {
+  background: var(--blanco);
+  border: 2px solid var(--borde);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.corredor-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--azul-corporativo);
+}
+
+.corredor-card__header {
+  background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-medio) 100%);
+  padding: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  color: var(--blanco);
+}
+
+.corredor-card__avatar {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.corredor-card__nombre {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.corredor-card__nombre strong {
+  font-size: 1.05rem;
+}
+
+.corredor-card__badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.corredor-card__body {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.corredor-card__detalle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--gris-medio);
+  font-size: 0.9rem;
+}
+
+.corredor-card__detalle svg {
+  flex-shrink: 0;
+  color: var(--azul-corporativo);
+}
+
+.corredor-card__actions {
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.corredor-card__actions .btn-aprobar,
+.corredor-card__actions .btn-rechazar {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--transition-normal);
+}
+
+.corredor-card__actions .btn-aprobar {
+  background: #28a745;
+  color: var(--blanco);
+  border: 2px solid #28a745;
+}
+
+.corredor-card__actions .btn-aprobar:hover {
+  background: #218838;
+  border-color: #218838;
+}
+
+.corredor-card__actions .btn-rechazar {
+  background: transparent;
+  color: #dc3545;
+  border: 2px solid #dc3545;
+}
+
+.corredor-card__actions .btn-rechazar:hover {
+  background: #dc3545;
+  color: var(--blanco);
+}
+
+/* ========================================
    RESPONSIVE
    ======================================== */
 
@@ -175,5 +326,9 @@
   .approvals-stats {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
+  }
+
+  .corredores-grid {
+    grid-template-columns: 1fr;
   }
 }
