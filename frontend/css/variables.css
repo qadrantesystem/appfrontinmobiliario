@@ -1,14 +1,17 @@
+/* Switzer Font - Fontshare CDN */
+@import url('https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap');
+
 :root {
   /* Colores Principales */
-  --azul-corporativo: #2c5282;
-  --azul-medio: #3d6ba3;
-  --azul-claro: #4a7bb7;
-  --dorado: #f5a623;
-  --dorado-hover: #e89e1c;
+  --azul-corporativo: #0f4761;
+  --azul-medio: #4f78a1;
+  --azul-claro: #6a9ec4;
+  --dorado: #ff9700;
+  --dorado-hover: #e88700;
 
   /* Neutros */
   --blanco: #FFFFFF;
-  --gris-claro: #f0f0f0;
+  --gris-claro: #f9f9f9;
   --gris-medio: #666666;
   --gris-oscuro: #333333;
   --borde: #e0e0e0;
@@ -20,7 +23,7 @@
   --info: #17a2b8;
 
   /* Tipografía */
-  --font-principal: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-principal: 'Switzer', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --font-size-base: 16px;
   --font-size-small: 14px;
   --font-size-large: 18px;
@@ -37,9 +40,9 @@
   --spacing-xxl: 3rem;
 
   /* Sombras */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
 
   /* Bordes */
   --radius-sm: 4px;

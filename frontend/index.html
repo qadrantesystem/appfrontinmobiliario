@@ -3,36 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- ⚠️ CRITICAL: Force all HTTP requests to upgrade to HTTPS automatically -->
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>Qadrante - Encuentra tu inmueble ideal</title>
-    <link rel="stylesheet" href="css/variables.css?v=12">
-    <link rel="stylesheet" href="css/global.css?v=12">
-    <link rel="stylesheet" href="css/utils/animations.css?v=12">
-    <link rel="stylesheet" href="css/components/carousel.css?v=12">
-    <link rel="stylesheet" href="css/components/logo-animation.css?v=12">
-    <link rel="stylesheet" href="css/components/globe-3d.css?v=12">
-    <link rel="stylesheet" href="css/components/modal-busqueda.css?v=12">
-    <link rel="stylesheet" href="css/pages/home.css?v=14">
-    <link rel="stylesheet" href="css/pages/why-match.css?v=12">
-    <link rel="stylesheet" href="css/pages/busqueda.css?v=12">
+    <link rel="stylesheet" href="css/variables.css?v=20">
+    <link rel="stylesheet" href="css/global.css?v=20">
+    <link rel="stylesheet" href="css/utils/animations.css?v=20">
+    <link rel="stylesheet" href="css/components/carousel.css?v=20">
+    <link rel="stylesheet" href="css/components/modal-busqueda.css?v=20">
+    <link rel="stylesheet" href="css/pages/home.css?v=20">
+    <link rel="stylesheet" href="css/pages/why-match.css?v=20">
+    <link rel="stylesheet" href="css/pages/busqueda.css?v=20">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Three.js para globo 3D real -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-    <!-- Loading Screen con Video de Intro -->
-    <div class="loading-screen">
-        <div class="video-intro-container">
-            <video id="introVideo" class="intro-video" autoplay playsinline disablePictureInPicture controlsList="nodownload nofullscreen noremoteplayback">
-                <source src="assets/video/intro.mp4" type="video/mp4">
-                Tu navegador no soporta el elemento de video.
-            </video>
-        </div>
-    </div>
     <!-- Header -->
-    <header class="header">
+    <header class="header" id="mainHeader">
         <div class="container">
             <nav class="navbar">
                 <div class="logo">
@@ -78,47 +64,55 @@
         <div class="carousel-overlay"></div>
 
         <div class="carousel-content">
-            <h1 id="heroTitle">Lo que necesites con tan solo unos clicks… </h1>
-            <p id="heroSubtitle">Objetivo, rápido y confiable</p>
-            <div class="carousel-buttons">
-                <button id="btnBuscarHero" class="btn btn-primary">Buscar Inmueble</button>
-                <a href="/registrar-propiedad" class="btn btn-secondary">Publicar</a>
+            <h1 id="heroTitle">Encuentra tu inmueble ideal</h1>
+            <p id="heroSubtitle">Motor de búsqueda especializado por tipos de inmuebles</p>
+
+            <!-- Barra de búsqueda inline -->
+            <div class="hero-search-bar">
+                <select id="heroTipoInmueble">
+                    <option value="">Tipo de inmueble...</option>
+                </select>
+                <div class="hero-search-distrito">
+                    <button type="button" class="distrito-trigger" id="heroDistritoTrigger">Distritos...</button>
+                    <div class="distrito-dropdown" id="heroDistritoDropdown">
+                        <input type="text" class="distrito-search-input" id="heroDistritoSearch" placeholder="Buscar distrito...">
+                        <div class="distrito-options" id="heroDistritoOptions"></div>
+                    </div>
+                </div>
+                <select id="heroTransaccion">
+                    <option value="venta">Venta</option>
+                    <option value="alquiler">Alquiler</option>
+                </select>
+                <button class="btn-buscar-hero" id="btnBuscarHeroInline">Buscar</button>
             </div>
-        </div>
 
-        <div class="carousel-arrow prev">‹</div>
-        <div class="carousel-arrow next">›</div>
+            <div class="hero-search-avanzada">
+                <a href="#" id="btnBusquedaAvanzada">Búsqueda avanzada</a>
+            </div>
 
-        <div class="carousel-controls">
-            <span class="carousel-dot active" data-slide="0"></span>
-            <span class="carousel-dot" data-slide="1"></span>
-            <span class="carousel-dot" data-slide="2"></span>
-            <span class="carousel-dot" data-slide="3"></span>
-            <span class="carousel-dot" data-slide="4"></span>
+            <div class="carousel-buttons">
+                <a href="/registrar-propiedad" class="btn btn-secondary">Publicar Inmueble</a>
+            </div>
         </div>
     </section>
 
-    <!-- Modal de Búsqueda (Oculto inicialmente) -->
+    <!-- Modal de Búsqueda Avanzada -->
     <div class="modal-overlay" id="modalBusqueda" style="display: none;">
         <div class="modal-busqueda">
             <button class="modal-close" id="btnCerrarModal">
                 <i class="fas fa-times"></i>
             </button>
             <div class="container">
-            <!-- Filtro Simplificado -->
             <div class="filtro-simplificado-card">
-                <h2>Búsqueda Generica</h2>
+                <h2>Búsqueda Avanzada</h2>
 
-                <!-- Fila 1: Tipo de Inmueble -->
                 <div class="form-group">
                     <label>Tipo de Inmueble</label>
                     <select id="tipoInmueble" class="form-control">
                         <option value="">Selecciona un tipo...</option>
-                        <!-- Se carga dinámicamente -->
                     </select>
                 </div>
 
-                <!-- Fila 2: País + Departamento + Provincia -->
                 <div class="ubicacion-row">
                     <div class="form-group">
                         <label>País</label>
@@ -144,21 +138,19 @@
                     </div>
                 </div>
 
-                <!-- Fila 3: Distritos -->
                 <div class="form-group">
                     <label>Distritos</label>
                     <div id="distritoMulti" class="multi-select">
                         <button type="button" class="multi-select__button" id="distritoToggle" aria-expanded="false" aria-haspopup="listbox">
                             <span class="multi-select__placeholder" id="distritoPlaceholder">Selecciona distritos...</span>
                             <span class="multi-select__tags" id="distritoTags"></span>
-                            <span class="multi-select__arrow">▾</span>
+                            <span class="multi-select__arrow">&#9662;</span>
                         </button>
                         <div class="multi-select__panel" id="distritoPanel" role="listbox" aria-multiselectable="true" hidden>
                             <div class="multi-select__search">
                                 <input type="text" id="distritoSearch" placeholder="Buscar distrito..." class="multi-select__search-input">
                             </div>
                             <div class="multi-select__options" id="distritoOptions">
-                                <!-- Opciones renderizadas por JS -->
                             </div>
                             <div class="multi-select__actions">
                                 <button type="button" id="distritoSelectAll" class="multi-select__action">Seleccionar todos</button>
@@ -169,7 +161,6 @@
                     <small>Busca y selecciona múltiples distritos.</small>
                 </div>
 
-                <!-- Fila 4: Tipo de Transacción + Metraje + Presupuesto -->
                 <div class="ubicacion-row">
                     <div class="form-group">
                         <label for="transaccion">Tipo de Transacción</label>
@@ -192,7 +183,6 @@
                     </div>
                 </div>
 
-                <!-- Botón Buscar -->
                 <div class="boton-match-container">
                     <button id="btnHacerMatch" class="btn btn-match">
                         Buscar Propiedades
@@ -203,12 +193,50 @@
         </div>
     </div>
 
-    <!-- Why Qadrante Section -->
-    <section class="why-match-section">
+    <!-- Tu aliado estratégico -->
+    <section class="valor-section">
         <div class="container">
-            <!-- Globo 3D con Edificios Épico (título incluido arriba) -->
-            <div class="globe-container">
-                <!-- El título y globo se crean dinámicamente con JS -->
+            <h2>Tu aliado estratégico en cada paso</h2>
+            <div class="valor-grid">
+                <div class="valor-card">
+                    <div class="valor-icono">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                    </div>
+                    <h3>Búsqueda Precisa</h3>
+                    <p>Filtros a la medida de tu interés</p>
+                </div>
+                <div class="valor-card">
+                    <div class="valor-icono">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                            <polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                    </div>
+                    <h3>Mejor Oferta</h3>
+                    <p>Evalúa las alternativas que hicieron match con tu requerimiento</p>
+                </div>
+                <div class="valor-card">
+                    <div class="valor-icono">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <h3>Publica con Confianza</h3>
+                    <p>Registra correctamente los datos de tu(s) inmueble(s)</p>
+                </div>
+                <div class="valor-card">
+                    <div class="valor-icono">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </div>
+                    <h3>Experiencia Segura</h3>
+                    <p>Visita el inmueble y toma la decisión más conveniente de manera segura</p>
+                </div>
             </div>
         </div>
     </section>
@@ -218,7 +246,6 @@
         <div class="container">
             <h2 class="section-title">Servicios Adicionales</h2>
             <div class="services-grid" id="servicesGrid">
-                <!-- Se cargará dinámicamente desde JSON -->
             </div>
         </div>
     </section>
@@ -226,9 +253,15 @@
     <!-- CTA Section -->
     <section class="cta-section">
         <div class="container">
-            <h2>¿Deseas incorporarte al equipo?</h2>
+            <h2>¿Quieres incorporarte al equipo?</h2>
             <p>Contáctanos y te ayudaremos a comercializar tu propiedad</p>
-            <a href="/registrar-propiedad" class="btn btn-primary">Contactar Ahora</a>
+            <form class="contacto-form" id="contactoForm">
+                <input type="text" name="nombre" placeholder="Tu nombre" required>
+                <input type="email" name="email" placeholder="Tu email" required>
+                <textarea name="mensaje" placeholder="Tu mensaje" required></textarea>
+                <button type="submit" class="btn btn-primary">Enviar Mensaje</button>
+            </form>
+            <div class="contacto-mensaje" id="contactoMensaje"></div>
         </div>
     </section>
 
@@ -238,7 +271,7 @@
             <div class="footer-grid">
                 <div class="footer-col">
                     <h3>Qadrante</h3>
-                    <p id="footerMision"><!-- Se carga dinámicamente --></p>
+                    <p id="footerMision"></p>
                 </div>
                 <div class="footer-col">
                     <h3>Enlaces</h3>
@@ -251,26 +284,20 @@
                 </div>
                 <div class="footer-col">
                     <h3>Contacto</h3>
-                    <p id="footerDireccion"><!-- Se carga dinámicamente --></p>
-                    <p id="footerTelefono"><!-- Se carga dinámicamente --></p>
-                    <p id="footerEmail"><!-- Se carga dinámicamente --></p>
+                    <p id="footerDireccion"></p>
+                    <p id="footerTelefono"></p>
+                    <p id="footerEmail"></p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 Qadrante. Todos los derechos reservados.</p>
+                <p>&copy; 2026 Qadrante. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
 
-    <!-- Anime.js para animaciones (comentado temporalmente para usar video) -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script> -->
-
-    <!-- Scripts propios -->
-    <!-- <script src="js/components/logo-animation.js"></script> (comentado para usar video de intro) -->
-    <!-- ⚠️ API Config DEBE cargarse PRIMERO -->
-    <script src="js/config/api.js?v=20250120b"></script>
-    <script src="js/components/carousel.js?v=20250120a"></script>
-    <script src="js/components/globe-3d.js?v=20250131"></script>
-    <script src="js/pages/home.js?v=20250120b"></script>
+    <!-- Scripts -->
+    <script src="js/config/api.js?v=20"></script>
+    <script src="js/components/carousel.js?v=20"></script>
+    <script src="js/pages/home.js?v=20"></script>
 </body>
 </html>

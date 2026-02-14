@@ -3,18 +3,21 @@ class HomePage {
   constructor() {
     this.distritos = [];
     this.tiposInmuebles = [];
+    this.distritosSeleccionadosHero = [];
     this.datosModalCargados = false;
     this.init();
   }
 
   async init() {
     await this.loadTextos();
-    this.renderFeatures();
     this.renderServices();
     this.renderFooter();
     this.setupHamburgerMenu();
-    this.setupBusquedaScroll();
+    this.setupScrollHeader();
+    this.setupBusquedaModal();
+    this.setupContactoForm();
     this.checkOpenModal();
+    await this.cargarDatosHero();
   }
 
   setupHamburgerMenu() {
@@ -27,7 +30,6 @@ class HomePage {
         navMenu.classList.toggle('active');
       });
 
-      // Cerrar menú al hacer click en un enlace
       navMenu.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', () => {
           hamburger.classList.remove('active');
@@ -35,7 +37,6 @@ class HomePage {
         });
       });
 
-      // Cerrar menú al hacer click fuera
       document.addEventListener('click', (e) => {
         if (!hamburger.contains(e.target) && !navMenu.contains(e.target)) {
           hamburger.classList.remove('active');
@@ -45,28 +46,29 @@ class HomePage {
     }
   }
 
+  setupScrollHeader() {
+    const header = document.getElementById('mainHeader');
+    if (!header) return;
+
+    const actualizarHeader = () => {
+      if (window.scrollY > 50) {
+        header.classList.add('header--scrolled');
+      } else {
+        header.classList.remove('header--scrolled');
+      }
+    };
+
+    window.addEventListener('scroll', actualizarHeader);
+    actualizarHeader();
+  }
+
   async loadTextos() {
     try {
       const response = await fetch('data/textos-landing.json');
       this.textos = await response.json();
-    } catch (error) {
-      console.error('Error cargando textos:', error);
+    } catch {
+      this.textos = null;
     }
-  }
-
-  renderFeatures() {
-    const grid = document.getElementById('featuresGrid');
-    if (!grid || !this.textos) return;
-
-    const html = this.textos.features.map(feature => `
-      <div class="feature-card">
-        <div class="feature-icon">${feature.icono}</div>
-        <h3>${feature.titulo}</h3>
-        <p>${feature.descripcion}</p>
-      </div>
-    `).join('');
-
-    grid.innerHTML = html;
   }
 
   renderServices() {
@@ -75,8 +77,11 @@ class HomePage {
 
     const html = this.textos.servicios.map(servicio => `
       <div class="service-card">
-        <div class="service-icon">${servicio.icono}</div>
-        <h3>${servicio.titulo}</h3>
+        <img src="${servicio.imagen}" alt="${servicio.titulo}" class="service-card-img" loading="lazy">
+        <div class="service-card-body">
+          <h3>${servicio.titulo}</h3>
+          <p>${servicio.descripcion || ''}</p>
+        </div>
       </div>
     `).join('');
 
@@ -86,38 +91,179 @@ class HomePage {
   renderFooter() {
     if (!this.textos) return;
 
-    // Misión en footer
     const misionEl = document.getElementById('footerMision');
     if (misionEl) {
       misionEl.textContent = this.textos.sobre.mision;
     }
 
-    // Contacto en footer
     const direccionEl = document.getElementById('footerDireccion');
     const telefonoEl = document.getElementById('footerTelefono');
     const emailEl = document.getElementById('footerEmail');
 
-    if (direccionEl) direccionEl.innerHTML = `📍 ${this.textos.contacto.direccion}`;
-    if (telefonoEl) telefonoEl.innerHTML = `📞 ${this.textos.contacto.telefono}`;
-    if (emailEl) emailEl.innerHTML = `📧 ${this.textos.contacto.email}`;
+    if (direccionEl) direccionEl.textContent = this.textos.contacto.direccion;
+    if (telefonoEl) telefonoEl.textContent = this.textos.contacto.telefono;
+    if (emailEl) {
+      emailEl.innerHTML = `<a href="mailto:${this.textos.contacto.email}" style="color: rgba(255,255,255,0.8)">${this.textos.contacto.email}</a>`;
+    }
   }
 
-  setupBusquedaScroll() {
-    const btnBuscarHero = document.getElementById('btnBuscarHero');
+  async cargarDatosHero() {
+    try {
+      const API_BASE = window.API_CONFIG.BASE_URL;
+
+      const [distritosRes, tiposRes] = await Promise.all([
+        fetch(`${API_BASE}/distritos`),
+        fetch(`${API_BASE}/tipos-inmueble`)
+      ]);
+
+      if (!distritosRes.ok || !tiposRes.ok) return;
+
+      this.distritos = await distritosRes.json();
+      this.tiposInmuebles = await tiposRes.json();
+
+      this.renderHeroTipos();
+      this.renderHeroDistritos();
+      this.setupHeroBusqueda();
+    } catch {
+      // API no disponible, la barra de busqueda queda con placeholders
+    }
+  }
+
+  renderHeroTipos() {
+    const select = document.getElementById('heroTipoInmueble');
+    if (!select) return;
+
+    const html = this.tiposInmuebles.map(t =>
+      `<option value="${t.tipo_inmueble_id}">${t.nombre}</option>`
+    ).join('');
+
+    select.innerHTML = `<option value="">Tipo de inmueble...</option>` + html;
+  }
+
+  renderHeroDistritos() {
+    const optionsContainer = document.getElementById('heroDistritoOptions');
+    const trigger = document.getElementById('heroDistritoTrigger');
+    const dropdown = document.getElementById('heroDistritoDropdown');
+    const searchInput = document.getElementById('heroDistritoSearch');
+    if (!optionsContainer || !trigger || !dropdown) return;
+
+    const distritosOrdenados = [...this.distritos].sort((a, b) =>
+      a.nombre.localeCompare(b.nombre, 'es')
+    );
+
+    const renderOpciones = (filtro = '') => {
+      const filtrados = filtro
+        ? distritosOrdenados.filter(d => d.nombre.toLowerCase().includes(filtro.toLowerCase()))
+        : distritosOrdenados;
+
+      optionsContainer.innerHTML = filtrados.map(d => `
+        <label>
+          <input type="checkbox" value="${d.distrito_id}" data-nombre="${d.nombre}"
+            ${this.distritosSeleccionadosHero.includes(d.distrito_id) ? 'checked' : ''}>
+          ${d.nombre}
+        </label>
+      `).join('');
+
+      optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const id = parseInt(cb.value);
+          if (cb.checked) {
+            if (!this.distritosSeleccionadosHero.includes(id)) {
+              this.distritosSeleccionadosHero.push(id);
+            }
+          } else {
+            this.distritosSeleccionadosHero = this.distritosSeleccionadosHero.filter(d => d !== id);
+          }
+          this.actualizarTriggerDistritos();
+        });
+      });
+    };
+
+    renderOpciones();
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        renderOpciones(e.target.value);
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      const distritoContainer = document.querySelector('.hero-search-distrito');
+      if (distritoContainer && !distritoContainer.contains(e.target)) {
+        dropdown.classList.remove('open');
+      }
+    });
+  }
+
+  actualizarTriggerDistritos() {
+    const trigger = document.getElementById('heroDistritoTrigger');
+    if (!trigger) return;
+
+    if (this.distritosSeleccionadosHero.length === 0) {
+      trigger.textContent = 'Distritos...';
+    } else {
+      const nombres = this.distritosSeleccionadosHero.map(id => {
+        const d = this.distritos.find(dist => dist.distrito_id === id);
+        return d ? d.nombre : '';
+      }).filter(Boolean);
+
+      if (nombres.length <= 2) {
+        trigger.textContent = nombres.join(', ');
+      } else {
+        trigger.textContent = `${nombres[0]}, ${nombres[1]} +${nombres.length - 2}`;
+      }
+    }
+  }
+
+  setupHeroBusqueda() {
+    const btnBuscar = document.getElementById('btnBuscarHeroInline');
+    if (!btnBuscar) return;
+
+    btnBuscar.addEventListener('click', () => {
+      const tipo = document.getElementById('heroTipoInmueble')?.value;
+      const transaccion = document.getElementById('heroTransaccion')?.value || 'venta';
+
+      if (this.distritosSeleccionadosHero.length === 0 || !tipo) {
+        alert('Por favor selecciona al menos un distrito y un tipo de inmueble');
+        return;
+      }
+
+      const filtros = {
+        pais: 'PERU',
+        departamento: 'LIMA',
+        provincia: 'LIMA',
+        distritos_ids: this.distritosSeleccionadosHero,
+        tipo_inmueble_id: parseInt(tipo),
+        transaccion: transaccion,
+        area: null,
+        presupuesto_compra: null,
+        presupuesto_alquiler: null
+      };
+
+      localStorage.setItem('filtros_simplificados', JSON.stringify(filtros));
+      window.location.href = 'resultados.html';
+    });
+  }
+
+  setupBusquedaModal() {
     const btnBuscarNav = document.getElementById('btnBuscarNav');
+    const btnBusquedaAvanzada = document.getElementById('btnBusquedaAvanzada');
     const modalBusqueda = document.getElementById('modalBusqueda');
     const btnCerrarModal = document.getElementById('btnCerrarModal');
 
     const abrirModal = async (e) => {
       e.preventDefault();
-      
+
       if (modalBusqueda) {
-        // Mostrar modal
         modalBusqueda.style.display = 'flex';
         document.body.classList.add('modal-open');
         document.body.style.overflow = 'hidden';
-        
-        // Cargar datos si no están cargados
+
         if (!this.datosModalCargados) {
           await this.cargarDatosModal();
         }
@@ -126,10 +272,8 @@ class HomePage {
 
     const cerrarModal = () => {
       if (modalBusqueda) {
-        // Agregar clase de cierre para animación
         modalBusqueda.classList.add('closing');
-        
-        // Esperar a que termine la animación
+
         setTimeout(() => {
           modalBusqueda.style.display = 'none';
           modalBusqueda.classList.remove('closing');
@@ -139,21 +283,18 @@ class HomePage {
       }
     };
 
-    // Abrir modal
-    if (btnBuscarHero) {
-      btnBuscarHero.addEventListener('click', abrirModal);
-    }
-
     if (btnBuscarNav) {
       btnBuscarNav.addEventListener('click', abrirModal);
     }
 
-    // Cerrar modal con botón X
+    if (btnBusquedaAvanzada) {
+      btnBusquedaAvanzada.addEventListener('click', abrirModal);
+    }
+
     if (btnCerrarModal) {
       btnCerrarModal.addEventListener('click', cerrarModal);
     }
 
-    // Cerrar modal al hacer click en el overlay
     if (modalBusqueda) {
       modalBusqueda.addEventListener('click', (e) => {
         if (e.target === modalBusqueda) {
@@ -162,38 +303,32 @@ class HomePage {
       });
     }
 
-    // Cerrar modal con tecla ESC
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modalBusqueda.style.display === 'flex') {
+      if (e.key === 'Escape' && modalBusqueda?.style.display === 'flex') {
         cerrarModal();
       }
     });
 
-    // Guardar referencia para uso externo
     this.abrirModalBusqueda = abrirModal;
   }
 
   checkOpenModal() {
-    // Verificar si hay parámetro en la URL para abrir el modal
     const urlParams = new URLSearchParams(window.location.search);
     const openModal = urlParams.get('openModal');
-    
+
     if (openModal === 'true') {
-      // Esperar un poco para que todo esté cargado
       setTimeout(async () => {
         const modalBusqueda = document.getElementById('modalBusqueda');
         if (modalBusqueda) {
           modalBusqueda.style.display = 'flex';
           document.body.classList.add('modal-open');
           document.body.style.overflow = 'hidden';
-          
-          // Cargar datos del modal
+
           if (!this.datosModalCargados) {
             await this.cargarDatosModal();
           }
         }
-        
-        // Limpiar el parámetro de la URL sin recargar la página
+
         const newUrl = window.location.pathname;
         window.history.replaceState({}, '', newUrl);
       }, 500);
@@ -202,31 +337,28 @@ class HomePage {
 
   async cargarDatosModal() {
     try {
-      // ✅ Usar configuración global que ya tiene HTTPS
       const API_BASE = window.API_CONFIG.BASE_URL;
 
-      console.log('🔧 API_BASE:', API_BASE); // Debug
+      if (this.distritos.length === 0 || this.tiposInmuebles.length === 0) {
+        const [distritosRes, tiposRes] = await Promise.all([
+          fetch(`${API_BASE}/distritos`),
+          fetch(`${API_BASE}/tipos-inmueble`)
+        ]);
 
-      const [distritosRes, tiposRes] = await Promise.all([
-        fetch(`${API_BASE}/distritos`),
-        fetch(`${API_BASE}/tipos-inmueble`)
-      ]);
+        if (!distritosRes.ok || !tiposRes.ok) return;
 
-      if (!distritosRes.ok || !tiposRes.ok) {
-        throw new Error('Error en la API');
+        this.distritos = await distritosRes.json();
+        this.tiposInmuebles = await tiposRes.json();
       }
 
-      this.distritos = await distritosRes.json();
-      this.tiposInmuebles = await tiposRes.json();
-      
       this.renderDistritosModal();
       this.renderTiposModal();
       this.setupTransaccionChange();
       this.setupFormModal();
-      
+
       this.datosModalCargados = true;
-    } catch (error) {
-      console.error('Error cargando datos del modal:', error);
+    } catch {
+      // Error cargando datos del modal
     }
   }
 
@@ -234,9 +366,9 @@ class HomePage {
     const selectTransaccion = document.getElementById('transaccion');
     const labelPresupuesto = document.getElementById('labelPresupuesto');
     const helperPresupuesto = document.getElementById('helperPresupuesto');
-    
+
     if (!selectTransaccion || !labelPresupuesto) return;
-    
+
     selectTransaccion.addEventListener('change', (e) => {
       if (e.target.value === 'venta') {
         labelPresupuesto.textContent = 'Presupuesto Venta (USD)';
@@ -254,8 +386,7 @@ class HomePage {
     const placeholder = document.getElementById('distritoPlaceholder');
     if (!optionsContainer) return;
 
-    // Ordenar alfabéticamente
-    const distritosOrdenados = [...this.distritos].sort((a, b) => 
+    const distritosOrdenados = [...this.distritos].sort((a, b) =>
       a.nombre.localeCompare(b.nombre, 'es')
     );
 
@@ -267,13 +398,12 @@ class HomePage {
     `).join('');
 
     optionsContainer.innerHTML = html;
-    
-    // Actualizar tags cuando se selecciona/deselecciona
+
     const updateTags = () => {
       const selected = Array.from(
         optionsContainer.querySelectorAll('input[type="checkbox"]:checked')
       );
-      
+
       if (selected.length === 0) {
         tagsContainer.innerHTML = '';
         placeholder.style.display = '';
@@ -281,25 +411,23 @@ class HomePage {
         placeholder.style.display = 'none';
         const nombres = selected.map(cb => cb.getAttribute('data-nombre'));
         const maxChips = 3;
-        const chips = nombres.slice(0, maxChips).map(n => 
+        const chips = nombres.slice(0, maxChips).map(n =>
           `<span class="multi-select__tag">${n}</span>`
         ).join('');
-        const extra = nombres.length > maxChips ? 
+        const extra = nombres.length > maxChips ?
           `<span class="multi-select__tag">+${nombres.length - maxChips}</span>` : '';
         tagsContainer.innerHTML = chips + extra;
       }
     };
 
-    // Event listener en cada checkbox
     optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
       cb.addEventListener('change', updateTags);
     });
-    
-    // Setup toggle del panel
+
     const toggleBtn = document.getElementById('distritoToggle');
     const panel = document.getElementById('distritoPanel');
     const multiContainer = document.getElementById('distritoMulti');
-    
+
     if (toggleBtn && panel) {
       toggleBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -308,8 +436,7 @@ class HomePage {
         toggleBtn.setAttribute('aria-expanded', !isHidden);
         if (multiContainer) multiContainer.classList.toggle('open');
       });
-      
-      // Cerrar al hacer click fuera
+
       document.addEventListener('click', (e) => {
         if (multiContainer && !multiContainer.contains(e.target)) {
           panel.hidden = true;
@@ -318,11 +445,10 @@ class HomePage {
         }
       });
     }
-    
-    // Botones Seleccionar todos / Limpiar
+
     const selectAllBtn = document.getElementById('distritoSelectAll');
     const clearBtn = document.getElementById('distritoClear');
-    
+
     if (selectAllBtn) {
       selectAllBtn.addEventListener('click', () => {
         optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -331,7 +457,7 @@ class HomePage {
         updateTags();
       });
     }
-    
+
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
         optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -346,7 +472,7 @@ class HomePage {
     const select = document.getElementById('tipoInmueble');
     if (!select) return;
 
-    const html = this.tiposInmuebles.map(t => 
+    const html = this.tiposInmuebles.map(t =>
       `<option value="${t.tipo_inmueble_id}">${t.nombre}</option>`
     ).join('');
 
@@ -358,7 +484,6 @@ class HomePage {
     if (!btnHacerMatch) return;
 
     btnHacerMatch.addEventListener('click', () => {
-      // Obtener distritos seleccionados (checkboxes)
       const distritosSeleccionados = Array.from(
         document.querySelectorAll('#distritoOptions input[type="checkbox"]:checked')
       ).map(cb => parseInt(cb.value));
@@ -389,98 +514,44 @@ class HomePage {
       window.location.href = 'resultados.html';
     });
   }
-}
 
-// Inicializar página
-document.addEventListener('DOMContentLoaded', () => {
-  // Manejar video de intro
-  const introVideo = document.getElementById('introVideo');
-  const loadingScreen = document.querySelector('.loading-screen');
-  
-  // Verificar si el video ya se mostró antes (localStorage)
-  const videoYaMostrado = localStorage.getItem('matchPropertyVideoMostrado');
-  
-  if (videoYaMostrado === 'true') {
-    // Si ya se mostró, saltar directamente al home
-    if (loadingScreen) {
-      loadingScreen.classList.add('hidden');
-      document.body.classList.add('video-finished');
-    }
-    // DETENER el video completamente
-    if (introVideo) {
-      introVideo.pause();
-      introVideo.currentTime = 0;
-      introVideo.src = ''; // Liberar el recurso
-    }
-    // Inicializar home page
-    new HomePage();
-    return; // Salir de la función
-  }
-  
-  if (introVideo) {
-    // Intentar reproducir el video automáticamente
-    const playPromise = introVideo.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.then(() => {
-        console.log('✅ Video reproduciéndose automáticamente');
-      }).catch((error) => {
-        console.warn('⚠️ Autoplay bloqueado, requiere interacción del usuario:', error);
-        // Mostrar indicador de click para reproducir
-        loadingScreen.style.cursor = 'pointer';
-        const playIndicator = document.createElement('div');
-        playIndicator.className = 'play-indicator';
-        playIndicator.innerHTML = '<i class="fa-solid fa-play"></i><p>Click para reproducir</p>';
-        loadingScreen.appendChild(playIndicator);
-      });
-    }
-    
-    // Cuando el video termina, ocultar loading screen y mostrar home
-    introVideo.addEventListener('ended', () => {
-      console.log('✅ Video terminado, mostrando home...');
-      introVideo.pause();
-      introVideo.currentTime = 0;
-      introVideo.src = ''; // Liberar el recurso
-      loadingScreen.classList.add('hidden');
-      document.body.classList.add('video-finished');
-      // Marcar video como mostrado en localStorage
-      localStorage.setItem('matchPropertyVideoMostrado', 'true');
-    });
-    
-    // Manejo de errores del video
-    introVideo.addEventListener('error', (e) => {
-      console.error('❌ Error cargando video:', e);
-      // Si hay error, mostrar home inmediatamente
-      loadingScreen.classList.add('hidden');
-      document.body.classList.add('video-finished');
-    });
-    
-    // Permitir saltar el video haciendo click
-    loadingScreen.addEventListener('click', () => {
-      if (introVideo.paused) {
-        console.log('▶️ Reproduciendo video...');
-        introVideo.play();
-        const playIndicator = loadingScreen.querySelector('.play-indicator');
-        if (playIndicator) playIndicator.remove();
-      } else {
-        console.log('⏭️ Video saltado por el usuario');
-        introVideo.pause();
-        introVideo.currentTime = 0;
-        introVideo.src = ''; // Liberar el recurso
-        loadingScreen.classList.add('hidden');
-        document.body.classList.add('video-finished');
-        // Marcar video como mostrado en localStorage
-        localStorage.setItem('matchPropertyVideoMostrado', 'true');
+  setupContactoForm() {
+    const form = document.getElementById('contactoForm');
+    const mensaje = document.getElementById('contactoMensaje');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const datos = {
+        nombre: formData.get('nombre'),
+        email: formData.get('email'),
+        mensaje: formData.get('mensaje')
+      };
+
+      try {
+        const API_BASE = window.API_CONFIG.BASE_URL;
+        const response = await fetch(`${API_BASE}/contacto`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(datos)
+        });
+
+        if (response.ok) {
+          if (mensaje) mensaje.textContent = 'Mensaje enviado correctamente. Te contactaremos pronto.';
+          form.reset();
+        } else {
+          if (mensaje) mensaje.textContent = 'Hubo un error al enviar. Intenta nuevamente.';
+        }
+      } catch {
+        if (mensaje) mensaje.textContent = 'No se pudo conectar con el servidor. Intenta más tarde.';
       }
     });
-  } else {
-    // Si no hay video, ocultar loading screen inmediatamente
-    if (loadingScreen) {
-      loadingScreen.classList.add('hidden');
-      document.body.classList.add('video-finished');
-    }
   }
-  
-  // Inicializar home page
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', () => {
   new HomePage();
 });
