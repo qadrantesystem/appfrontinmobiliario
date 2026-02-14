@@ -229,8 +229,36 @@ class HomePage {
       const tipo = document.getElementById('heroTipoInmueble')?.value;
       const transaccion = document.getElementById('heroTransaccion')?.value || 'venta';
 
-      if (this.distritosSeleccionadosHero.length === 0 || !tipo) {
-        alert('Por favor selecciona al menos un distrito y un tipo de inmueble');
+      if (!tipo && this.distritosSeleccionadosHero.length === 0) {
+        Swal.fire({
+          title: 'Campos incompletos',
+          text: 'Selecciona un tipo de inmueble y al menos un distrito para iniciar la búsqueda.',
+          icon: 'warning',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#ff9700'
+        });
+        return;
+      }
+
+      if (!tipo) {
+        Swal.fire({
+          title: 'Tipo de inmueble requerido',
+          text: 'Selecciona el tipo de inmueble que estás buscando.',
+          icon: 'warning',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#ff9700'
+        });
+        return;
+      }
+
+      if (this.distritosSeleccionadosHero.length === 0) {
+        Swal.fire({
+          title: 'Distrito requerido',
+          text: 'Selecciona al menos un distrito donde deseas buscar.',
+          icon: 'warning',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#ff9700'
+        });
         return;
       }
 
@@ -494,8 +522,14 @@ class HomePage {
       const metraje = document.getElementById('metraje')?.value;
       const presupuesto = document.getElementById('presupuesto')?.value;
 
-      if (distritosSeleccionados.length === 0 || !tipo) {
-        alert('Por favor selecciona al menos un distrito y un tipo de inmueble');
+      if (!tipo || distritosSeleccionados.length === 0) {
+        Swal.fire({
+          title: 'Campos incompletos',
+          text: 'Selecciona un tipo de inmueble y al menos un distrito para iniciar la búsqueda.',
+          icon: 'warning',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#ff9700'
+        });
         return;
       }
 
