@@ -48,96 +48,33 @@ a:hover {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
   text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   position: relative;
-  overflow: hidden;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-}
-
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-
-.btn:hover::before {
-  width: 300px;
-  height: 300px;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #f5a623 0%, #e89e1c 50%, #d68910 100%);
+  background: var(--dorado);
   color: var(--blanco);
-  border: 3px solid transparent;
-  background-clip: padding-box;
-  position: relative;
-}
-
-.btn-primary::after {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  border-radius: 50px;
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.3s;
 }
 
 .btn-primary:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 10px 25px rgba(245, 166, 35, 0.4);
-}
-
-.btn-primary:hover::after {
-  opacity: 1;
+  background: var(--dorado-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-medio) 50%, var(--azul-claro) 100%);
+  background: var(--azul-corporativo);
   color: var(--blanco);
-  border: 3px solid rgba(255, 255, 255, 0.2);
-}
-
-.btn-secondary::after {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
-  background: linear-gradient(135deg, var(--azul-claro), #5B9BD5);
-  border-radius: 50px;
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.3s;
 }
 
 .btn-secondary:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 10px 25px rgba(44, 82, 130, 0.4);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.btn-secondary:hover::after {
-  opacity: 1;
+  background: var(--azul-medio);
+  box-shadow: var(--shadow-md);
 }
 
 .btn:active {
-  transform: translateY(-2px) scale(1.02);
+  opacity: 0.9;
 }
 
 .btn-outline {

@@ -1,49 +1,55 @@
 {
   "hero": {
-    "titulo": "Filtros de búsqueda a la medida de tu interés",
-    "subtitulo": "Objetivo, rápido y confiable",
+    "titulo": "Encuentra tu inmueble ideal",
+    "subtitulo": "Motor de búsqueda especializado por tipos de inmuebles",
     "descripcion": "Motor de Búsqueda Especializado por tipos de Inmuebles"
   },
   "features": [
     {
-      "titulo": "Búsqueda Precisa y Eficiente",
-      "descripcion": "Ten claro lo que necesitas y aplica los filtros de búsqueda",
-      "icono": "🔍"
+      "titulo": "Búsqueda Precisa",
+      "descripcion": "Filtros a la medida de tu interés",
+      "icono": "busqueda"
     },
     {
-      "titulo": "Acceso a la Mejor Oferta del Mercado",
+      "titulo": "Acceso a la Mejor Oferta",
       "descripcion": "Evalúa las alternativas que hicieron match con tu requerimiento",
-      "icono": "🏆"
+      "icono": "oferta"
     },
     {
-      "titulo": "Promociona tu Propiedad con Confianza",
+      "titulo": "Publica con Confianza",
       "descripcion": "Registra correctamente los datos de tu(s) inmueble(s)",
-      "icono": "📢"
+      "icono": "confianza"
     },
     {
-      "titulo": "Experiencia y Confianza que Respaldan",
+      "titulo": "Experiencia Segura",
       "descripcion": "Visita el inmueble y toma la decisión más conveniente de manera segura",
-      "icono": "✨"
+      "icono": "seguridad"
     }
   ],
   "servicios": [
     {
       "titulo": "Novedades sobre el Mercado Inmobiliario",
-      "icono": "📰"
+      "descripcion": "Mantente informado con las últimas tendencias y noticias del sector inmobiliario.",
+      "icono": "📰",
+      "imagen": "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&h=340&fit=crop"
     },
     {
       "titulo": "Oportunidades de Inversión",
-      "icono": "💰"
+      "descripcion": "Descubre las mejores oportunidades para invertir en el mercado inmobiliario.",
+      "icono": "💰",
+      "imagen": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=340&fit=crop"
     },
     {
       "titulo": "Sobre la Banca, Préstamos, Tasas y Otros",
-      "icono": "🏦"
+      "descripcion": "Información actualizada sobre financiamiento y opciones bancarias para tu inmueble.",
+      "icono": "🏦",
+      "imagen": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&h=340&fit=crop"
     }
   ],
   "contacto": {
     "direccion": "Mz D, Lt 8, Urb. Bellatrix, Valle Hermoso, Monterrico - Surco",
-    "telefono": "+51 999457538",
-    "email": "info@match.pe"
+    "telefono": "999457538",
+    "email": "informes@qadrante2.com"
   },
   "sobre": {
     "mision": "Acercar a personas y empresas a espacios que transformen sus vidas y negocios facilitando su búsqueda con tecnología y confianza.",
