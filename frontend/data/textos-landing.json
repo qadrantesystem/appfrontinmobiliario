@@ -31,7 +31,7 @@
       "titulo": "Novedades sobre el Mercado Inmobiliario",
       "descripcion": "Mantente informado con las últimas tendencias y noticias del sector inmobiliario.",
       "icono": "📰",
-      "imagen": "https://images.unsplash.com/photo-1504711434969-e33886168d6c?w=600&h=340&fit=crop"
+      "imagen": "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600&h=340&fit=crop"
     },
     {
       "titulo": "Oportunidades de Inversión",
@@ -48,8 +48,8 @@
   ],
   "contacto": {
     "direccion": "Mz D, Lt 8, Urb. Bellatrix, Valle Hermoso, Monterrico - Surco",
-    "telefono": "+51 999457538",
-    "email": "alancairampoma@gmail.com"
+    "telefono": "999457538",
+    "email": "informes@qadrante2.com"
   },
   "sobre": {
     "mision": "Acercar a personas y empresas a espacios que transformen sus vidas y negocios facilitando su búsqueda con tecnología y confianza.",
