@@ -109,10 +109,9 @@ class AprobacionesTab {
   renderListaPendientes() {
     if (this.corredoresPendientes.length === 0) {
       return `
-        <div class="empty-state">
+        <div class="empty-state-inline">
           ${this.getIcon('check-circle')}
-          <h3>No hay corredores pendientes</h3>
-          <p>Todos los corredores han sido procesados</p>
+          <span>No hay corredores pendientes — todos procesados</span>
         </div>
       `;
     }
