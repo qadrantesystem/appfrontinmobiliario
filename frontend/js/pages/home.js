@@ -16,6 +16,7 @@ class HomePage {
     this.setupScrollHeader();
     this.setupBusquedaModal();
     this.setupContactoForm();
+    this.setupPublicarInmueble();
     this.checkOpenModal();
     await this.cargarDatosHero();
   }
@@ -512,6 +513,27 @@ class HomePage {
 
       localStorage.setItem('filtros_simplificados', JSON.stringify(filtros));
       window.location.href = 'resultados.html';
+    });
+  }
+
+  setupPublicarInmueble() {
+    const btn = document.getElementById('btnPublicarInmueble');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+      Swal.fire({
+        title: 'Debes registrarte',
+        text: 'Para publicar un inmueble necesitas crear una cuenta primero.',
+        icon: 'info',
+        confirmButtonText: 'Ir a Registro',
+        confirmButtonColor: '#ff9700',
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/registro';
+        }
+      });
     });
   }
 
