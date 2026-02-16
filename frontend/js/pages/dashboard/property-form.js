@@ -2645,12 +2645,21 @@ class PropertyForm {
       this.formData.propietario_real_dni = document.getElementById('propietario_dni')?.value || '';
       this.formData.propietario_real_telefono = document.getElementById('propietario_telefono')?.value || '';
       this.formData.propietario_real_email = document.getElementById('propietario_email')?.value || '';
-      
+
+      // Guardar propietario_id desde AutoFillDNI para que persista entre pasos
+      if (this.autoFillDNI) {
+        const autoFillData = this.autoFillDNI.getFormData();
+        if (autoFillData.propietario_id) {
+          this.formData.propietario_id = autoFillData.propietario_id;
+        }
+      }
+
       console.log('👤 Datos del propietario recopilados (Paso 1):', {
         dni: this.formData.propietario_real_dni,
         nombre: this.formData.propietario_real_nombre,
         telefono: this.formData.propietario_real_telefono,
-        email: this.formData.propietario_real_email
+        email: this.formData.propietario_real_email,
+        propietario_id: this.formData.propietario_id
       });
     } else if (this.currentStep === 2) {
       this.formData.tipo_inmueble_id = document.getElementById('tipo_inmueble_id')?.value || null;
@@ -3337,9 +3346,12 @@ class PropertyForm {
    * Crear edificio rapido desde modal SweetAlert2
    */
   async mostrarModalEdificioRapido() {
-    // Obtener propietario_id desde campo oculto (se llena en paso 1 via AutoFillDNI)
-    const propietarioIdHidden = document.getElementById('propietario_id_hidden')?.value;
-    const propietarioId = this.formData.propietario_id || (propietarioIdHidden ? parseInt(propietarioIdHidden) : null);
+    // Obtener propietario_id: formData (guardado en collectStepData) o autoFillDNI (fallback)
+    let propietarioId = this.formData.propietario_id;
+    if (!propietarioId && this.autoFillDNI) {
+      const autoFillData = this.autoFillDNI.getFormData();
+      propietarioId = autoFillData.propietario_id;
+    }
 
     if (!propietarioId) {
       Swal.fire({
