@@ -20,8 +20,7 @@ class AprobacionesTab {
    */
   async cargarDatos() {
     try {
-      const token = localStorage.getItem('access_token');
-      const headers = { 'Authorization': `Bearer ${token}` };
+      const headers = { 'Authorization': `Bearer ${authService.getToken()}` };
 
       const [statsRes, pendientesRes, aprobadosRes] = await Promise.all([
         fetch(`${API_CONFIG.BASE_URL}/corredores/stats`, { headers }),
@@ -306,7 +305,7 @@ class AprobacionesTab {
           return false;
         }
 
-        return { comision_porcentaje: comision, fecha_vigencia: `${vigencia}T23:59:59` };
+        return { comision_porcentaje: comision, fecha_vigencia_corredor: `${vigencia}T23:59:59` };
       }
     });
 
@@ -346,12 +345,11 @@ class AprobacionesTab {
    */
   async ejecutarAprobacion(corredorId, datos) {
     try {
-      const token = localStorage.getItem('access_token');
       const response = await fetch(`${API_CONFIG.BASE_URL}/corredores/${corredorId}/aprobar`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${authService.getToken()}`
         },
         body: JSON.stringify(datos)
       });
@@ -381,12 +379,11 @@ class AprobacionesTab {
    */
   async ejecutarRechazo(corredorId, motivo) {
     try {
-      const token = localStorage.getItem('access_token');
       const response = await fetch(`${API_CONFIG.BASE_URL}/corredores/${corredorId}/rechazar`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${authService.getToken()}`
         },
         body: JSON.stringify({ motivo_rechazo: motivo })
       });
