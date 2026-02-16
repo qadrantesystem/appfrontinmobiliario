@@ -17,8 +17,6 @@ class FavoritosTab {
    */
   async render() {
     try {
-      console.log('❤️ Renderizando tab FAVORITOS...');
-
       // Cargar favoritos del usuario
       await this.loadFavoritos();
 
@@ -43,8 +41,6 @@ class FavoritosTab {
    * Configurar event listeners después del render
    */
   async afterRender() {
-    console.log('🔧 Setup de listeners en Favoritos...');
-
     // Setup de carousel (usa módulo existente)
     if (this.app.carousel) {
       this.app.carousel.setup();
@@ -62,15 +58,12 @@ class FavoritosTab {
 
     // 🔄 CRÍTICO: Listener para auto-refresh cuando se quite un favorito
     this.setupAutoRefreshListener();
-
-    console.log('✅ Listeners de Favoritos configurados');
   }
 
   /**
    * Cleanup al salir del tab
    */
   async destroy() {
-    console.log('🧹 Limpiando FavoritosTab...');
     this.favoritos = [];
     this.propiedades = [];
   }
@@ -91,8 +84,6 @@ class FavoritosTab {
 
       const data = await response.json();
       this.favoritos = Array.isArray(data) ? data : (data.data || []);
-
-      console.log(`✅ ${this.favoritos.length} favoritos obtenidos`);
     } catch (error) {
       console.error('❌ Error cargando favoritos:', error);
       throw error;
@@ -127,8 +118,6 @@ class FavoritosTab {
       });
 
       this.propiedades = (await Promise.all(propiedadesPromises)).filter(p => p !== null);
-      console.log(`✅ ${this.propiedades.length} propiedades favoritas cargadas`);
-
     } catch (error) {
       console.error('❌ Error cargando detalles de propiedades:', error);
       throw error;
@@ -321,8 +310,6 @@ class FavoritosTab {
           const stillFavorite = window.favoritesHandler?.isFavorite(propId);
 
           if (!stillFavorite) {
-            console.log('🔄 Favorito eliminado, refrescando lista...');
-
             // Animar salida del card
             const card = btn.closest('.property-card');
             if (card) {
@@ -335,16 +322,12 @@ class FavoritosTab {
                 const html = await this.render();
                 document.getElementById('tabContent').innerHTML = html;
                 await this.afterRender();
-
-                console.log('✅ Lista de favoritos actualizada');
               }, 300);
             }
           }
         }, 500);
       }
     });
-
-    console.log('✅ Auto-refresh listener configurado');
   }
 }
 

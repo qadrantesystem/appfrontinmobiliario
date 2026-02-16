@@ -39,8 +39,6 @@ class BusquedasTab {
    * Renderizar tab
    */
   async render() {
-    console.log('🔍 Renderizando tab de Búsquedas...');
-
     return `
       <div class="busquedas-tab">
         <!-- Header -->
@@ -1353,8 +1351,6 @@ class BusquedasTab {
    * After render - Se ejecuta después de que el HTML esté en el DOM
    */
   async afterRender() {
-    console.log('🎨 BusquedasTab afterRender');
-
     // Obtener el contenedor del DOM
     this.container = document.querySelector('.busquedas-tab');
 
@@ -1371,8 +1367,6 @@ class BusquedasTab {
    * Inicializar componentes
    */
   async init() {
-    console.log('🚀 Inicializando componentes de Búsquedas...');
-
     // Inicializar mapa
     this.initMap();
 
@@ -1384,8 +1378,6 @@ class BusquedasTab {
 
     // Cargar búsquedas guardadas (si las hay)
     this.loadSavedSearches();
-
-    console.log('✅ Tab de Búsquedas inicializado');
   }
 
   /**
@@ -1410,16 +1402,12 @@ class BusquedasTab {
     }).addTo(this.map);
 
     this.mapMarkers = [];
-
-    console.log('✅ Mapa inicializado');
   }
 
   /**
    * Setup Acordeón de filtros
    */
   setupAccordion() {
-    console.log('🎨 Configurando acordeón de filtros...');
-
     // Seleccionar todos los headers de acordeón
     const headers = this.container.querySelectorAll('.accordion-header');
 
@@ -1471,8 +1459,6 @@ class BusquedasTab {
         genericosContent.classList.add('open');
       }
     }
-
-    console.log('✅ Acordeón configurado');
   }
 
   /**
@@ -1673,8 +1659,6 @@ class BusquedasTab {
         this.compartirBusqueda();
       }
     });
-
-    console.log('✅ Event listeners configurados');
   }
 
   /**
@@ -1701,8 +1685,6 @@ class BusquedasTab {
    * Abrir modal de búsqueda
    */
   async openSearchModal() {
-    console.log('📂 Abriendo modal de nueva búsqueda...');
-
     const modal = this.container.querySelector('#modalNuevaBusqueda');
     if (!modal) {
       console.error('❌ Modal no encontrado');
@@ -1717,16 +1699,12 @@ class BusquedasTab {
 
     // Inicializar multi-select de distritos
     this.initDistritoMultiSelect();
-
-    console.log('✅ Modal abierto');
   }
 
   /**
    * Cargar datos del modal
    */
   async loadModalData() {
-    console.log('📂 Cargando datos del modal...');
-
     try {
       // Cargar tipos de inmueble
       const tipos = await this.loadTiposPropiedad();
@@ -1736,8 +1714,6 @@ class BusquedasTab {
 
       // Cargar distritos
       this.distritosData = await this.loadDistritos();
-
-      console.log('✅ Datos del modal cargados');
     } catch (error) {
       console.error('❌ Error cargando datos del modal:', error);
     }
@@ -1971,8 +1947,6 @@ class BusquedasTab {
    * Ejecutar búsqueda
    */
   async executeSearch(filters) {
-    console.log('🔍 Ejecutando búsqueda:', filters);
-
     this.currentFilters = filters;
 
     // Ocultar lista de búsquedas guardadas, filtros y paginación
@@ -2019,8 +1993,6 @@ class BusquedasTab {
       const data = await response.json();
       this.currentResults = Array.isArray(data) ? data : (data.data || []);
 
-      console.log(`✅ ${this.currentResults.length} propiedades encontradas`);
-
       this.currentPage = 1;
       this.totalPages = Math.ceil(this.currentResults.length / this.itemsPerPage);
 
@@ -2052,8 +2024,6 @@ class BusquedasTab {
    * Volver a la lista de búsquedas guardadas
    */
   volverALista() {
-    console.log('⬅️ Volviendo a lista de búsquedas...');
-
     // Ocultar grid de resultados
     const grid = this.container.querySelector('.busquedas-grid');
     if (grid) grid.style.display = 'none';
@@ -2278,8 +2248,6 @@ class BusquedasTab {
    * Guardar búsqueda actual
    */
   async guardarBusqueda() {
-    console.log('💾 Guardando búsqueda...');
-
     if (!this.currentFilters) {
       showNotification('❌ No hay búsqueda activa para guardar', 'error');
       return;
@@ -2313,8 +2281,6 @@ class BusquedasTab {
    * Compartir búsqueda actual
    */
   compartirBusqueda() {
-    console.log('📤 Compartiendo búsqueda...');
-
     if (!this.currentFilters) {
       showNotification('❌ No hay búsqueda activa para compartir', 'error');
       return;
@@ -3249,8 +3215,6 @@ class BusquedasTab {
   }
 
   async loadSavedSearches() {
-    console.log('📂 Cargando búsquedas guardadas...');
-
     const container = this.container.querySelector('#savedSearchesList');
 
     try {
@@ -3278,9 +3242,6 @@ class BusquedasTab {
       // Guardar búsquedas
       this.allSearches = busquedas;
       this.filteredSearches = [...busquedas];
-
-      console.log(`✅ ${busquedas.length} búsquedas encontradas`);
-      console.log('📊 Búsquedas recibidas:', busquedas);
 
       // Renderizar
       this.renderizarBusquedas();
@@ -3392,8 +3353,6 @@ class BusquedasTab {
     const fechaDesde = fechaDesdeInput?.value || '';
     const fechaHasta = fechaHastaInput?.value || '';
 
-    console.log('🔍 Aplicando filtros:', { nombre, fechaDesde, fechaHasta });
-
     this.filteredSearches = this.allSearches.filter(busqueda => {
       // Filtro por nombre de usuario
       if (nombre) {
@@ -3427,8 +3386,6 @@ class BusquedasTab {
 
     // Reiniciar paginación a página 1
     this.currentSearchesPage = 1;
-
-    console.log(`✅ ${this.filteredSearches.length} búsquedas después de filtros`);
     this.renderizarBusquedas();
   }
 
@@ -3447,8 +3404,6 @@ class BusquedasTab {
 
     // Reiniciar paginación a página 1
     this.currentSearchesPage = 1;
-
-    console.log('🧹 Filtros limpiados');
     this.renderizarBusquedas();
   }
 
@@ -3602,8 +3557,6 @@ class BusquedasTab {
   }
 
   async ejecutarBusquedaGuardada(busquedaId) {
-    console.log(`🔍 Ejecutando búsqueda guardada: ${busquedaId}`);
-
     try {
       // Obtener datos de la búsqueda guardada
       const isAdmin = this.app.currentUser?.perfil_id === 4;

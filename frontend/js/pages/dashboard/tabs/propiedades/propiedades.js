@@ -35,8 +35,6 @@ class PropiedadesTab {
       // ✅ NUEVO BACKEND: Llamar con más propiedades por página
       const url = `${API_CONFIG.BASE_URL}/propiedades/mis-propiedades?limit=100`;
       
-      console.log(`🔍 ${currentUser?.perfil_id === 4 ? 'ADMIN:' : 'USUARIO:'} Obteniendo propiedades (nuevo backend)`);
-      
       const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -46,13 +44,8 @@ class PropiedadesTab {
       const pagination = data.pagination || {};
       const estadisticas = data.estadisticas || {};
       
-      console.log(`📊 Total propiedades recibidas: ${propiedades.length}`);
-      console.log(`📊 Paginación:`, pagination);
-      console.log(`📊 Estadísticas:`, estadisticas);
-      
       // Si hay más propiedades, obtener la siguiente página
       if (pagination.total_pages > 1 && pagination.page === 1) {
-        console.log(`🔄 Obteniendo página 2 de ${pagination.total_pages}...`);
         try {
           const page2Response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/mis-propiedades?page=2&limit=100`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -60,9 +53,7 @@ class PropiedadesTab {
           const page2Data = await page2Response.json();
           const page2Propiedades = page2Data.data || [];
           propiedades.push(...page2Propiedades);
-          console.log(`📊 Total después de página 2: ${propiedades.length}`);
         } catch (error) {
-          console.log(`⚠️ No se pudo obtener página 2: ${error.message}`);
         }
       }
 
@@ -74,8 +65,6 @@ class PropiedadesTab {
       });
 
       this.app.pagination.updateItemsPerPage();
-
-      console.log('✅ Propiedades cargadas:', this.allProperties.length);
 
       // Header con filtros
       const content = `
@@ -126,7 +115,6 @@ class PropiedadesTab {
    * Lifecycle hook: Después de renderizar
    */
   async afterRender() {
-    console.log('✅ PropiedadesTab renderizado');
     window.currentPropiedadesTab = this;
     window.propiedadesTab = this; // 🔥 NUEVO: Exponer globalmente para onclick
 
@@ -137,9 +125,7 @@ class PropiedadesTab {
     this.app.pagination.setActiveTab(this);
 
     // ✅ CRÍTICO: Inicializar filtros (carga combos y event listeners)
-    console.log('🔧 Inicializando filtros...');
     await this.app.filters.setup();
-    console.log('✅ Filtros inicializados');
 
     // ❤️ CRÍTICO: Inicializar handler de favoritos
     if (window.favoritesHandler && !window.favoritesHandler.initialized) {
@@ -149,7 +135,6 @@ class PropiedadesTab {
     // 🖼️ CRÍTICO: Inicializar Image Viewer
     if (window.imageViewer) {
       window.imageViewer.attachToImages('.property-image');
-      console.log('✅ Image Viewer inicializado en Propiedades');
     }
 
     this.renderPropertiesPage();
@@ -160,13 +145,8 @@ class PropiedadesTab {
    * Renderizar página de propiedades con filtros y paginación
    */
   renderPropertiesPage() {
-    console.log('🎨 Renderizando propiedades page...');
-
     const filtered = this.app.filters.getFiltered(this.allProperties);
     const pageData = this.app.pagination.getPageData(filtered);
-
-    console.log(`🔍 Propiedades filtradas: ${filtered.length}`);
-    console.log(`📄 Propiedades en página: ${pageData.length}`);
 
     // ✅ ACTUALIZAR CONTADOR con propiedades filtradas
     const propCountElement = document.getElementById('propCount');
@@ -200,12 +180,10 @@ class PropiedadesTab {
       const paginadorHTML = this.app.pagination.render(filtered.length);
       paginadorContainer.innerHTML = paginadorHTML;
       this.app.pagination.setupListeners();
-      console.log('✅ Paginador renderizado');
     }
 
     // Setup carousel
     this.app.carousel.setup();
-    console.log('✅ Renderizado completo');
   }
 
   /**
@@ -373,65 +351,48 @@ class PropiedadesTab {
    * Configurar event listeners de propiedades
    */
   setupPropertyListeners() {
-    console.log('🎯 Configurando listeners de propiedades...');
-
     // Ver detalle
     const viewBtns = document.querySelectorAll('[data-view-property]');
-    console.log(`📄 Botones [data-view-property] encontrados: ${viewBtns.length}`);
 
     viewBtns.forEach((btn, index) => {
       // Clonar el botón para remover listeners anteriores
       const newBtn = btn.cloneNode(true);
       btn.parentNode.replaceChild(newBtn, btn);
       
-      console.log(`📄 Agregando listener a botón ${index}:`, newBtn);
       newBtn.addEventListener('click', async (e) => {
-        console.log('🔥🔥🔥 CLICK EN VER DETALLE!!!', e.currentTarget.dataset.viewProperty);
         e.stopPropagation();
         e.preventDefault();
         const propId = e.currentTarget.dataset.viewProperty;
-        console.log('📄 Mostrando popup de propId:', propId);
         await this.showPropertyDetailPopup(propId);
       }, { once: false });
     });
 
     // Mapa
     const mapBtns = document.querySelectorAll('[data-map-property]');
-    console.log(`🗺️ Botones [data-map-property] encontrados: ${mapBtns.length}`);
 
     mapBtns.forEach((btn, index) => {
       // Clonar el botón para remover listeners anteriores
       const newBtn = btn.cloneNode(true);
       btn.parentNode.replaceChild(newBtn, btn);
       
-      console.log(`🗺️ Agregando listener a botón mapa ${index}:`, newBtn);
       newBtn.addEventListener('click', (e) => {
-        console.log('🔥🔥🔥 CLICK EN MAPA!!!', e.currentTarget.dataset);
         e.stopPropagation();
         e.preventDefault();
         const lat = e.currentTarget.dataset.lat;
         const lng = e.currentTarget.dataset.lng;
-        console.log('🗺️ Abriendo mapa con coords:', lat, lng);
         this.showMapPopup(lat, lng);
       }, { once: false });
     });
 
     // Editar
     const editBtns = document.querySelectorAll('[data-edit-property]');
-    console.log(`✏️ Botones [data-edit-property] encontrados: ${editBtns.length}`);
 
     editBtns.forEach((btn, index) => {
       // Clonar el botón para remover listeners anteriores
       const newBtn = btn.cloneNode(true);
       btn.parentNode.replaceChild(newBtn, btn);
       
-      console.log(`✏️ Agregando listener a botón editar ${index}:`, newBtn);
-      console.log(`🆔 ID del botón ${index}:`, newBtn.dataset.editProperty);
-      
       newBtn.addEventListener('click', async (e) => {
-        console.log('🔥🔥🔥 CLICK EN EDITAR!!!', e.currentTarget.dataset.editProperty);
-        console.log('🏢 Datos completos de la propiedad:', e.currentTarget.closest('.property-card')?.dataset.propertyId);
-        
         e.stopPropagation();
         e.preventDefault();
         const propId = parseInt(e.currentTarget.dataset.editProperty);
@@ -442,7 +403,6 @@ class PropiedadesTab {
           return;
         }
 
-        console.log('✏️ Abriendo formulario de edición para propId:', propId);
         const propertyForm = new PropertyForm(this.app, propId);
         await propertyForm.init();
       }, { once: false });
@@ -452,14 +412,12 @@ class PropiedadesTab {
     // Solo refrescamos los botones, los listeners ya están configurados globalmente
     if (window.favoritesHandler && window.favoritesHandler.initialized) {
       window.favoritesHandler.refreshAllButtons();
-      console.log('✅ Botones de favoritos refrescados');
     } else {
       console.warn('⚠️ FavoritesHandler no inicializado aún');
     }
 
     // Publicar (solo admin, solo borradores)
     const publishBtns = document.querySelectorAll('[data-publish-property]');
-    console.log(`🚀 Botones [data-publish-property] encontrados: ${publishBtns.length}`);
 
     publishBtns.forEach(btn => {
       // Clonar el botón para remover listeners anteriores
@@ -467,7 +425,6 @@ class PropiedadesTab {
       btn.parentNode.replaceChild(newBtn, btn);
       
       newBtn.addEventListener('click', async (e) => {
-        console.log('🚀 PUBLICANDO PROPIEDAD!!!', e.currentTarget.dataset.publishProperty);
         e.stopPropagation();
         e.preventDefault();
         const propId = e.currentTarget.dataset.publishProperty;
@@ -477,7 +434,6 @@ class PropiedadesTab {
 
     // Asignar corredor (solo admin)
     const assignBtns = document.querySelectorAll('[data-assign-broker]');
-    console.log(`👤 Botones [data-assign-broker] encontrados: ${assignBtns.length}`);
 
     assignBtns.forEach(btn => {
       // Clonar el botón para remover listeners anteriores
@@ -494,27 +450,18 @@ class PropiedadesTab {
     // Nueva Propiedad
     const btnNuevaPropiedad = document.getElementById('btnNuevaPropiedad');
     if (btnNuevaPropiedad) {
-      console.log('✅ Botón Nueva Propiedad encontrado:', btnNuevaPropiedad);
       btnNuevaPropiedad.addEventListener('click', (e) => {
-        console.log('🔥🔥🔥 CLICK EN NUEVA PROPIEDAD!!!');
         e.preventDefault();
         e.stopPropagation();
-        console.log('➕ Abriendo formulario de nueva propiedad');
         this.showPropertyForm();
       });
-    } else {
-      console.error('❌ Botón Nueva Propiedad NO encontrado!');
     }
-
-    console.log('✅ Listeners configurados');
   }
 
   /**
    * 🔥 NUEVO: Método directo para editar propiedad
    */
   editarPropiedad(propId) {
-    console.log('🔥🔥🔥 MÉTODO DIRECTO EDITAR PROPIEDAD!!!', propId);
-    
     const propIdNum = parseInt(propId);
     if (!propIdNum || isNaN(propIdNum)) {
       console.error('❌ ID inválido:', propId);
@@ -522,7 +469,6 @@ class PropiedadesTab {
       return;
     }
 
-    console.log('✏️ Abriendo formulario de edición para propId:', propIdNum);
     const propertyForm = new PropertyForm(this.app, propIdNum);
     propertyForm.init();
   }
@@ -532,8 +478,6 @@ class PropiedadesTab {
    */
   async forceReloadProperties() {
     try {
-      console.log('🔄 Forzando recarga completa de propiedades...');
-      
       // Limpiar cache actual
       this.allProperties = [];
       
@@ -547,9 +491,7 @@ class PropiedadesTab {
       setTimeout(() => {
         this.setupPropertyListeners();
       }, 100);
-      
-      console.log('✅ Recarga completa finalizada');
-      
+
     } catch (error) {
       console.error('❌ Error en recarga completa:', error);
     }
@@ -559,8 +501,6 @@ class PropiedadesTab {
    * 🚀 NUEVO: Método para publicar propiedad (solo admin) con SweetAlert2
    */
   async publicarPropiedad(propId) {
-    console.log('🚀 MÉTODO PUBLICAR PROPIEDAD!!!', propId);
-    
     const propIdNum = parseInt(propId);
     if (!propIdNum || isNaN(propIdNum)) {
       console.error('❌ ID inválido:', propId);
@@ -648,8 +588,7 @@ class PropiedadesTab {
       }
 
       const result = await response.json();
-      console.log('✅ Propiedad publicada:', result);
-      
+
       // Success con diseño corporativo
       Swal.fire({
         icon: 'success',
@@ -681,7 +620,6 @@ class PropiedadesTab {
       });
       
       // ✅ CORREGIDO: Recargar la lista de propiedades correctamente
-      console.log('🔄 Recargando lista de propiedades después de publicar...');
       await this.forceReloadProperties();
       
     } catch (error) {
@@ -717,7 +655,6 @@ class PropiedadesTab {
    * Mostrar formulario de propiedad
    */
   showPropertyForm(propId = null) {
-    console.log('🎯 Abriendo formulario de propiedad...', propId ? `Editar ID: ${propId}` : 'Nueva');
     const form = new PropertyForm(this.app, propId);
     form.init();
   }
@@ -726,8 +663,6 @@ class PropiedadesTab {
    * 🔥 ÉPICO - Modal de detalle full-screen con características agrupadas
    */
   async showPropertyDetailPopup(propId) {
-    console.log(`📄📄📄 MOSTRANDO DETALLE DE PROPIEDAD ID: ${propId}`);
-
     try {
       // 1️⃣ Obtener datos de la propiedad
       const token = authService.getToken();
@@ -739,7 +674,6 @@ class PropiedadesTab {
 
       const data = await response.json();
       const prop = data.data || data;
-      console.log('✅ Propiedad cargada:', prop);
 
       // 2️⃣ Detectar si es móvil
       const isMobile = window.innerWidth <= 768;
@@ -830,13 +764,10 @@ class PropiedadesTab {
 
       modal.appendChild(modalContent);
       document.body.appendChild(modal);
-      console.log('✅ Modal insertado en DOM');
 
       // 6️⃣ Renderizar características agrupadas
       const caracteristicasContainer = modalContent.querySelector('#caracteristicas-container');
       if (prop.caracteristicas && prop.caracteristicas.length > 0) {
-        console.log('📋 Características encontradas:', prop.caracteristicas);
-        
         // Agrupar por categoría
         const grouped = {};
         prop.caracteristicas.forEach(car => {
@@ -846,8 +777,6 @@ class PropiedadesTab {
           }
           grouped[categoria].push(car);
         });
-        
-        console.log('📊 Características agrupadas:', grouped);
         
         // Orden de categorías según formulario multipaso
         const ordenCategorias = [
@@ -924,7 +853,6 @@ class PropiedadesTab {
 
       // 7️⃣ Función para cerrar modal (UNA SOLA VEZ)
       const closeModal = () => {
-        console.log('🔒 Cerrando modal de detalle');
         modal.remove();
         document.removeEventListener('keydown', escapeHandler);
       };
@@ -933,7 +861,6 @@ class PropiedadesTab {
       // Click en overlay (fondo oscuro)
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
-          console.log('✅ Click en overlay');
           closeModal();
         }
       });
@@ -942,7 +869,6 @@ class PropiedadesTab {
       modalContent.querySelectorAll('.btn-close-modal').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          console.log('✅ Click en botón cerrar');
           closeModal();
         });
       });
@@ -950,13 +876,10 @@ class PropiedadesTab {
       // Tecla ESC
       const escapeHandler = (e) => {
         if (e.key === 'Escape') {
-          console.log('✅ Tecla ESC presionada');
           closeModal();
         }
       };
       document.addEventListener('keydown', escapeHandler);
-
-      console.log('✅ Listeners configurados correctamente');
 
     } catch (error) {
       console.error('❌ Error mostrando detalle:', error);
@@ -968,8 +891,6 @@ class PropiedadesTab {
    * 🔥 ÉPICO - Modal de mapa full-screen sin padding lateral
    */
   showMapPopup(lat, lng) {
-    console.log(`🗺️🗺️🗺️ MOSTRANDO MAPA - lat: ${lat}, lng: ${lng}`);
-
     // 1️⃣ Validar coordenadas
     lat = parseFloat(lat);
     lng = parseFloat(lng);
@@ -980,8 +901,6 @@ class PropiedadesTab {
       return;
     }
 
-    console.log('✅ Coordenadas válidas:', { lat, lng });
-
     // 2️⃣ Buscar la dirección de la propiedad desde allProperties
     let direccionPropiedad = 'Dirección no disponible';
     const property = this.allProperties.find(p => 
@@ -990,7 +909,6 @@ class PropiedadesTab {
     if (property && property.direccion) {
       direccionPropiedad = property.direccion;
     }
-    console.log('📍 Dirección encontrada:', direccionPropiedad);
 
     // 3️⃣ Crear modal
     const modal = document.createElement('div');
@@ -1079,11 +997,9 @@ class PropiedadesTab {
 
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
-    console.log('✅ Modal de mapa insertado en DOM');
 
     // 4️⃣ Función para cerrar modal
     const closeModal = () => {
-      console.log('🔒 Cerrando modal de mapa');
       modal.remove();
       document.removeEventListener('keydown', escapeHandler);
     };
@@ -1092,7 +1008,6 @@ class PropiedadesTab {
     // Click en overlay (fondo oscuro)
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
-        console.log('✅ Click en overlay de mapa');
         closeModal();
       }
     });
@@ -1101,7 +1016,6 @@ class PropiedadesTab {
     modalContent.querySelectorAll('.btn-close-map').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        console.log('✅ Click en botón cerrar mapa');
         closeModal();
       });
     });
@@ -1109,24 +1023,19 @@ class PropiedadesTab {
     // Tecla ESC
     const escapeHandler = (e) => {
       if (e.key === 'Escape') {
-        console.log('✅ Tecla ESC presionada en mapa');
         closeModal();
       }
     };
     document.addEventListener('keydown', escapeHandler);
 
-    console.log('✅ Listeners de mapa configurados');
-
     // 6️⃣ Inicializar mapa Leaflet
     setTimeout(() => {
-      console.log('🗺️ Inicializando Leaflet...');
       const map = L.map('propertyMap').setView([lat, lng], 17);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
       }).addTo(map);
       L.marker([lat, lng]).addTo(map);
-      console.log('✅ Mapa Leaflet inicializado');
     }, 100);
   }
 
@@ -1134,8 +1043,6 @@ class PropiedadesTab {
    * 🔥 REESCRITO DESDE CERO - Popup de asignar corredor con búsqueda, estado CRM y comisión
    */
   async showAssignBrokerPopup(propId) {
-    console.log(`👤👤👤 MOSTRANDO POPUP ASIGNAR CORREDOR - Propiedad ID: ${propId}`);
-
     try {
       const token = authService.getToken();
 
@@ -1163,8 +1070,6 @@ class PropiedadesTab {
         showNotification('No hay corredores disponibles', 'warning');
         return;
       }
-
-      console.log(`✅ ${corredores.length} corredores cargados`);
 
       // 3️⃣ Crear modal
       const modal = document.createElement('div');
@@ -1335,7 +1240,6 @@ class PropiedadesTab {
 
       modal.appendChild(modalContent);
       document.body.appendChild(modal);
-      console.log('✅ Modal de corredor insertado en DOM');
 
       // 5️⃣ Variables para formulario
       let selectedBrokerId = null;
@@ -1377,13 +1281,11 @@ class PropiedadesTab {
           item.querySelector('.broker-check').style.display = 'block';
 
           selectedBrokerId = item.dataset.brokerId;
-          console.log('✅ Corredor seleccionado:', selectedBrokerId);
         });
       });
 
       // Función para cerrar modal
       const closeModal = () => {
-        console.log('🔒 Cerrando modal de corredor');
         modal.remove();
         document.removeEventListener('keydown', escapeHandler);
       };
@@ -1546,7 +1448,6 @@ class PropiedadesTab {
    * Lifecycle hook: Destruir
    */
   async destroy() {
-    console.log('🗑️ Destruyendo PropiedadesTab');
     this.allProperties = [];
   }
 }

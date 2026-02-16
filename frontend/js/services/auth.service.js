@@ -13,7 +13,6 @@ class AuthService {
         
         // Marcar como inicializado
         this.isInitialized = true;
-        console.log('✅ AuthService inicializado');
     }
 
     /**
@@ -26,7 +25,6 @@ class AuthService {
                 body: JSON.stringify(userData)
             });
 
-            console.log('✅ Usuario registrado:', response);
             return response;
         } catch (error) {
             console.error('❌ Error en registro:', error);
@@ -47,7 +45,6 @@ class AuthService {
             if (response.success && response.data) {
                 // Guardar token y datos del usuario
                 this.saveSession(response.data);
-                console.log('✅ Login exitoso:', response.data.usuario);
                 return response;
             }
 
@@ -68,7 +65,6 @@ class AuthService {
                 { method: 'POST' }
             );
 
-            console.log('✅ Email verificado:', response);
             return response;
         } catch (error) {
             console.error('❌ Error verificando email:', error);
@@ -86,7 +82,6 @@ class AuthService {
                 { method: 'POST' }
             );
 
-            console.log('✅ Código reenviado:', response);
             return response;
         } catch (error) {
             console.error('❌ Error reenviando código:', error);
@@ -104,7 +99,6 @@ class AuthService {
                 { method: 'POST' }
             );
 
-            console.log('✅ Código de recuperación enviado:', response);
             return response;
         } catch (error) {
             console.error('❌ Error en recuperación:', error);
@@ -122,7 +116,6 @@ class AuthService {
                 { method: 'POST' }
             );
 
-            console.log('✅ Contraseña restablecida:', response);
             return response;
         } catch (error) {
             console.error('❌ Error restableciendo contraseña:', error);
@@ -169,7 +162,6 @@ class AuthService {
             if (response.success && response.data) {
                 this.currentUser = response.data;
                 this.saveUserToStorage(response.data);
-                console.log('✅ Perfil actualizado:', response.data);
                 return response;
             }
 
@@ -201,7 +193,6 @@ class AuthService {
                 })
             });
 
-            console.log('✅ Contraseña cambiada:', response);
             return response;
         } catch (error) {
             console.error('❌ Error cambiando contraseña:', error);
@@ -214,14 +205,11 @@ class AuthService {
      */
     async clearAllCache() {
         try {
-            console.log('🧹 Limpiando caché del navegador...');
-            
             // 1. Limpiar Service Workers y caché
             if ('serviceWorker' in navigator) {
                 const registrations = await navigator.serviceWorker.getRegistrations();
                 for (let registration of registrations) {
                     await registration.unregister();
-                    console.log('✅ Service Worker eliminado');
                 }
             }
             
@@ -231,25 +219,20 @@ class AuthService {
                 await Promise.all(
                     cacheNames.map(cacheName => caches.delete(cacheName))
                 );
-                console.log('✅ Cache Storage limpiado');
             }
             
             // 3. Limpiar localStorage
             localStorage.clear();
-            console.log('✅ localStorage limpiado');
-            
+
             // 4. Limpiar sessionStorage
             sessionStorage.clear();
-            console.log('✅ sessionStorage limpiado');
             
             // 5. Limpiar cookies
             document.cookie.split(";").forEach(cookie => {
                 const name = cookie.split("=")[0].trim();
                 document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
             });
-            console.log('✅ Cookies limpiadas');
-            
-            console.log('✅ Caché completamente limpiada');
+
             return true;
         } catch (error) {
             console.error('❌ Error limpiando caché:', error);
@@ -296,8 +279,6 @@ class AuthService {
                 }
             }
             
-            console.log('✅ Sesión cerrada completamente');
-            
             // Usar el helper de ambiente si está disponible
             if (window.environment && typeof environment.redirectToLogin === 'function') {
                 environment.redirectToLogin(message);
@@ -306,8 +287,7 @@ class AuthService {
                 const origin = window.location.origin;
                 const loginPath = '/login';
                 const loginUrl = origin + loginPath;
-                
-                console.log('🔄 Redirigiendo a:', loginUrl);
+
                 window.location.replace(loginUrl);
             }
         } catch (error) {
@@ -382,12 +362,6 @@ class AuthService {
             // Otros datos del nuevo usuario
             ...user
         };
-        
-        console.log('💾 Guardando usuario en localStorage:', {
-            nombre: userToSave.nombre,
-            email: userToSave.email,
-            foto_perfil: userToSave.foto_perfil ? 'EXISTS' : 'NOT FOUND'
-        });
         
         localStorage.setItem('current_user', JSON.stringify(userToSave));
     }

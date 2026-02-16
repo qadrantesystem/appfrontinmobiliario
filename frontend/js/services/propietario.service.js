@@ -34,7 +34,6 @@ class PropietarioService {
 
       if (response.status === 404) {
         // Propietario no existe - retornar null (NO es un error)
-        console.log('ℹ️ Propietario con DNI', dni, 'no encontrado');
         return null;
       }
 

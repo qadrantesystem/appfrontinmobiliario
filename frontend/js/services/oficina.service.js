@@ -30,8 +30,6 @@ class OficinaService {
     try {
       const token = localStorage.getItem('access_token');
 
-      console.log('📤 Enviando request de generación masiva:', requestData);
-
       const response = await fetch(`${this.baseURL}/generar-oficinas-masivo`, {
         method: 'POST',
         headers: {
@@ -47,8 +45,6 @@ class OficinaService {
       }
 
       const result = await response.json();
-
-      console.log('✅ Oficinas generadas exitosamente:', result.data);
 
       // Extraer data del wrapper ResponseModel
       return result.data;

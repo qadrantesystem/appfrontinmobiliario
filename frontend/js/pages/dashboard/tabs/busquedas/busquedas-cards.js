@@ -15,30 +15,17 @@ class BusquedasCards {
   render(prop, number) {
     // 🔗 DETECTAR SI ES COMBINACIÓN
     if (prop.tipo === 'combinacion') {
-      console.log('🔗 Renderizando COMBINACIÓN:', prop.glosa);
       return this.renderCombinacion(prop, number);
     }
 
-    console.log('🎨 BusquedasCards.render() llamado:', {
-      titulo: prop.titulo,
-      numero: number,
-      id: prop.registro_cab_id,
-      fotos_raw: prop.fotos,
-      fotos_type: typeof prop.fotos,
-      fotos_isArray: Array.isArray(prop.fotos)
-    });
-
     const propId = prop.registro_cab_id;
 
-    // ⚠️ El API devuelve "imagenes" (array de strings) y/o "imagen_principal" (string)
+    // El API devuelve "imagenes" (array de strings) y/o "imagen_principal" (string)
     let imagenesAPI = Array.isArray(prop.imagenes) ? prop.imagenes : [];
 
-    // ✅ Si no hay array de imágenes pero hay imagen_principal, usarla
     if (imagenesAPI.length === 0 && prop.imagen_principal) {
       imagenesAPI = [prop.imagen_principal];
     }
-
-    console.log('📸 Imágenes desde API:', imagenesAPI.length, 'URLs');
 
     // ✅ Consultar estado de favorito dinámicamente
     const isFavorite = window.favoritesHandler?.isFavorite(propId);

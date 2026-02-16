@@ -219,8 +219,6 @@ class ResultadosPage {
         delete this.filtrosSimplificados.presupuesto_compra;
       }
 
-      console.log('✅ Filtros genéricos actualizados (móvil):', this.filtrosSimplificados);
-
       localStorage.setItem('filtros_simplificados', JSON.stringify(this.filtrosSimplificados));
       this.aplicarFiltrosCompletos();
       this.renderChipsActivos();
@@ -412,7 +410,6 @@ class ResultadosPage {
     // 🖼️ Inicializar Image Viewer
     if (window.imageViewer) {
       window.imageViewer.attachToImages('.search-result-image');
-      console.log('✅ Image Viewer inicializado en Resultados');
     }
 
     // 5. Mostrar layout de 3 columnas
@@ -486,9 +483,6 @@ class ResultadosPage {
       const API_BASE = 'https://appbackimmobiliaria-production.up.railway.app/api/v1';
       const tipoInmuebleId = this.filtrosSimplificados?.tipo_inmueble_id || 1;
 
-      console.log(`🔍 Cargando datos con tipo_inmueble_id: ${tipoInmuebleId}`);
-      console.log(`📋 Filtros simplificados:`, this.filtrosSimplificados);
-
       // ✅ Construir objeto de filtros para búsqueda avanzada (igual que dashboard)
       const filtrosBusqueda = {
         filtros_genericos: {
@@ -512,8 +506,6 @@ class ResultadosPage {
         incluir_combinaciones: true  // ✅ Clave para obtener oficinas combinadas
       };
 
-      console.log('🔍 Filtros para búsqueda avanzada:', filtrosBusqueda);
-
       // ✅ Headers: sin token para búsqueda pública (invitados)
       const headers = {
         'Content-Type': 'application/json'
@@ -526,9 +518,6 @@ class ResultadosPage {
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
         propiedadesEndpoint = `${API_BASE}/propiedades/buscar-avanzada`; // Con auth
-        console.log('🔐 Usuario autenticado, usando endpoint privado');
-      } else {
-        console.log('👤 Usuario invitado, usando endpoint público');
       }
 
       const [propiedadesRes, caracteristicasRes, tiposRes, distritosRes, configFiltrosRes] = await Promise.all([
@@ -589,21 +578,10 @@ class ResultadosPage {
       if (propiedadesData.data && Array.isArray(propiedadesData.data)) {
         this.propiedades = propiedadesData.data;
         this.metadata = propiedadesData.metadata || {};
-        console.log('📊 Respuesta con combinaciones:', {
-          total: this.propiedades.length,
-          individuales: this.metadata.individuales || 0,
-          combinaciones: this.metadata.combinaciones || 0
-        });
       } else {
         // Respuesta simple (sin combinaciones)
         this.propiedades = propiedadesData.data || propiedadesData;
         this.metadata = {};
-      }
-
-      // 🔍 DEBUG: Ver qué datos traemos del API
-      if (this.propiedades.length > 0) {
-        console.log('📊 Ejemplo de item del API:', this.propiedades[0]);
-        console.log('📊 ¿Es combinación?', this.propiedades[0].tipo === 'combinacion');
       }
 
       // Mapear características
@@ -671,7 +649,6 @@ class ResultadosPage {
     const filtrosStr = localStorage.getItem('filtros_simplificados');
     if (filtrosStr) {
       this.filtrosSimplificados = JSON.parse(filtrosStr);
-      console.log('✅ Filtros cargados desde localStorage:', this.filtrosSimplificados);
     } else {
       console.warn('⚠️ No se encontraron filtros en localStorage');
     }
@@ -685,9 +662,7 @@ class ResultadosPage {
           basico: filtrosGuardados.basico || {},
           avanzado: filtrosGuardados.avanzado || {}
         };
-        console.log('✅ Filtros adicionales cargados:', this.filtrosAdicionales);
       } catch (e) {
-        console.log('⚠️ Error cargando filtros adicionales');
       }
     }
   }
@@ -1000,7 +975,6 @@ class ResultadosPage {
         const categoria = e.currentTarget.getAttribute('data-cat');
         const caracId = parseInt(e.currentTarget.getAttribute('data-carac-id'));
 
-        console.log('🔘 Click en pill:', { categoria, caracId, estadoActual: this.filtrosAdicionales.avanzado });
 
         if (!this.filtrosAdicionales.avanzado[categoria]) {
           this.filtrosAdicionales.avanzado[categoria] = {};
@@ -1022,8 +996,6 @@ class ResultadosPage {
         const nuevoEstadoActivo = this.filtrosAdicionales.avanzado[categoria]?.[caracId] === true;
         e.currentTarget.classList.toggle('active', nuevoEstadoActivo);
         e.currentTarget.setAttribute('aria-pressed', nuevoEstadoActivo ? 'true' : 'false');
-
-        console.log('✅ Nuevo estado:', { categoria, caracId, activo: nuevoEstadoActivo, filtrosCompletos: this.filtrosAdicionales.avanzado });
 
         this.actualizarBadgeCategoria(categoria);
         this.renderChipsActivos();
@@ -1048,8 +1020,6 @@ class ResultadosPage {
         const caracId = parseInt(e.currentTarget.getAttribute('data-carac-id'));
         const value = parseFloat(e.currentTarget.value);
 
-        console.log('🔢 Input numérico avanzado:', { categoria, caracId, value });
-
         // Initialize category if needed
         if (!this.filtrosAdicionales.avanzado[categoria]) {
           this.filtrosAdicionales.avanzado[categoria] = {};
@@ -1061,8 +1031,6 @@ class ResultadosPage {
         } else {
           delete this.filtrosAdicionales.avanzado[categoria][caracId];
         }
-
-        console.log('✅ Estado actualizado:', this.filtrosAdicionales.avanzado);
 
         // Update counter badge
         this.actualizarBadgeCategoria(categoria);
@@ -1568,8 +1536,6 @@ class ResultadosPage {
       return;
     }
 
-    console.log('✅ Configurando multi-select distritos (desktop)');
-
     // Toggle panel
     toggle.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1597,11 +1563,8 @@ class ResultadosPage {
 
     // Checkbox changes
     const checkboxes = document.querySelectorAll('#gen_distritos_options input[type="checkbox"]');
-    console.log(`📌 Encontrados ${checkboxes.length} checkboxes de distritos (desktop)`);
-
     checkboxes.forEach(cb => {
       cb.addEventListener('change', (e) => {
-        console.log(`✅ Checkbox cambiado: ${cb.value} -> ${cb.checked}`);
         aplicarCambios();
       });
     });
@@ -1675,8 +1638,6 @@ class ResultadosPage {
       return;
     }
 
-    console.log('✅ Configurando multi-select distritos (mobile)');
-
     // Toggle panel
     toggle.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1704,11 +1665,8 @@ class ResultadosPage {
 
     // Checkbox changes
     const checkboxes = document.querySelectorAll('#gen_distritos_options_mob input[type="checkbox"]');
-    console.log(`📌 Encontrados ${checkboxes.length} checkboxes de distritos (mobile)`);
-
     checkboxes.forEach(cb => {
       cb.addEventListener('change', (e) => {
-        console.log(`✅ Checkbox cambiado (mobile): ${cb.value} -> ${cb.checked}`);
         aplicarCambios();
       });
     });
@@ -2277,7 +2235,6 @@ class ResultadosPage {
 
       // Adjuntar listeners DESPUÉS de insertar el HTML
       setTimeout(() => {
-        console.log('🔧 Adjuntando listeners desde mostrarFiltroAvanzado...');
         this.attachAvanzadoInlineListeners();
       }, 100);
     }
@@ -2698,7 +2655,6 @@ class ResultadosPage {
   limpiarFiltrosAdicionales() {
     // ✅ IMPORTANTE: Solo limpia filtros BÁSICOS y AVANZADOS
     // Los filtros GENÉRICOS se mantienen intactos
-    console.log('🧹 Limpiando solo filtros básicos y avanzados (genéricos se mantienen)');
 
     this.filtrosAdicionales = {
       basico: {},
@@ -2734,11 +2690,6 @@ class ResultadosPage {
     this.aplicarFiltrosIniciales();
     this.renderChipsActivos();
 
-    console.log('✅ Filtros adicionales limpiados. Estado:', {
-      genericos: this.filtrosSimplificados,
-      basico: this.filtrosAdicionales.basico,
-      avanzado: this.filtrosAdicionales.avanzado
-    });
   }
 
   mostrarFavoritos() {
@@ -3146,8 +3097,6 @@ class ResultadosPage {
 
   setupFavoriteButtons() {
     const favoriteBtns = document.querySelectorAll('[data-favorite-property]');
-    console.log(`❤️ Botones favoritos encontrados: ${favoriteBtns.length}`);
-
     favoriteBtns.forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -3156,8 +3105,6 @@ class ResultadosPage {
         
         // Verificar si es favorito por el emoji
         const isFavorito = e.currentTarget.textContent.trim() === '❤️';
-        
-        console.log(`❤️ Click favorito - ID: ${propId}, es favorito: ${isFavorito}`);
         
         // Toggle favorito en API
         const success = await favoritesActionService.toggleFavorito(propId, isFavorito);
@@ -3192,8 +3139,6 @@ class ResultadosPage {
       const token = authService.getToken();
       if (!token) return;
 
-      console.log('❤️ Cargando favoritos del usuario...');
-      
       const response = await fetch(`${API_CONFIG.BASE_URL}/favoritos/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -3203,7 +3148,6 @@ class ResultadosPage {
       const data = await response.json();
       const favoritos = data.data || [];
       
-      console.log(`✅ ${favoritos.length} favoritos cargados`);
 
       // Marcar corazones rojos para favoritos
       favoritos.forEach(fav => {

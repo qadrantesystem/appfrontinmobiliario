@@ -22,7 +22,6 @@ class PropertiesService {
         auth: false // Búsqueda pública
       });
 
-      console.log('✅ Propiedades listadas:', response);
       return response;
     } catch (error) {
       console.error('❌ Error listando propiedades:', error);
@@ -41,7 +40,6 @@ class PropertiesService {
         auth: true
       });
 
-      console.log('✅ Mis propiedades obtenidas:', response);
       return response;
     } catch (error) {
       console.error('❌ Error obteniendo mis propiedades:', error);
@@ -61,7 +59,6 @@ class PropertiesService {
         auth: false // Detalle público
       });
 
-      console.log('✅ Propiedad obtenida:', response);
       return response;
     } catch (error) {
       console.error('❌ Error obteniendo propiedad:', error);
@@ -96,7 +93,6 @@ class PropertiesService {
         throw new Error(data.detail || data.message || 'Error creando propiedad');
       }
 
-      console.log('✅ Propiedad creada:', data);
       return data;
     } catch (error) {
       console.error('❌ Error creando propiedad:', error);
@@ -118,7 +114,6 @@ class PropertiesService {
         body: JSON.stringify(propertyData)
       });
 
-      console.log('✅ Propiedad actualizada:', response);
       return response;
     } catch (error) {
       console.error('❌ Error actualizando propiedad:', error);
@@ -138,7 +133,6 @@ class PropertiesService {
         auth: true
       });
 
-      console.log('✅ Propiedad eliminada:', response);
       return response;
     } catch (error) {
       console.error('❌ Error eliminando propiedad:', error);

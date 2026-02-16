@@ -18,8 +18,6 @@ class SearchMapModule {
    * Renderizar módulo de mapa
    */
   async render() {
-    console.log('🎨 SearchMapModule.render() called');
-
     return `
       <!-- Placeholder del Mapa -->
       <div id="mapPlaceholder" class="map-placeholder">
@@ -44,8 +42,6 @@ class SearchMapModule {
    * Inicializar el mapa
    */
   initMap() {
-    console.log('🗺️ Inicializando mapa Leaflet...');
-
     const mapContainer = document.getElementById('mapCanvas');
     if (!mapContainer) {
       console.error('❌ Contenedor del mapa no encontrado');
@@ -68,16 +64,12 @@ class SearchMapModule {
 
     // Crear capa para los marcadores
     this.markersLayer = L.layerGroup().addTo(this.map);
-
-    console.log('✅ Mapa inicializado correctamente');
   }
 
   /**
    * Actualizar marcadores en el mapa
    */
   async updateMarkers(properties) {
-    console.log('📍 Actualizando marcadores del mapa...', properties.length);
-
     if (!properties || properties.length === 0) {
       this.hideMap();
       return;
@@ -100,8 +92,6 @@ class SearchMapModule {
       !isNaN(parseFloat(prop.latitud)) &&
       !isNaN(parseFloat(prop.longitud))
     );
-
-    console.log(`📍 ${propertiesWithCoords.length} de ${properties.length} propiedades tienen coordenadas`);
 
     if (propertiesWithCoords.length === 0) {
       showNotification('Las propiedades no tienen coordenadas para mostrar en el mapa', 'warning');
@@ -190,8 +180,6 @@ class SearchMapModule {
         maxZoom: 15
       });
     }
-
-    console.log('✅ Marcadores actualizados:', this.markers.length);
   }
 
   /**
@@ -267,8 +255,6 @@ class SearchMapModule {
    * Setup event listeners
    */
   setupEventListeners() {
-    console.log('🎛️ SearchMapModule.setupEventListeners() called');
-
     // El mapa se inicializa cuando se muestran resultados
     // No hay listeners específicos que configurar aquí
   }
@@ -277,8 +263,6 @@ class SearchMapModule {
    * Destruir mapa (cleanup)
    */
   destroy() {
-    console.log('🗑️ Destruyendo mapa...');
-
     if (this.map) {
       this.map.remove();
       this.map = null;

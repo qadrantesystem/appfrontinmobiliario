@@ -19,10 +19,8 @@ class SearchSimpleModule {
   }
 
   async init() {
-    console.log('🔍 Inicializando SearchSimpleModule...');
     try {
       await this.loadCatalogos();
-      console.log('✅ SearchSimpleModule inicializado');
     } catch (error) {
       console.error('❌ Error inicializando:', error);
     }
@@ -50,8 +48,6 @@ class SearchSimpleModule {
    * Renderizar layout de 3 secciones
    */
   async render() {
-    console.log('🎨 Renderizando layout de búsquedas...');
-
     return `
       <div class="search-layout">
         <!-- Sidebar: Filtros -->
@@ -320,8 +316,6 @@ class SearchSimpleModule {
    */
   async executeSearch() {
     try {
-      console.log('🔍 Ejecutando búsqueda...');
-
       // Cerrar drawer si está abierto
       this.closeDrawer();
 
@@ -354,7 +348,6 @@ class SearchSimpleModule {
 
       // Llamar API
       const url = `${API_CONFIG.BASE_URL}/propiedades?${params.toString()}`;
-      console.log('📡 API:', url);
 
       const token = authService.getToken();
       const response = await fetch(url, {
@@ -363,8 +356,6 @@ class SearchSimpleModule {
       const data = await response.json();
 
       this.propiedades = Array.isArray(data) ? data : (data.data || data.items || []);
-
-      console.log('✅ Resultados:', this.propiedades.length);
 
       // Renderizar resultados
       this.renderResults();
@@ -676,8 +667,6 @@ class SearchSimpleModule {
   }
 
   setupEventListeners() {
-    console.log('🎛️ SearchSimpleModule.setupEventListeners()');
-
     // Cerrar dropdowns al hacer click fuera
     document.addEventListener('click', (e) => {
       const multiSelect = document.getElementById('multiDistrito');

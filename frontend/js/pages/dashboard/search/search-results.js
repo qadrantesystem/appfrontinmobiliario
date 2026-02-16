@@ -22,8 +22,6 @@ class SearchResultsModule {
    * Renderizar módulo de resultados
    */
   async render() {
-    console.log('🎨 SearchResultsModule.render() called');
-
     return `
       <!-- Placeholder Inicial -->
       <div id="placeholderResultados" class="placeholder-resultados">
@@ -50,8 +48,6 @@ class SearchResultsModule {
    * Buscar propiedades con filtros
    */
   async searchProperties(filters, pagination = null) {
-    console.log('🔍 Buscando propiedades...', filters);
-
     try {
       // Actualizar paginación si se proporciona
       if (pagination) {
@@ -107,7 +103,6 @@ class SearchResultsModule {
 
       // Llamar a la API
       const url = `${API_URL}/propiedades?${params.toString()}`;
-      console.log('📡 API URL:', url);
 
       const response = await fetch(url);
 
@@ -121,11 +116,6 @@ class SearchResultsModule {
       if (data.data && Array.isArray(data.data)) {
         this.data = data.data;
         this.metadata = data.metadata || {};
-        console.log('📊 Respuesta con combinaciones:', {
-          total: this.data.length,
-          individuales: this.metadata.individuales || 0,
-          combinaciones: this.metadata.combinaciones || 0
-        });
       } else {
         // Respuesta simple (array directo o data sin metadata)
         this.data = Array.isArray(data) ? data : (data.data || data.items || []);
@@ -134,13 +124,6 @@ class SearchResultsModule {
 
       this.pagination.total = data.total || this.data.length;
       this.pagination.totalPages = Math.ceil(this.pagination.total / this.pagination.limit);
-
-      console.log('✅ Propiedades cargadas:', {
-        cantidad: this.data.length,
-        total: this.pagination.total,
-        pagina: this.pagination.page,
-        combinaciones: this.metadata.combinaciones || 0
-      });
 
       // Renderizar resultados
       this.renderResults();
@@ -161,8 +144,6 @@ class SearchResultsModule {
    * Renderizar resultados
    */
   renderResults() {
-    console.log('🎨 Renderizando resultados...', this.data.length);
-
     const placeholder = document.getElementById('placeholderResultados');
     const listContainer = document.getElementById('propertiesList');
 
@@ -480,8 +461,6 @@ class SearchResultsModule {
    * Setup event listeners para las tarjetas
    */
   setupCardListeners() {
-    console.log('🎛️ SearchResultsModule.setupCardListeners() called');
-
     // Carruseles
     this.setupCarousels();
 
@@ -567,8 +546,6 @@ class SearchResultsModule {
       const propertyId = button.getAttribute('data-favorite-property');
       const isFavorite = button.classList.contains('is-favorite');
 
-      console.log(`${isFavorite ? '💔 Removiendo' : '❤️ Agregando'} favorito:`, propertyId);
-
       if (isFavorite) {
         // Remover de favoritos
         await favoritesActionService.removeFavorite(propertyId);
@@ -590,7 +567,6 @@ class SearchResultsModule {
   }
 
   setupEventListeners() {
-    console.log('🎛️ SearchResultsModule.setupEventListeners() called (placeholder)');
   }
 }
 

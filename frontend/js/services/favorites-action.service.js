@@ -25,8 +25,6 @@ class FavoritesActionService {
         return null;
       }
 
-      console.log(`❤️ Agregando a favoritos - ID: ${propiedadId}`);
-      
       const response = await fetch(`${this.baseURL}/favoritos/`, {
         method: 'POST',
         headers: {
@@ -51,7 +49,6 @@ class FavoritesActionService {
       }
 
       const data = await response.json();
-      console.log('✅ Favorito agregado:', data);
       showNotification('❤️ Agregado a favoritos', 'success');
       return data;
 
@@ -80,8 +77,6 @@ class FavoritesActionService {
         return false;
       }
 
-      console.log(`💔 Quitando de favoritos - ID: ${propiedadId}`);
-      
       const response = await fetch(`${this.baseURL}/favoritos/${propiedadId}`, {
         method: 'DELETE',
         headers: {
@@ -100,7 +95,6 @@ class FavoritesActionService {
         throw new Error(error.detail || 'Error al quitar favorito');
       }
 
-      console.log('✅ Favorito eliminado');
       showNotification('💔 Eliminado de favoritos', 'info');
       return true;
 

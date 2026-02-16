@@ -37,7 +37,6 @@ class EdificioService {
       if (!response.ok) {
         console.warn('⚠️ Endpoint edificios-disponibles no disponible, usando mis-propiedades');
         url = `${this.baseURL}/mis-propiedades?limit=100`;
-        console.log('🔗 Fallback URL:', url);
         response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -47,42 +46,18 @@ class EdificioService {
         });
       }
 
-      console.log('📡 Response status:', response.status);
-      console.log('🌐 URL final usada:', url);
-
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('📦 RAW Response completo:', result);
-      
+
       let edificios = result.data || [];
 
-      console.log('📦 Propiedades recibidas del backend:', edificios.length);
-      console.log('🔍 Primera propiedad (muestra):', edificios[0]);
-      console.log('🔍 tipo_inmueble_id de la primera:', edificios[0]?.tipo_inmueble_id, 'tipo:', typeof edificios[0]?.tipo_inmueble_id);
-      
-      // DEBUG: Ver TODAS las propiedades y sus tipos
-      console.log('📊 TODOS los tipo_inmueble_id recibidos:');
-      edificios.forEach(p => {
-        console.log(`  ID ${p.registro_cab_id}: tipo_inmueble_id = ${p.tipo_inmueble_id} (${typeof p.tipo_inmueble_id}) - ${p.nombre_inmueble}`);
-      });
-
       // ✅ FILTRAR: Solo edificios completos (tipo_inmueble_id = 12)
-      const edificiosOriginales = edificios.length;
       edificios = edificios.filter(prop => {
-        const esEdificio = prop.tipo_inmueble_id === 12;
-        
-        if (esEdificio) {
-          console.log(`✅ Edificio detectado: ID ${prop.registro_cab_id} - ${prop.nombre_inmueble} (tipo: ${prop.tipo_inmueble_id})`);
-        }
-        
-        return esEdificio;
+        return prop.tipo_inmueble_id === 12;
       });
-
-      console.log(`📋 Filtrado: ${edificios.length} edificios de ${edificiosOriginales} propiedades totales`);
-      console.log('🏢 IDs de edificios disponibles:', edificios.map(e => e.registro_cab_id));
 
       return edificios;
 
@@ -102,9 +77,6 @@ class EdificioService {
       const token = localStorage.getItem('access_token');
       const url = `${this.baseURL}/${edificioId}/caracteristicas`;
       
-      console.log('📡 Obteniendo características del edificio:', edificioId);
-      console.log('🌐 URL:', url);
-
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -113,23 +85,14 @@ class EdificioService {
         }
       });
 
-      console.log('📥 Response status:', response.status);
-
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('📦 Características RAW:', result);
 
       // Extraer data del wrapper ResponseModel
       const caracteristicas = result.data || {};
-      
-      console.log('📊 Características procesadas:', caracteristicas);
-      console.log('📊 Número de categorías:', Object.keys(caracteristicas).length);
-      Object.keys(caracteristicas).forEach(cat => {
-        console.log(`  - ${cat}: ${caracteristicas[cat].length} características`);
-      });
 
       return caracteristicas;
 
@@ -151,9 +114,6 @@ class EdificioService {
       // ✅ Usar endpoint correcto (sin /detalle)
       const url = `${API_CONFIG.BASE_URL}/propiedades/${edificioId}`;
 
-      console.log('🔍 Obteniendo pisos del edificio:', edificioId);
-      console.log('🌐 URL:', url);
-
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -170,12 +130,8 @@ class EdificioService {
       const result = await response.json();
       const data = result.data || result;
 
-      console.log('📦 Data del edificio:', data);
-
       // Buscar característica "Cantidad Pisos Edificio" en el detalle
       const caracteristicas = data.caracteristicas || [];
-      console.log('📋 Características encontradas:', caracteristicas.length);
-      console.log('📋 Características:', caracteristicas);
 
       // Buscar por ID 110 o por nombre "Cantidad Pisos Edificio"
       // ⚠️ NO confundir con "Cantidad Oficinas por Piso" (ID 120)
@@ -189,18 +145,11 @@ class EdificioService {
                            nombreLower.includes('piso') &&
                            nombreLower.includes('edificio');
 
-        console.log(`🔍 Evaluando característica: ID=${caracId}, nombre="${c.nombre}", valor="${c.valor}"`);
-
-        if (esId110 || esPorNombre) {
-          console.log('✅ Característica de pisos del edificio encontrada:', c);
-        }
-
         return esId110 || esPorNombre;
       });
 
       if (pisosCaract) {
         const cantidadPisos = parseInt(pisosCaract.valor) || 10;
-        console.log(`🔢 Edificio ${edificioId} tiene ${cantidadPisos} pisos (de característica)`);
         return cantidadPisos;
       }
 

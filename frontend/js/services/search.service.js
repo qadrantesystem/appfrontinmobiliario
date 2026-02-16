@@ -11,8 +11,6 @@ class SearchService {
    */
   async buscarPropiedades(filters) {
     try {
-      console.log('🔍 Buscando propiedades con filtros:', filters);
-      
       // Para modo invitado, usamos endpoint público
       const queryParams = new URLSearchParams();
       
@@ -50,13 +48,11 @@ class SearchService {
       }
       
       const data = await response.json();
-      console.log(`✅ ${data.data?.length || 0} propiedades encontradas`);
-      
+
       return data.data || [];
     } catch (error) {
       console.error('❌ Error buscando propiedades:', error);
       // En caso de error, retornar datos de ejemplo para modo invitado
-      console.log('📋 Usando datos de ejemplo para modo invitado');
       return this.getExampleProperties();
     }
   }
@@ -121,7 +117,6 @@ class SearchService {
         body: JSON.stringify(searchFilters)
       });
 
-      console.log('✅ Búsqueda registrada:', response);
       return response;
     } catch (error) {
       console.error('❌ Error registrando búsqueda:', error);
@@ -140,7 +135,6 @@ class SearchService {
         auth: true
       });
 
-      console.log('✅ Búsquedas obtenidas:', response);
       return response;
     } catch (error) {
       console.error('❌ Error obteniendo búsquedas:', error);
@@ -164,7 +158,6 @@ class SearchService {
         auth: true
       });
 
-      console.log('✅ Alertas obtenidas:', response);
       return response;
     } catch (error) {
       console.error('❌ Error obteniendo alertas:', error);
@@ -190,7 +183,6 @@ class SearchService {
         body: JSON.stringify(alertData)
       });
 
-      console.log('✅ Alerta creada:', response);
       return response;
     } catch (error) {
       console.error('❌ Error creando alerta:', error);

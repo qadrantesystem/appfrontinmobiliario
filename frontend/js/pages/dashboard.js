@@ -72,7 +72,6 @@ class Dashboard {
   async init() {
     // Verificar autenticación
     if (!authService.isAuthenticated()) {
-      console.log('❌ No autenticado, redirigiendo al login...');
       window.location.href = 'login.html';
       return;
     }
@@ -82,11 +81,9 @@ class Dashboard {
 
     // Inicializar Search Module (técnica simple como mantenimiento)
     if (window.SearchSimpleModule) {
-      console.log('🔍 Inicializando SearchSimpleModule (técnica de mantenimiento)...');
       this.searchSimpleModule = new SearchSimpleModule(this);
       await this.searchSimpleModule.init();
       window.searchSimpleModule = this.searchSimpleModule;
-      console.log('✅ SearchSimpleModule inicializado');
     } else {
       console.error('❌ SearchSimpleModule no encontrado');
     }
@@ -96,7 +93,6 @@ class Dashboard {
       this.searchAdminModule = new SearchAdminModule(this);
       await this.searchAdminModule.init();
       window.searchAdminModule = this.searchAdminModule;
-      console.log('✅ SearchAdminModule inicializado (Admin)');
     }
 
     // Setup UI
@@ -106,7 +102,6 @@ class Dashboard {
     // 🔒 Iniciar gestor de inactividad
     if (window.inactivityManager) {
       inactivityManager.start();
-      console.log('✅ Gestor de inactividad iniciado');
     }
   }
 
@@ -114,7 +109,6 @@ class Dashboard {
     try {
       // Obtener usuario del storage primero (para mostrar rápido)
       const storedUser = authService.getCurrentUser();
-      console.log('👤 Usuario del storage:', storedUser);
       
       if (storedUser && storedUser.perfil_id) {
         this.currentUser = storedUser;
@@ -124,7 +118,6 @@ class Dashboard {
 
       // Luego obtener datos frescos del backend
       const freshUser = await authService.getMyProfile();
-      console.log('👤 Usuario del backend:', freshUser);
       
       if (freshUser && freshUser.perfil_id) {
         this.currentUser = freshUser;
@@ -209,7 +202,6 @@ class Dashboard {
     this.userMenuBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       const isActive = this.userMenu.classList.toggle('active');
-      console.log(`${isActive ? '✅' : '❌'} Menú de usuario ${isActive ? 'abierto' : 'cerrado'}`);
     });
 
     // Cerrar menú al hacer click fuera
@@ -218,8 +210,6 @@ class Dashboard {
         this.userMenu.classList.remove('active');
       }
     });
-
-    console.log('✅ setupUserMenu() completado');
   }
 
   setupLogout() {
@@ -245,12 +235,9 @@ class Dashboard {
 
     if (!tabs) {
       console.error('❌ No hay configuración de tabs para perfil:', perfilIdNum);
-      console.log('📋 Perfiles disponibles:', Object.keys(this.tabsConfig));
       return;
     }
     
-    console.log(`✅ Cargando tabs para perfil ${perfilIdNum}:`, tabs.map(t => t.name));
-
     // Limpiar tabs anteriores
     this.tabsList.innerHTML = '';
 
@@ -307,7 +294,6 @@ class Dashboard {
   }
 
   async loadTabContent(tabId, perfilId) {
-    console.log(`📄 Cargando contenido del tab: ${tabId}`);
 
     // Mostrar loading
     this.tabContent.innerHTML = `
@@ -407,8 +393,6 @@ class Dashboard {
       const queryString = params.toString();
       const url = `${API_CONFIG.BASE_URL}/dashboard/estadisticas${queryString ? '?' + queryString : ''}`;
 
-      console.log('📊 Obteniendo estadísticas del dashboard:', url);
-
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -428,7 +412,6 @@ class Dashboard {
       }
 
       this.dashboardStats = result.data;
-      console.log('✅ Estadísticas obtenidas:', result.data);
 
       return result.data;
 
@@ -443,11 +426,6 @@ class Dashboard {
       // 📊 Obtener estadísticas del nuevo endpoint unificado
       const currentYear = new Date().getFullYear();
       const stats = await this.getDashboardStats(currentYear);
-
-      // 🔍 DEBUG: Ver datos
-      console.log('📊 Dashboard Demandante Stats:', stats);
-      console.log('📊 Búsquedas:', stats.busquedas);
-      console.log('📊 Favoritos:', stats.favoritos);
 
       return `
         <h2 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-xl);">
@@ -747,11 +725,6 @@ class Dashboard {
       const currentYear = new Date().getFullYear();
       const stats = await this.getDashboardStats(currentYear);
 
-      // 🔍 DEBUG: Ver datos
-      console.log('📊 Dashboard Ofertante Stats:', stats);
-      console.log('📊 Propiedades:', stats.propiedades);
-      console.log('📊 Estado CRM:', stats.propiedades?.por_estado_crm);
-
       return `
         <h2 style="color: var(--azul-corporativo); margin-bottom: var(--spacing-xl);">
           Dashboard - ${this.currentUser?.nombre || 'Usuario'}
@@ -902,8 +875,6 @@ class Dashboard {
 
   async getFavoritosContent() {
     try {
-      console.log('❤️ Cargando contenido de FAVORITOS...');
-      
       // Obtener favoritos del usuario
       const token = authService.getToken();
       const response = await fetch(`${API_CONFIG.BASE_URL}/favoritos/`, {
@@ -916,8 +887,6 @@ class Dashboard {
 
       const data = await response.json();
       const favoritos = Array.isArray(data) ? data : (data.data || []);
-      
-      console.log(`✅ ${favoritos.length} favoritos obtenidos`);
 
       if (favoritos.length === 0) {
         return `
@@ -955,7 +924,6 @@ class Dashboard {
       });
 
       const propiedades = (await Promise.all(propiedadesPromises)).filter(p => p !== null);
-      console.log(`✅ ${propiedades.length} propiedades favoritas cargadas`);
 
       // 🎨 Renderizar usando el mismo estilo que en Propiedades (SIN BOTONES)
       const favoritesCards = propiedades.map((prop, index) => {
@@ -1229,36 +1197,6 @@ class Dashboard {
 
       this.pagination.updateItemsPerPage();
 
-      console.log('✅ Propiedades cargadas:', this.allProperties.length);
-      console.log('📋 IDs disponibles:', this.allProperties.map(p => p.registro_cab_id));
-      
-      if (this.allProperties.length > 0) {
-        const ultima = this.allProperties[0];
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('📦 ÚLTIMA PROPIEDAD CREADA (más reciente):');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('🆔 ID:', ultima.registro_cab_id);
-        console.log('📝 Título:', ultima.titulo);
-        console.log('🏢 Tipo:', ultima.tipo_inmueble_nombre);
-        console.log('📍 Distrito:', ultima.distrito_nombre);
-        console.log('🏠 Dirección:', ultima.direccion);
-        console.log('🗺️ Latitud:', ultima.latitud, '(Tipo:', typeof ultima.latitud + ')');
-        console.log('🗺️ Longitud:', ultima.longitud, '(Tipo:', typeof ultima.longitud + ')');
-        console.log('📏 Área:', ultima.area, 'm²');
-        console.log('🛏️ Habitaciones:', ultima.habitaciones);
-        console.log('🚿 Baños:', ultima.banos);
-        console.log('🚗 Parqueos:', ultima.parqueos);
-        console.log('💰 Transacción:', ultima.transaccion);
-        console.log('💵 Precio:', ultima.transaccion === 'venta' ? ultima.precio_venta : ultima.precio_alquiler, ultima.moneda);
-        console.log('📊 Estado:', ultima.estado);
-        console.log('📈 Estado CRM:', ultima.estado_crm);
-        console.log('📸 Imagen Principal:', ultima.imagen_principal);
-        console.log('🖼️ Galería:', ultima.imagenes?.length || 0, 'imágenes');
-        console.log('📞 Teléfono:', ultima.telefono);
-        console.log('📧 Email:', ultima.email);
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      }
-
       // Header con filtros usando el módulo
       const content = `
         <div class="propiedades-header" style="margin-bottom: var(--spacing-xl);">
@@ -1301,14 +1239,8 @@ class Dashboard {
   }
 
   renderPropertiesPage() {
-    console.log('🎨 Renderizando propiedades page...');
-    console.log('📊 Total propiedades:', this.allProperties?.length);
-    
     const filtered = this.filters.getFiltered(this.allProperties);
     const pageData = this.pagination.getPageData(filtered);
-
-    console.log('🔍 Propiedades filtradas:', filtered.length);
-    console.log('📄 Propiedades en página:', pageData.items.length);
 
     // Actualizar contador
     const countEl = document.getElementById('propCount');
@@ -1478,20 +1410,16 @@ class Dashboard {
     if (paginadorContainer) {
       const paginadorHTML = this.pagination.render(filtered.length);
       paginadorContainer.innerHTML = paginadorHTML;
-      console.log('✅ Paginador renderizado');
 
       // 🔥 CONFIGURAR EVENT LISTENERS DEL PAGINADOR
       this.pagination.setupListeners();
-      console.log('✅ Listeners del paginador configurados');
     } else {
       console.error('❌ No se encontró #paginadorContainer');
     }
 
     // Setup carrusel y listeners
-    console.log('🎠 Configurando carrusel...');
     this.carousel.setup();
     this.setupPropertyListeners();
-    console.log('✅ Renderizado completo');
   }
 
   getPerfilContent() {
@@ -1692,55 +1620,37 @@ class Dashboard {
   }
 
   setupPropertyListeners() {
-    console.log('📋 setupPropertyListeners llamado');
-
     // Ver detalle en popup
     const viewBtns = document.querySelectorAll('[data-view-property]');
-    console.log(`🔍 Botones [data-view-property] encontrados: ${viewBtns.length}`);
 
     viewBtns.forEach((btn, index) => {
-      console.log(`  Botón ${index + 1}: propId=${btn.dataset.viewProperty}`);
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const propId = e.currentTarget.dataset.viewProperty;
-        console.log(`🖱️ Click en botón Ver Detalle, propId: ${propId}`);
         await this.showPropertyDetailPopup(propId);
       });
     });
 
     // Mapa en popup
     const mapBtns = document.querySelectorAll('[data-map-property]');
-    console.log(`🗺️ Botones [data-map-property] encontrados: ${mapBtns.length}`);
 
     mapBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const lat = e.currentTarget.dataset.lat;
         const lng = e.currentTarget.dataset.lng;
-        console.log(`🖱️ Click en botón Mapa, lat: ${lat}, lng: ${lng}`);
         this.showMapPopup(lat, lng);
       });
     });
 
     // Editar propiedad
     const editBtns = document.querySelectorAll('[data-edit-property]');
-    console.log(`✏️ Botones [data-edit-property] encontrados: ${editBtns.length}`);
 
     editBtns.forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const propId = parseInt(e.currentTarget.dataset.editProperty);
-        
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('🖱️ CLICK EN BOTÓN EDITAR');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('Dataset:', e.currentTarget.dataset);
-        console.log('dataset.editProperty:', e.currentTarget.dataset.editProperty);
-        console.log('propId (parseado):', propId);
-        console.log('Tipo:', typeof propId);
-        console.log('Es válido?', !isNaN(propId) && propId > 0);
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        
+
         if (!propId || isNaN(propId)) {
           console.error('❌ ID inválido:', propId);
           showNotification('❌ Error: ID de propiedad inválido', 'error');
@@ -1755,7 +1665,6 @@ class Dashboard {
 
     // ❤️ Favoritos - Cargar estado inicial
     const favoriteBtns = document.querySelectorAll('[data-favorite-property]');
-    console.log(`❤️ Botones [data-favorite-property] encontrados: ${favoriteBtns.length}`);
 
     // 🔥 Cargar favoritos del usuario y marcar corazones
     this.loadFavoritesState();
@@ -1772,29 +1681,23 @@ class Dashboard {
         
         // ✅ Verificar si es favorito por la clase
         const isFavorito = button.classList.contains('is-favorite');
-        
-        console.log(`❤️ Click favorito - PropID: ${propId}, FavID: ${favoritoId}, es favorito: ${isFavorito}`);
-        
+
         let success;
         let newFavoritoId;
         
         if (isFavorito) {
           // 💔 Quitar favorito - SIEMPRE buscar el favorito_id actualizado
           const token = authService.getToken();
-          console.log('🔍 Buscando favorito_id para eliminar... PropID:', propId);
           const response = await fetch(`${API_CONFIG.BASE_URL}/favoritos/`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (response.ok) {
             const data = await response.json();
-            console.log('📋 Lista de favoritos completa:', data);
-            
+
             // 🔥 El API puede devolver data.data o directamente data como array
             const favoritos = Array.isArray(data) ? data : (data.data || []);
-            console.log('🔎 Buscando registro_cab_id:', propId, 'en:', favoritos.map(f => ({ id: f.favorito_id, reg: f.registro_cab_id })));
-            
+
             const favorito = favoritos.find(f => parseInt(f.registro_cab_id) === parseInt(propId));
-            console.log('📦 Favorito encontrado:', favorito);
             
             if (favorito) {
               success = await favoritesActionService.quitarFavorito(favorito.favorito_id);
@@ -1807,23 +1710,16 @@ class Dashboard {
         } else {
           // ❤️ Agregar favorito
           const result = await favoritesActionService.agregarFavorito(propId);
-          console.log('📦 Resultado de agregarFavorito:', result);
           success = result !== null;
           if (result) {
             // Puede venir en result.data o directamente en result
             newFavoritoId = result.data?.favorito_id || result.favorito_id;
-            console.log('🆔 Nuevo favorito_id:', newFavoritoId);
           }
         }
         
-        console.log('✅ Success:', success);
-        
         if (success) {
-          console.log('🎨 Cambiando visual del corazón...');
-          
           // 🔥 Si estamos en tab FAVORITOS y se quitó, eliminar de la vista
           if (isFavorito && this.currentTab === 'favoritos') {
-            console.log('🗑️ Eliminando tarjeta de favoritos...');
             const card = button.closest('.property-card');
             if (card) {
               card.style.animation = 'fadeOut 0.3s ease';
@@ -1845,19 +1741,16 @@ class Dashboard {
           } else {
             // ✅ En otros tabs, solo cambiar visual
             button.classList.toggle('is-favorite');
-            console.log('💖 Clase is-favorite después del toggle:', button.classList.contains('is-favorite'));
             
             // Actualizar favorito_id
             if (isFavorito) {
               delete button.dataset.favoritoId;
               button.title = 'Agregar a favoritos';
-              console.log('⚪ Corazón cambiado a gris');
             } else {
               if (newFavoritoId) {
                 button.dataset.favoritoId = newFavoritoId;
               }
               button.title = 'Quitar de favoritos';
-              console.log('❤️ Corazón cambiado a rojo');
             }
             
             // ✅ Animación de pulso mejorada
@@ -1874,13 +1767,11 @@ class Dashboard {
 
     // Asignar corredor (solo admin)
     const assignBtns = document.querySelectorAll('[data-assign-broker]');
-    console.log(`👤 Botones [data-assign-broker] encontrados: ${assignBtns.length}`);
 
     assignBtns.forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const propId = e.currentTarget.dataset.assignBroker;
-        console.log(`🖱️ Click en botón Asignar Corredor, propId: ${propId}`);
         await this.showAssignBrokerPopup(propId);
       });
     });
@@ -1888,16 +1779,13 @@ class Dashboard {
     // ➕ Nueva Propiedad (formulario multipaso)
     const btnNuevaPropiedad = document.getElementById('btnNuevaPropiedad');
     if (btnNuevaPropiedad) {
-      console.log('✅ Botón Nueva Propiedad encontrado');
       btnNuevaPropiedad.addEventListener('click', () => {
-        console.log('🖱️ Click en Nueva Propiedad');
         this.showPropertyForm();
       });
     }
   }
 
   showPropertyForm(propId = null) {
-    console.log('🎯 Abriendo formulario de propiedad...', propId ? `Editar ID: ${propId}` : 'Nueva');
     const form = new PropertyForm(this, propId);
     form.init();
   }
@@ -2000,31 +1888,23 @@ class Dashboard {
   }
 
   async showPropertyDetailPopup(propId) {
-    console.log(`📄 showPropertyDetailPopup llamado con propId: ${propId}`);
     try {
       // 🔥 SIEMPRE hacer fetch para obtener características completas
       const token = authService.getToken();
-      console.log(`🔑 Token obtenido: ${token ? 'OK' : 'FALTA'}`);
 
       const url = `${API_CONFIG.BASE_URL}/propiedades/${propId}`;
-      console.log(`📡 Fetching: ${url}`);
 
       const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` },
         mode: 'cors'
       });
 
-      console.log(`📡 Response status: ${response.status}`);
-
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log(`📦 Data completa recibida:`, data);
       const prop = data.data || data;
-      
-      console.log('🔍 DEBUG Características:', prop.caracteristicas);
 
       const modalHtml = `
         <div class="modal-overlay" id="detailModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.2s ease;">
@@ -2077,24 +1957,20 @@ class Dashboard {
         </div>
       `;
       document.body.insertAdjacentHTML('beforeend', modalHtml);
-      console.log('✅ Modal HTML insertado en body');
 
       document.getElementById('detailModal').addEventListener('click', (e) => {
         if (e.target.id === 'detailModal') e.target.remove();
       });
-      console.log('✅ Listener de cierre agregado al modal');
       
       // Listener para botón Editar
       const editBtn = document.getElementById('editPropertyBtn');
       if (editBtn) {
         editBtn.addEventListener('click', async () => {
           const propId = editBtn.dataset.propId;
-          console.log(`✏️ Abriendo formulario de edición para propiedad ${propId}`);
           document.getElementById('detailModal').remove();
           const form = new PropertyForm(this, propId);
           await form.init();
         });
-        console.log('✅ Listener de edición agregado');
       }
     } catch (error) {
       console.error('❌ Error en showPropertyDetailPopup:', error);
@@ -2103,8 +1979,6 @@ class Dashboard {
   }
 
   showMapPopup(lat, lng) {
-    console.log(`🗺️ showMapPopup llamado - lat: ${lat}, lng: ${lng}`);
-    
     // ✅ Validar y convertir a números
     lat = parseFloat(lat);
     lng = parseFloat(lng);
@@ -2265,8 +2139,6 @@ class Dashboard {
       const token = authService.getToken();
       if (!token) return;
 
-      console.log('❤️ Cargando favoritos del usuario...');
-      
       const response = await fetch(`${API_CONFIG.BASE_URL}/favoritos/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -2275,8 +2147,6 @@ class Dashboard {
 
       const data = await response.json();
       const favoritos = Array.isArray(data) ? data : (data.data || []);
-      
-      console.log(`✅ ${favoritos.length} favoritos cargados`);
 
       // ✅ Marcar corazones con clase is-favorite y guardar favorito_id
       favoritos.forEach(fav => {
@@ -2295,26 +2165,20 @@ class Dashboard {
   }
 
   setupUserMenu() {
-    console.log('🎯 Configurando menú de usuario...');
-    console.log('userMenuBtn:', this.userMenuBtn);
-    console.log('userMenu:', this.userMenu);
-    
     if (!this.userMenuBtn || !this.userMenu) {
       console.error('❌ Elementos del menú no encontrados');
       return;
     }
     
     const dropdown = document.getElementById('userDropdown');
-    console.log('dropdown:', dropdown);
-    
+
     // ✅ Toggle simple con log
     const toggleMenu = (e) => {
       e.preventDefault();
       e.stopPropagation();
       
       const isActive = this.userMenu.classList.toggle('active');
-      console.log(`📱 Menú ${isActive ? 'ABIERTO' : 'CERRADO'}`);
-      
+
       // Forzar display en móvil
       if (dropdown) {
         if (isActive) {
@@ -2340,8 +2204,6 @@ class Dashboard {
         }
       }
     });
-    
-    console.log('✅ Menú de usuario configurado');
   }
 
   setupLogout() {

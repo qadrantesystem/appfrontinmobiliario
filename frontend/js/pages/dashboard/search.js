@@ -47,15 +47,11 @@ class SearchModule {
   }
 
   async init() {
-    console.log('🔍 Inicializando SearchModule...');
     await this.loadCatalogos();
-    console.log('✅ SearchModule inicializado');
   }
 
   async loadCatalogos() {
     try {
-      console.log('📦 Cargando catálogos para búsqueda...');
-      
       // APIs PÚBLICAS
       const [tiposRes, distritosRes] = await Promise.all([
         fetch(`${API_CONFIG.BASE_URL}/tipos-inmueble`),
@@ -72,10 +68,6 @@ class SearchModule {
       this.tiposInmuebles = tiposData.data || tiposData || [];
       this.distritos = distritosData.data || distritosData || [];
       
-      console.log('✅ Catálogos cargados:', {
-        tipos: this.tiposInmuebles.length,
-        distritos: this.distritos.length
-      });
     } catch (error) {
       console.error('❌ Error cargando catálogos:', error);
       throw error;
@@ -302,8 +294,6 @@ class SearchModule {
 
   async handleSearch() {
     try {
-      console.log('🔍 Ejecutando búsqueda...');
-
       // Recopilar criterios usando el multi-select
       const distritosSeleccionados = this.getSelectedDistritos();
 
@@ -314,8 +304,6 @@ class SearchModule {
         area_min: document.getElementById('search_area_min').value || null,
         precio_max: document.getElementById('search_precio_max').value || null
       };
-
-      console.log('📋 Criterios de búsqueda:', this.currentCriteria);
 
       // 1️⃣ Buscar propiedades primero
       await this.searchProperties();
@@ -428,8 +416,6 @@ class SearchModule {
         sesion_id: `session_${Date.now()}`
       };
 
-      console.log('💾 Guardando búsqueda:', body);
-
       const response = await fetch(`${API_CONFIG.BASE_URL}/busquedas/registrar`, {
         method: 'POST',
         headers: {
@@ -443,7 +429,6 @@ class SearchModule {
         const data = await response.json();
         this.currentSearchId = data.data?.busqueda_id || data.busqueda_id;
         this.searchCount++;
-        console.log('✅ Búsqueda registrada en historial:', this.currentSearchId);
         showNotification('✅ Búsqueda guardada', 'success');
       }
     } catch (error) {
@@ -648,7 +633,6 @@ class SearchModule {
   }
 
   repeatSearch(criterios) {
-    console.log('🔄 Repitiendo búsqueda:', criterios);
     // TODO: Pre-llenar el modal con estos criterios y ejecutar búsqueda
     this.renderSearchModal();
     showNotification('🔄 Función "Repetir búsqueda" en desarrollo', 'info');

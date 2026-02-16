@@ -15,7 +15,6 @@ class FavoritesService {
         auth: true
       });
 
-      console.log('✅ Favoritos obtenidos:', response);
       return response;
     } catch (error) {
       console.error('❌ Error obteniendo favoritos:', error);
@@ -36,7 +35,6 @@ class FavoritesService {
         body: JSON.stringify({ propiedad_id: propiedadId })
       });
 
-      console.log('✅ Favorito agregado:', response);
       return response;
     } catch (error) {
       console.error('❌ Error agregando favorito:', error);
@@ -56,7 +54,6 @@ class FavoritesService {
         auth: true
       });
 
-      console.log('✅ Favorito eliminado:', response);
       return response;
     } catch (error) {
       console.error('❌ Error eliminando favorito:', error);
@@ -89,9 +86,6 @@ class FavoritesService {
     try {
       const favorites = await this.getFavorites();
 
-      // 🔍 DEBUG: Ver estructura de respuesta
-      console.log('🔍 DEBUG getFavoriteStats - favorites completo:', favorites);
-
       // El backend puede devolver dos formatos:
       // 1. {success: true, data: {favoritos: [...]}}
       // 2. Directamente un array [...]
@@ -100,22 +94,15 @@ class FavoritesService {
       if (Array.isArray(favorites)) {
         // Formato 2: Array directo
         favoritesList = favorites;
-        console.log('✅ Formato detectado: Array directo');
       } else if (favorites.data?.favoritos) {
         // Formato 1: Objeto con data.favoritos
         favoritesList = favorites.data.favoritos;
-        console.log('✅ Formato detectado: Objeto con data.favoritos');
       } else if (favorites.favoritos) {
         // Formato alternativo: Objeto con favoritos directo
         favoritesList = favorites.favoritos;
-        console.log('✅ Formato detectado: Objeto con favoritos');
       }
 
-      console.log('🔍 DEBUG getFavoriteStats - favoritesList:', favoritesList);
-      console.log('🔍 DEBUG getFavoriteStats - favoritesList.length:', favoritesList.length);
-
-      // 🚀 NUEVO: Enriquecer datos obteniendo detalles completos de cada propiedad
-      console.log('🔄 Enriqueciendo datos de favoritos con detalles completos...');
+      // Enriquecer datos obteniendo detalles completos de cada propiedad
       const enrichedFavorites = await Promise.all(
         favoritesList.map(async (fav) => {
           try {
@@ -154,8 +141,6 @@ class FavoritesService {
         })
       );
 
-      console.log('✅ Favoritos enriquecidos:', enrichedFavorites);
-
       // Calcular estadísticas con datos enriquecidos
       const totalFavorites = enrichedFavorites.length;
 
@@ -193,12 +178,6 @@ class FavoritesService {
       const lastAddedDate = lastAdded
         ? new Date(lastAdded.fecha_agregado).toLocaleDateString('es-PE')
         : 'Sin favoritos';
-
-      console.log('📊 Estadísticas calculadas:', {
-        totalFavorites,
-        byType,
-        byDistrict
-      });
 
       return {
         totalFavorites,
