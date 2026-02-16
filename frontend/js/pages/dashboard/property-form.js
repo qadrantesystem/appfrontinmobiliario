@@ -3377,26 +3377,34 @@ class PropertyForm {
       return;
     }
 
-    // Construir opciones de distritos desde catalogo ya cargado
-    const opcionesDistritos = this.distritos.map(d =>
-      `<option value="${d.distrito_id}">${d.nombre}</option>`
-    ).join('');
+    // Obtener distrito seleccionado en el formulario actual
+    const distritoSelect = document.getElementById('distrito_id');
+    const distritoId = distritoSelect ? parseInt(distritoSelect.value) : null;
+    const distritoNombre = distritoSelect?.selectedOptions[0]?.text || '';
+
+    if (!distritoId) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Selecciona el distrito',
+        text: 'Primero selecciona el distrito en el formulario antes de crear el edificio.',
+        confirmButtonColor: '#ff9800'
+      });
+      return;
+    }
 
     const { value: formValues } = await Swal.fire({
       title: 'Crear Edificio Rapido',
       html: `
         <div style="text-align: left;">
+          <div style="background: #e8f5e9; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.9rem; color: #2e7d32;">
+            <strong>Distrito:</strong> ${distritoNombre}
+          </div>
+
           <label style="font-weight: 600; margin-bottom: 4px; display: block;">Nombre del edificio</label>
           <input id="swal-nombre" class="swal2-input" placeholder="Ej: Torre Empresarial San Isidro" style="width: 100%; margin: 0 0 12px 0;">
 
           <label style="font-weight: 600; margin-bottom: 4px; display: block;">Direccion</label>
           <input id="swal-direccion" class="swal2-input" placeholder="Ej: Av. Javier Prado Este 4600" style="width: 100%; margin: 0 0 12px 0;">
-
-          <label style="font-weight: 600; margin-bottom: 4px; display: block;">Distrito</label>
-          <select id="swal-distrito" class="swal2-select" style="width: 100%; padding: 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 1rem;">
-            <option value="">-- Seleccionar distrito --</option>
-            ${opcionesDistritos}
-          </select>
         </div>
       `,
       focusConfirm: false,
@@ -3407,7 +3415,6 @@ class PropertyForm {
       preConfirm: () => {
         const nombre = document.getElementById('swal-nombre').value.trim();
         const direccion = document.getElementById('swal-direccion').value.trim();
-        const distrito_id = document.getElementById('swal-distrito').value;
 
         if (!nombre || nombre.length < 5) {
           Swal.showValidationMessage('El nombre debe tener al menos 5 caracteres');
@@ -3417,12 +3424,8 @@ class PropertyForm {
           Swal.showValidationMessage('La direccion debe tener al menos 10 caracteres');
           return false;
         }
-        if (!distrito_id) {
-          Swal.showValidationMessage('Debe seleccionar un distrito');
-          return false;
-        }
 
-        return { nombre_inmueble: nombre, direccion, distrito_id: parseInt(distrito_id) };
+        return { nombre_inmueble: nombre, direccion };
       }
     });
 
@@ -3440,7 +3443,7 @@ class PropertyForm {
         body: JSON.stringify({
           nombre_inmueble: formValues.nombre_inmueble,
           direccion: formValues.direccion,
-          distrito_id: formValues.distrito_id,
+          distrito_id: distritoId,
           propietario_id: propietarioId
         })
       });
