@@ -1517,9 +1517,18 @@ class PropertyForm {
             <label for="edificio-padre-select" style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #e65100; margin-bottom: 8px;">
               🏢 Seleccionar Edificio <span style="color: red;">*</span>
             </label>
-            <select id="edificio-padre-select" class="form-control" style="border: 2px solid #ff9800; font-size: 1rem; padding: 12px; margin-bottom: 12px;">
-              <option value="">-- Seleccionar edificio --</option>
-            </select>
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+              <select id="edificio-padre-select" class="form-control" style="flex: 1; border: 2px solid #ff9800; font-size: 1rem; padding: 12px;">
+                <option value="">-- Seleccionar edificio --</option>
+              </select>
+              <button type="button" id="btn-edificio-rapido"
+                      title="Crear edificio rapido"
+                      style="width: 42px; height: 42px; min-width: 42px; border-radius: 50%; background: #ff9800; color: white; border: none; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(255,152,0,0.4); transition: background 0.2s;"
+                      onmouseover="this.style.background='#e68900'"
+                      onmouseout="this.style.background='#ff9800'">
+                +
+              </button>
+            </div>
 
             <!-- Piso (aparece después de seleccionar edificio) -->
             <div id="piso-container" style="display: none; margin-top: 12px;">
@@ -3325,7 +3334,123 @@ class PropertyForm {
   }
 
   /**
-   * 🆕 Inicializar componente SelectorEdificio (Step 2 - solo si es Oficina)
+   * Crear edificio rapido desde modal SweetAlert2
+   */
+  async mostrarModalEdificioRapido() {
+    // Verificar que hay propietario_id capturado
+    if (!this.formData.propietario_id) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Propietario requerido',
+        text: 'Primero debe registrar el propietario en el Paso 1.',
+        confirmButtonColor: '#ff9800'
+      });
+      return;
+    }
+
+    // Construir opciones de distritos desde catalogo ya cargado
+    const opcionesDistritos = this.distritos.map(d =>
+      `<option value="${d.distrito_id}">${d.nombre}</option>`
+    ).join('');
+
+    const { value: formValues } = await Swal.fire({
+      title: 'Crear Edificio Rapido',
+      html: `
+        <div style="text-align: left;">
+          <label style="font-weight: 600; margin-bottom: 4px; display: block;">Nombre del edificio</label>
+          <input id="swal-nombre" class="swal2-input" placeholder="Ej: Torre Empresarial San Isidro" style="width: 100%; margin: 0 0 12px 0;">
+
+          <label style="font-weight: 600; margin-bottom: 4px; display: block;">Direccion</label>
+          <input id="swal-direccion" class="swal2-input" placeholder="Ej: Av. Javier Prado Este 4600" style="width: 100%; margin: 0 0 12px 0;">
+
+          <label style="font-weight: 600; margin-bottom: 4px; display: block;">Distrito</label>
+          <select id="swal-distrito" class="swal2-select" style="width: 100%; padding: 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 1rem;">
+            <option value="">-- Seleccionar distrito --</option>
+            ${opcionesDistritos}
+          </select>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Crear Edificio',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ff9800',
+      preConfirm: () => {
+        const nombre = document.getElementById('swal-nombre').value.trim();
+        const direccion = document.getElementById('swal-direccion').value.trim();
+        const distrito_id = document.getElementById('swal-distrito').value;
+
+        if (!nombre || nombre.length < 5) {
+          Swal.showValidationMessage('El nombre debe tener al menos 5 caracteres');
+          return false;
+        }
+        if (!direccion || direccion.length < 10) {
+          Swal.showValidationMessage('La direccion debe tener al menos 10 caracteres');
+          return false;
+        }
+        if (!distrito_id) {
+          Swal.showValidationMessage('Debe seleccionar un distrito');
+          return false;
+        }
+
+        return { nombre_inmueble: nombre, direccion, distrito_id: parseInt(distrito_id) };
+      }
+    });
+
+    if (!formValues) return;
+
+    try {
+      Swal.fire({ title: 'Creando edificio...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/edificio-rapido`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`
+        },
+        body: JSON.stringify({
+          nombre_inmueble: formValues.nombre_inmueble,
+          direccion: formValues.direccion,
+          distrito_id: formValues.distrito_id,
+          propietario_id: this.formData.propietario_id
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.detail || result.message || 'Error al crear edificio');
+      }
+
+      const nuevoEdificio = result.data;
+
+      // Recargar combo y seleccionar el nuevo edificio
+      if (this.selectorEdificio) {
+        await this.selectorEdificio.reload();
+        await this.selectorEdificio.setEdificio(nuevoEdificio.registro_cab_id);
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Edificio creado',
+        text: `"${nuevoEdificio.nombre_inmueble}" creado en borrador. Puede completar sus datos despues.`,
+        confirmButtonColor: '#4CAF50',
+        timer: 3000,
+        timerProgressBar: true
+      });
+
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al crear edificio',
+        text: error.message,
+        confirmButtonColor: '#f44336'
+      });
+    }
+  }
+
+  /**
+   * Inicializar componente SelectorEdificio (Step 2 - solo si es Oficina)
    */
   async initSelectorEdificio() {
     console.log('🔧 Inicializando SelectorEdificio...');
@@ -3348,6 +3473,12 @@ class PropertyForm {
       // Inicializar y esperar a que cargue las opciones
       await this.selectorEdificio.init();
       console.log('✅ SelectorEdificio inicializado');
+
+      // Boton para crear edificio rapido
+      const btnRapido = document.getElementById('btn-edificio-rapido');
+      if (btnRapido) {
+        btnRapido.addEventListener('click', () => this.mostrarModalEdificioRapido());
+      }
 
       // ✅ Si hay un edificio padre en formData, pre-seleccionarlo AHORA
       console.log('🔍 Verificando padre_registro_cab_id:', this.formData.padre_registro_cab_id);  // ✅ DEBUG
