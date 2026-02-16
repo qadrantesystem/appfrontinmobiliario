@@ -3337,8 +3337,11 @@ class PropertyForm {
    * Crear edificio rapido desde modal SweetAlert2
    */
   async mostrarModalEdificioRapido() {
-    // Verificar que hay propietario_id capturado
-    if (!this.formData.propietario_id) {
+    // Obtener propietario_id desde campo oculto (se llena en paso 1 via AutoFillDNI)
+    const propietarioIdHidden = document.getElementById('propietario_id_hidden')?.value;
+    const propietarioId = this.formData.propietario_id || (propietarioIdHidden ? parseInt(propietarioIdHidden) : null);
+
+    if (!propietarioId) {
       Swal.fire({
         icon: 'warning',
         title: 'Propietario requerido',
@@ -3412,7 +3415,7 @@ class PropertyForm {
           nombre_inmueble: formValues.nombre_inmueble,
           direccion: formValues.direccion,
           distrito_id: formValues.distrito_id,
-          propietario_id: this.formData.propietario_id
+          propietario_id: propietarioId
         })
       });
 
