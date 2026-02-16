@@ -1199,7 +1199,7 @@ class PropertyForm {
         'propietario_telefono': this.formData.propietario_real_telefono || '',
         'propietario_email': this.formData.propietario_real_email || ''
       };
-      
+
       for (const [id, valor] of Object.entries(campos)) {
         const campo = document.getElementById(id);
         if (campo) {
@@ -1208,6 +1208,12 @@ class PropertyForm {
         } else {
           console.error(`  ❌ Campo ${id} NO ENCONTRADO en el DOM`);
         }
+      }
+
+      // Disparar busqueda DNI para que AutoFillDNI obtenga propietario_id
+      const dniValue = this.formData.propietario_real_dni;
+      if (dniValue && dniValue.length === 8 && this.autoFillDNI) {
+        this.autoFillDNI.handleDNIBlur();
       }
     } 
     else if (this.currentStep === 2) {
@@ -2646,11 +2652,21 @@ class PropertyForm {
       this.formData.propietario_real_telefono = document.getElementById('propietario_telefono')?.value || '';
       this.formData.propietario_real_email = document.getElementById('propietario_email')?.value || '';
 
-      // Guardar propietario_id desde AutoFillDNI para que persista entre pasos
-      if (this.autoFillDNI) {
-        const autoFillData = this.autoFillDNI.getFormData();
-        if (autoFillData.propietario_id) {
-          this.formData.propietario_id = autoFillData.propietario_id;
+      // Guardar propietario_id desde multiples fuentes (antes de que el DOM se destruya)
+      if (!this.formData.propietario_id) {
+        // Fuente 1: AutoFillDNI (propietarioData en memoria)
+        if (this.autoFillDNI) {
+          const propData = this.autoFillDNI.getPropietarioData();
+          if (propData && propData.propietario_id) {
+            this.formData.propietario_id = propData.propietario_id;
+          }
+        }
+      }
+      if (!this.formData.propietario_id) {
+        // Fuente 2: Campo oculto en el DOM (todavia existe en paso 1)
+        const hiddenVal = document.getElementById('propietario_id_hidden')?.value;
+        if (hiddenVal && parseInt(hiddenVal)) {
+          this.formData.propietario_id = parseInt(hiddenVal);
         }
       }
 
@@ -3346,12 +3362,10 @@ class PropertyForm {
    * Crear edificio rapido desde modal SweetAlert2
    */
   async mostrarModalEdificioRapido() {
-    // Obtener propietario_id: formData (guardado en collectStepData) o autoFillDNI (fallback)
-    let propietarioId = this.formData.propietario_id;
-    if (!propietarioId && this.autoFillDNI) {
-      const autoFillData = this.autoFillDNI.getFormData();
-      propietarioId = autoFillData.propietario_id;
-    }
+    // Obtener propietario_id de multiples fuentes
+    let propietarioId = this.formData.propietario_id
+      || (this.autoFillDNI?.getPropietarioData()?.propietario_id)
+      || null;
 
     if (!propietarioId) {
       Swal.fire({
