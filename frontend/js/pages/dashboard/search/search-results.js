@@ -246,9 +246,11 @@ class SearchResultsModule {
     // Características
     const caracteristicas = [];
     if (prop.area) caracteristicas.push(`📐 ${prop.area} m²`);
-    if (prop.habitaciones) caracteristicas.push(`🛏️ ${prop.habitaciones} hab.`);
-    if (prop.banos) caracteristicas.push(`🚿 ${prop.banos} baños`);
-    if (prop.parqueos) caracteristicas.push(`🚗 ${prop.parqueos} parqueos`);
+    if (prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) {
+      if (prop.habitaciones) caracteristicas.push(`🛏️ ${prop.habitaciones} hab.`);
+      if (prop.banos) caracteristicas.push(`🚿 ${prop.banos} baños`);
+      if (prop.estacionamientos) caracteristicas.push(`🚗 ${prop.estacionamientos} estac.`);
+    }
 
     return `
       <div class="property-card" data-property-id="${propId}">

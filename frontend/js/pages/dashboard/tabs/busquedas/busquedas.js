@@ -2436,9 +2436,11 @@ class BusquedasTab {
 
           <div class="property-features">
             ${prop.area ? `<span class="feature"><i class="fas fa-ruler-combined"></i> ${prop.area} m²</span>` : ''}
-            ${prop.dormitorios ? `<span class="feature"><i class="fas fa-bed"></i> ${prop.dormitorios} dorm.</span>` : ''}
-            ${prop.banos ? `<span class="feature"><i class="fas fa-bath"></i> ${prop.banos} baños</span>` : ''}
-            ${prop.parqueos ? `<span class="feature"><i class="fas fa-car"></i> ${prop.parqueos} parqueos</span>` : ''}
+            ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
+              ${prop.dormitorios ? `<span class="feature"><i class="fas fa-bed"></i> ${prop.dormitorios} dorm.</span>` : ''}
+              ${prop.banos ? `<span class="feature"><i class="fas fa-bath"></i> ${prop.banos} baños</span>` : ''}
+              ${prop.estacionamientos ? `<span class="feature"><i class="fas fa-car"></i> ${prop.estacionamientos} estac.</span>` : ''}
+            ` : ''}
             ${prop.antiguedad ? `<span class="feature"><i class="fas fa-clock"></i> ${prop.antiguedad} años</span>` : ''}
             ${prop.pisos ? `<span class="feature"><i class="fas fa-layer-group"></i> ${prop.pisos} pisos</span>` : ''}
             ${prop.implementacion ? `<span class="feature"><i class="fas fa-tools"></i> ${prop.implementacion}</span>` : ''}
@@ -3141,8 +3143,8 @@ class BusquedasTab {
               <td style="padding: 12px; border: 1px solid #E5E7EB;">${prop.banos || 'N/A'}</td>
             </tr>
             <tr style="background: #F9FAFB;">
-              <td style="padding: 12px; border: 1px solid #E5E7EB; font-weight: 600;">Parqueos</td>
-              <td style="padding: 12px; border: 1px solid #E5E7EB;">${prop.parqueos || '0'}</td>
+              <td style="padding: 12px; border: 1px solid #E5E7EB; font-weight: 600;">Estacionamientos</td>
+              <td style="padding: 12px; border: 1px solid #E5E7EB;">${prop.estacionamientos || '0'}</td>
               <td style="padding: 12px; border: 1px solid #E5E7EB; font-weight: 600;">Estado</td>
               <td style="padding: 12px; border: 1px solid #E5E7EB;">${prop.estado_nombre || 'N/A'}</td>
             </tr>

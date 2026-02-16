@@ -386,7 +386,11 @@ class SearchModule {
             <div class="property-price">${precio}</div>
             <div class="property-features">
               <span class="feature">📐 ${prop.area || 0} m²</span>
-              ${prop.parqueos ? `<span class="feature">🚗 ${prop.parqueos} parqueos</span>` : ''}
+              ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
+                ${prop.habitaciones ? `<span class="feature">🛏️ ${prop.habitaciones} hab.</span>` : ''}
+                ${prop.banos ? `<span class="feature">🛁 ${prop.banos} baños</span>` : ''}
+                ${prop.estacionamientos ? `<span class="feature">🚗 ${prop.estacionamientos} estac.</span>` : ''}
+              ` : ''}
               ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
               ${prop.implementacion ? `<span class="feature">🔧 ${prop.implementacion}</span>` : ''}
             </div>

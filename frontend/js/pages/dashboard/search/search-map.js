@@ -161,8 +161,10 @@ class SearchMapModule {
             <p class="popup-price">${precio}</p>
             <div class="popup-features">
               ${prop.area ? `<span>📐 ${prop.area} m²</span>` : ''}
-              ${prop.habitaciones ? `<span>🛏️ ${prop.habitaciones} hab.</span>` : ''}
-              ${prop.banos ? `<span>🚿 ${prop.banos} baños</span>` : ''}
+              ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
+                ${prop.habitaciones ? `<span>🛏️ ${prop.habitaciones} hab.</span>` : ''}
+                ${prop.banos ? `<span>🚿 ${prop.banos} baños</span>` : ''}
+              ` : ''}
             </div>
             <button class="btn btn-primary btn-sm" onclick="window.open('/propiedad/${propId}', '_blank')">
               Ver Detalles

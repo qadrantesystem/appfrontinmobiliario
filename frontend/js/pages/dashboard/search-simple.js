@@ -474,9 +474,11 @@ class SearchSimpleModule {
           <div class="property-price">${precio}</div>
           <div class="property-features">
             ${prop.area ? `<span>📐 ${prop.area} m²</span>` : ''}
-            ${prop.habitaciones ? `<span>🛏️ ${prop.habitaciones} hab.</span>` : ''}
-            ${prop.banos ? `<span>🚿 ${prop.banos} baños</span>` : ''}
-            ${prop.parqueos ? `<span>🚗 ${prop.parqueos} parqueos</span>` : ''}
+            ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
+              ${prop.habitaciones ? `<span>🛏️ ${prop.habitaciones} hab.</span>` : ''}
+              ${prop.banos ? `<span>🚿 ${prop.banos} baños</span>` : ''}
+              ${prop.estacionamientos ? `<span>🚗 ${prop.estacionamientos} estac.</span>` : ''}
+            ` : ''}
           </div>
         </div>
       </div>

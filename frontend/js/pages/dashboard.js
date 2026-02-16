@@ -1020,8 +1020,11 @@ class Dashboard {
               <div class="property-price">${precio}</div>
               <div class="property-features">
                 <span class="feature">📐 ${prop.area || 0} m²</span>
-                ${prop.banos ? `<span class="feature">🛁 ${prop.banos} baños</span>` : ''}
-                ${prop.parqueos ? `<span class="feature">🚗 ${prop.parqueos} parqueos</span>` : ''}
+                ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
+                  ${prop.habitaciones ? `<span class="feature">🛏️ ${prop.habitaciones} hab.</span>` : ''}
+                  ${prop.banos ? `<span class="feature">🛁 ${prop.banos} baños</span>` : ''}
+                  ${prop.estacionamientos ? `<span class="feature">🚗 ${prop.estacionamientos} estac.</span>` : ''}
+                ` : ''}
                 ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
               </div>
               <div class="property-stats" style="display: flex; gap: 1rem; margin: 0.5rem 0; font-size: 0.85rem; color: var(--gris-medio); align-items: center; flex-wrap: wrap;">
@@ -1404,8 +1407,11 @@ class Dashboard {
             <div class="property-price">${precio}</div>
             <div class="property-features">
               <span class="feature">📐 ${prop.area || 0} m²</span>
-              ${prop.banos ? `<span class="feature">🛁 ${prop.banos} baños</span>` : ''}
-              ${prop.parqueos ? `<span class="feature">🚗 ${prop.parqueos} parqueos</span>` : ''}
+              ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
+                ${prop.habitaciones ? `<span class="feature">🛏️ ${prop.habitaciones} hab.</span>` : ''}
+                ${prop.banos ? `<span class="feature">🛁 ${prop.banos} baños</span>` : ''}
+                ${prop.estacionamientos ? `<span class="feature">🚗 ${prop.estacionamientos} estac.</span>` : ''}
+              ` : ''}
               ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
             </div>
             <div class="property-stats" style="display: flex; gap: 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--gris-medio); align-items: center; flex-wrap: wrap;">
@@ -2040,7 +2046,7 @@ class Dashboard {
                 <div><strong>Área:</strong> ${prop.area} m²</div>
                 <div><strong>Dormitorios:</strong> ${prop.dormitorios || 0}</div>
                 <div><strong>Baños:</strong> ${prop.banos || 0}</div>
-                <div><strong>Parqueos:</strong> ${prop.parqueos || 0}</div>
+                <div><strong>Estacionamientos:</strong> ${prop.estacionamientos || 0}</div>
                 <div><strong>Estado:</strong> ${prop.estado}</div>
               </div>
               <div style="margin-bottom: var(--spacing-md);">

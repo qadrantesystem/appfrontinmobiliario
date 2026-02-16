@@ -2627,7 +2627,7 @@ class ResultadosPage {
       if (filtros.parqueos) {
         const parqueosBuscados = parseInt(filtros.parqueos);
         const margen = Math.ceil(parqueosBuscados * 0.2);
-        if (prop.parqueos < (parqueosBuscados - margen) || prop.parqueos > (parqueosBuscados + margen)) {
+        if (prop.estacionamientos < (parqueosBuscados - margen) || prop.estacionamientos > (parqueosBuscados + margen)) {
           return false;
         }
       }
@@ -2967,7 +2967,11 @@ class ResultadosPage {
           <div class="property-price">${this.renderPrecio(prop)}</div>
           <div class="property-features">
             ${prop.area ? `<span class="feature">📐 ${prop.area} m²</span>` : ''}
-            ${prop.parqueos ? `<span class="feature">🚗 ${prop.parqueos} parqueos</span>` : ''}
+            ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
+              ${prop.habitaciones ? `<span class="feature">🛏️ ${prop.habitaciones} hab.</span>` : ''}
+              ${prop.banos ? `<span class="feature">🛁 ${prop.banos} baños</span>` : ''}
+              ${prop.estacionamientos ? `<span class="feature">🚗 ${prop.estacionamientos} estac.</span>` : ''}
+            ` : ''}
             ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
             ${prop.implementacion ? `<span class="feature">🔧 ${prop.implementacion}</span>` : ''}
           </div>
