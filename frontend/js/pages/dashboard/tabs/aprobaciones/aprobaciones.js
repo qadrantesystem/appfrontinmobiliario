@@ -108,7 +108,7 @@ class AprobacionesTab {
   renderListaPendientes() {
     if (this.corredoresPendientes.length === 0) {
       return `
-        <div class="empty-state-inline">
+        <div class="aprobaciones-empty-state">
           ${this.getIcon('check-circle')}
           <span>No hay corredores pendientes — todos procesados</span>
         </div>
@@ -118,7 +118,7 @@ class AprobacionesTab {
     const cards = this.corredoresPendientes.map(corredor => this.renderCorredorCard(corredor)).join('');
 
     return `
-      <h3 class="section-title">Corredores pendientes de aprobación</h3>
+      <h3 class="aprobaciones-section-title">Corredores pendientes de aprobación</h3>
       <div class="corredores-grid">
         ${cards}
       </div>
@@ -212,7 +212,7 @@ class AprobacionesTab {
     }).join('');
 
     return `
-      <h3 class="section-title">Corredores aprobados</h3>
+      <h3 class="aprobaciones-section-title">Corredores aprobados</h3>
       <div class="tabla-aprobados-wrapper">
         <table class="corredores-aprobados-table">
           <thead>
@@ -273,6 +273,8 @@ class AprobacionesTab {
    * Modal SweetAlert2 para aprobar corredor
    */
   async mostrarModalAprobar(corredorId, nombreCorredor) {
+    const successColor = getComputedStyle(document.documentElement).getPropertyValue('--success').trim();
+
     const { value: formValues } = await Swal.fire({
       title: `Aprobar a ${nombreCorredor}`,
       html: `
@@ -291,7 +293,7 @@ class AprobacionesTab {
       showCancelButton: true,
       confirmButtonText: 'Aprobar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#28a745',
+      confirmButtonColor: successColor,
       preConfirm: () => {
         const comision = parseFloat(document.getElementById('swal-comision').value);
         const vigencia = document.getElementById('swal-vigencia').value;
@@ -318,6 +320,8 @@ class AprobacionesTab {
    * Modal SweetAlert2 para rechazar corredor
    */
   async mostrarModalRechazar(corredorId, nombreCorredor) {
+    const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
+
     const { value: motivo } = await Swal.fire({
       title: `Rechazar a ${nombreCorredor}`,
       input: 'textarea',
@@ -327,7 +331,7 @@ class AprobacionesTab {
       showCancelButton: true,
       confirmButtonText: 'Rechazar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#dc3545',
+      confirmButtonColor: dangerColor,
       inputValidator: (value) => {
         if (!value || value.trim().length < 10) {
           return 'El motivo debe tener al menos 10 caracteres';

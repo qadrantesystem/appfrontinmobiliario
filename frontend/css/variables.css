@@ -54,4 +54,21 @@
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s ease;
   --transition-slow: 0.5s ease;
+
+  /* Gradientes de estado */
+  --success-dark: #218838;
+  --warning-base: #f39c12;
+  --warning-dark: #e67e22;
+  --danger: #dc3545;
+  --danger-dark: #c82333;
+
+  /* Empty state success */
+  --success-bg-light: #f0fdf4;
+  --success-border-light: #bbf7d0;
+  --success-text-dark: #166534;
+  --success-icon: #22c55e;
+
+  /* Grises adicionales */
+  --gray-100: #f8f9fa;
+  --text-primary: #333;
 }
