@@ -34,36 +34,34 @@ class DashboardApp {
    * Inicializar aplicación
    */
   async init() {
-    console.log('🚀 Inicializando Dashboard App...');
-
-    // 1. Verificar autenticación
+    // 1. Verificar autenticacion
     if (!this.checkAuth()) {
       return;
     }
 
-    // 2. Esperar a que el header se cargue (header.js lo maneja async)
-    const headerOk = await this.waitForHeader();
+    // 2. Cargar usuario desde storage INMEDIATAMENTE (sin network)
+    this.loadCurrentUserFromStorage();
+
+    // 3. Esperar header + cargar usuario fresco EN PARALELO
+    const [headerOk] = await Promise.all([
+      this.waitForHeader(),
+      this.refreshCurrentUser()
+    ]);
+
     if (!headerOk) {
-      console.error('❌ Header no disponible, continuando sin header...');
+      console.error('❌ Header no disponible');
     }
 
-    // 3. Cargar usuario actual (solo datos, header.js muestra la UI)
-    await this.loadCurrentUser();
-
-    // 4. Inicializar módulos existentes
+    // 4. Inicializar modulos y router EN PARALELO
     this.initializeModules();
-
-    // 5. Inicializar módulos de búsqueda
-    await this.initializeSearchModules();
-
-    // 6. Inicializar router (carga tabs)
     this.router = new DashboardRouter(this);
     await this.router.init();
 
-    // 7. Iniciar gestor de inactividad
-    this.startInactivityManager();
+    // 5. Modulos de busqueda (no bloquean el render del tab)
+    this.initializeSearchModules();
 
-    console.log('✅ Dashboard App inicializado');
+    // 6. Iniciar gestor de inactividad
+    this.startInactivityManager();
   }
 
   /**
@@ -75,7 +73,7 @@ class DashboardApp {
       return true;
     }
 
-    // Esperar el Custom Event de header.js (timeout 5s)
+    // Esperar el Custom Event de header.js (timeout 2s)
     const eventFired = await new Promise((resolve) => {
       const handler = () => {
         document.removeEventListener('headerReady', handler);
@@ -85,7 +83,7 @@ class DashboardApp {
       setTimeout(() => {
         document.removeEventListener('headerReady', handler);
         resolve(false);
-      }, 5000);
+      }, 2000);
     });
 
     // Verificar que el header realmente cargo en el DOM
@@ -110,27 +108,20 @@ class DashboardApp {
   checkAuth() {
     try {
       if (!authService.isAuthenticated()) {
-        console.log('❌ No autenticado, redirigiendo al login...');
-        
         // Detener inactivity manager si existe
         if (window.inactivityManager && window.inactivityManager.isActive) {
           window.inactivityManager.stop();
         }
-        
+
         // Limpiar cualquier token residual
         try {
           localStorage.clear();
           sessionStorage.clear();
         } catch (e) {
-          console.error('Error limpiando storage:', e);
+          // silenciar
         }
-        
-        // Construir URL dinámica
-        const loginUrl = window.location.origin + '/login';
-        console.log('🔄 Redirigiendo a:', loginUrl);
-        
-        // Usar replace para evitar bucles con el botón atrás
-        window.location.replace(loginUrl);
+
+        window.location.replace(window.location.origin + '/login');
         return false;
       }
       return true;
@@ -144,46 +135,29 @@ class DashboardApp {
   }
 
   /**
-   * Cargar usuario actual
+   * Cargar usuario desde storage (sincrono, sin network)
    */
-  async loadCurrentUser() {
-    try {
-      // Obtener usuario del storage primero (rápido)
-      const storedUser = authService.getCurrentUser();
-      if (storedUser && storedUser.perfil_id) {
-        this.currentUser = storedUser;
-      }
-
-      // Luego obtener datos frescos del backend
-      const freshUser = await authService.getMyProfile();
-      if (freshUser && freshUser.perfil_id) {
-        this.currentUser = freshUser;
-      }
-
-    } catch (error) {
-      console.error('❌ Error cargando usuario:', error);
-
-      // Fallback a storage
-      const storedUser = authService.getCurrentUser();
-      if (storedUser && storedUser.perfil_id) {
-        this.currentUser = storedUser;
-      } else {
-        console.error('❌ No hay usuario válido');
-        setTimeout(() => {
-          window.location.href = 'login.html';
-        }, 2000);
-      }
+  loadCurrentUserFromStorage() {
+    const storedUser = authService.getCurrentUser();
+    if (storedUser && storedUser.perfil_id) {
+      this.currentUser = storedUser;
     }
   }
 
   /**
-   * Refresh user info (actualiza header via headerComponent)
+   * Obtener datos frescos del backend (no bloquea si falla)
    */
-  refreshUserInfo() {
-    const currentUser = JSON.parse(localStorage.getItem('current_user') || '{}');
-    if (currentUser && currentUser.usuario_id && window.headerComponent) {
-      this.currentUser = currentUser;
-      window.headerComponent.displayUserInfo(currentUser);
+  async refreshCurrentUser() {
+    try {
+      const freshUser = await authService.getMyProfile();
+      if (freshUser && freshUser.perfil_id) {
+        this.currentUser = freshUser;
+      }
+    } catch (error) {
+      console.error('❌ Error refrescando usuario:', error);
+      if (!this.currentUser || !this.currentUser.perfil_id) {
+        window.location.replace(window.location.origin + '/login');
+      }
     }
   }
 
@@ -191,24 +165,14 @@ class DashboardApp {
    * Inicializar módulos existentes (NO se mueven, solo instanciamos)
    */
   initializeModules() {
-    console.log('🔧 Inicializando módulos existentes...');
-
-    // DashboardFilters (existente)
     if (window.DashboardFilters) {
       this.filters = new DashboardFilters(this);
-      console.log('✅ DashboardFilters inicializado');
     }
-
-    // DashboardPagination (existente)
     if (window.DashboardPagination) {
       this.pagination = new DashboardPagination(this);
-      console.log('✅ DashboardPagination inicializado');
     }
-
-    // DashboardCarousel (existente)
     if (window.DashboardCarousel) {
       this.carousel = new DashboardCarousel(this);
-      console.log('✅ DashboardCarousel inicializado');
     }
   }
 
@@ -216,22 +180,16 @@ class DashboardApp {
    * Inicializar módulos de búsqueda
    */
   async initializeSearchModules() {
-    // SearchSimpleModule (existente - para usuarios normales)
     if (window.SearchSimpleModule) {
-      console.log('🔍 Inicializando SearchSimpleModule...');
       this.searchSimpleModule = new SearchSimpleModule(this);
       await this.searchSimpleModule.init();
       window.searchSimpleModule = this.searchSimpleModule;
-      console.log('✅ SearchSimpleModule inicializado');
     }
 
-    // SearchAdminModule (existente - solo para admin)
-    if (this.currentUser.perfil_id === 4 && window.SearchAdminModule) {
-      console.log('🔍 Inicializando SearchAdminModule (Admin)...');
+    if (this.currentUser && this.currentUser.perfil_id === 4 && window.SearchAdminModule) {
       this.searchAdminModule = new SearchAdminModule(this);
       await this.searchAdminModule.init();
       window.searchAdminModule = this.searchAdminModule;
-      console.log('✅ SearchAdminModule inicializado');
     }
   }
 
@@ -243,7 +201,6 @@ class DashboardApp {
   startInactivityManager() {
     if (window.inactivityManager) {
       inactivityManager.start();
-      console.log('✅ Gestor de inactividad iniciado');
     }
   }
 

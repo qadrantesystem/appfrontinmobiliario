@@ -23,9 +23,9 @@
   display: none;
 }
 
-/* Logo mas compacto en el dashboard */
-.dashboard-body .logo-img {
-  height: 36px;
+/* Ocultar divider huerfano cuando los links de nav estan ocultos */
+.dashboard-body .mobile-menu-link[data-nav="registrar"] + .mobile-menu-divider {
+  display: none;
 }
 
 /* ========================================
@@ -965,7 +965,7 @@
   }
 
   .dashboard-body .logo-img {
-    height: 30px;
+    height: 38px;
   }
 
   .dashboard-main {
@@ -1063,7 +1063,7 @@
 
 @media (max-width: 480px) {
   .dashboard-body .logo-img {
-    height: 26px;
+    height: 32px;
   }
 
   .dashboard-main {
