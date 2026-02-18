@@ -20,8 +20,8 @@ section[id] {
 }
 
 .header--scrolled {
-  background: var(--blanco);
-  box-shadow: var(--shadow-md);
+  background: linear-gradient(135deg, #0f4761 0%, #1a6b8a 100%);
+  box-shadow: 0 2px 12px rgba(15, 71, 97, 0.3);
 }
 
 .navbar {
@@ -63,7 +63,7 @@ section[id] {
 }
 
 .header--scrolled .nav-menu a {
-  color: var(--azul-corporativo);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .nav-menu a:hover,
@@ -80,9 +80,9 @@ section[id] {
 }
 
 .header--scrolled .nav-menu .btn-outline {
-  color: var(--azul-corporativo);
-  border-color: var(--azul-corporativo);
-  background: transparent;
+  color: var(--blanco);
+  border-color: #ff9700;
+  background: #ff9700;
 }
 
 .nav-menu .btn-outline:hover {
@@ -112,7 +112,7 @@ section[id] {
 }
 
 .header--scrolled .hamburger span {
-  background: var(--azul-corporativo);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .hamburger.active span:nth-child(1) {

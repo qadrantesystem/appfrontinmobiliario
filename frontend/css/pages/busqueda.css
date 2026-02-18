@@ -2,13 +2,13 @@
    HEADER (Compartido)
    =========================== */
 .header {
-  background: var(--blanco);
+  background: linear-gradient(135deg, #0f4761 0%, #1a6b8a 100%);
   padding: clamp(0.75rem, 2vw, 1.5rem) 0;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 2px 12px rgba(15, 71, 97, 0.3);
   position: sticky;
   top: 0;
   z-index: 100;
-  border-bottom: 2px solid var(--borde);
+  border-bottom: none;
 }
 
 .navbar {
@@ -36,14 +36,26 @@
 }
 
 .nav-menu a {
-  color: var(--azul-corporativo);
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
   transition: color var(--transition-fast);
 }
 
 .nav-menu a:hover,
 .nav-menu a.active {
-  color: var(--dorado);
+  color: #ffffff;
+}
+
+.nav-menu .btn-outline {
+  color: var(--blanco);
+  border-color: #ff9700;
+  background: #ff9700;
+}
+
+.nav-menu .btn-outline:hover {
+  background: var(--dorado-hover);
+  border-color: var(--dorado-hover);
+  color: var(--blanco);
 }
 
 /* ===========================
@@ -63,7 +75,7 @@
 .hamburger span {
   width: 28px;
   height: 3px;
-  background: var(--azul-corporativo);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 3px;
   transition: all 0.3s ease;
 }

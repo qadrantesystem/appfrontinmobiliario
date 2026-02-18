@@ -114,14 +114,14 @@
    HEADER RESULTADOS
    =========================== */
 .header-resultados {
-  background: var(--blanco);
-  color: var(--azul-corporativo);
+  background: linear-gradient(135deg, #0f4761 0%, #1a6b8a 100%);
+  color: rgba(255, 255, 255, 0.9);
   padding: 0.5rem clamp(0.75rem, 1.5vw, 1rem);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 2px 12px rgba(15, 71, 97, 0.3);
   position: sticky;
   top: 0;
   z-index: 100;
-  border-bottom: 2px solid var(--borde);
+  border-bottom: none;
 }
 
 .header-content {
@@ -138,7 +138,7 @@
 }
 
 .header-content h1 {
-  color: var(--azul-corporativo);
+  color: #ffffff;
   font-size: clamp(1.2rem, 3vw, 1.8rem);
   margin-bottom: clamp(0.5rem, 1vw, 0.75rem);
 }
@@ -161,11 +161,11 @@
 }
 
 .usuario-info {
-  background: var(--gris-claro);
-  color: var(--azul-corporativo);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
   padding: clamp(6px, 1.5vw, 10px) clamp(12px, 3vw, 18px);
   font-size: clamp(0.85rem, 1.5vw, 0.95rem);
-  border: 1px solid var(--borde);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   white-space: nowrap;
 }
 
@@ -1875,7 +1875,7 @@
 .hamburger span {
   width: 28px;
   height: 3px;
-  background: var(--azul-corporativo);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 3px;
   transition: all 0.3s ease;
 }

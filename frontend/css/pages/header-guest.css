@@ -1,13 +1,12 @@
 /* Header Épico y Pilim Limpio para Invitados - Qadrante */
 
 .header-guest-results {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-bottom: 1px solid #e9ecef;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, #0f4761 0%, #1a6b8a 100%);
+  border-bottom: none;
+  box-shadow: 0 2px 12px rgba(15, 71, 97, 0.3);
   position: sticky;
   top: 0;
   z-index: 1000;
-  backdrop-filter: blur(10px);
 }
 
 .header-guest-container {
@@ -44,7 +43,7 @@
 .results-counter {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--azul-corporativo, #1e3a8a);
+  color: #ffffff;
   margin: 0 0 8px 0;
   letter-spacing: -0.02em;
 }
@@ -106,26 +105,26 @@
 
 .btn-outline {
   background: transparent;
-  color: var(--azul-corporativo, #1e3a8a);
-  border: 2px solid var(--azul-corporativo, #1e3a8a);
+  color: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.4);
 }
 
 .btn-outline:hover {
-  background: var(--azul-corporativo, #1e3a8a);
-  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary {
-  background: var(--azul-corporativo, #1e3a8a);
+  background: #ff9700;
   color: white;
 }
 
 .btn-primary:hover {
-  background: var(--azul-corporativo-hover, #1e40af);
+  background: #e88700;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 151, 0, 0.4);
 }
 
 /* Animaciones */
