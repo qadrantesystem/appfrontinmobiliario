@@ -28,6 +28,11 @@
   display: none;
 }
 
+/* Logo consistente con otras paginas (home=65px, aqui=50px como punto intermedio) */
+.dashboard-body .logo-img {
+  height: 50px;
+}
+
 /* ========================================
    CONTENIDO PRINCIPAL
    ======================================== */
@@ -965,7 +970,7 @@
   }
 
   .dashboard-body .logo-img {
-    height: 38px;
+    height: 44px;
   }
 
   .dashboard-main {
@@ -1063,7 +1068,7 @@
 
 @media (max-width: 480px) {
   .dashboard-body .logo-img {
-    height: 32px;
+    height: 38px;
   }
 
   .dashboard-main {
