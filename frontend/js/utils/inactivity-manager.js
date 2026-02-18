@@ -36,7 +36,6 @@ class InactivityManager {
   start() {
     if (this.isActive) return;
 
-    console.log('🔒 Gestor de inactividad iniciado');
     this.isActive = true;
     this.lastActivity = Date.now();
     
@@ -63,7 +62,6 @@ class InactivityManager {
   stop() {
     if (!this.isActive) return;
 
-    console.log('🔒 Gestor de inactividad detenido');
     this.isActive = false;
 
     // Remover listeners con la referencia correcta
@@ -112,21 +110,14 @@ class InactivityManager {
     const inactiveSeconds = Math.floor(inactiveTime / 1000);
     const inactiveMinutes = Math.floor(inactiveSeconds / 60);
     
-    // Debug para pruebas
-    if (inactiveSeconds % 30 === 0) { // Log cada 30 segundos
-      console.log(`⏱️ Tiempo inactivo: ${inactiveMinutes}m ${inactiveSeconds % 60}s`);
-    }
-
-    // Si ya pasó el tiempo límite, cerrar sesión
+    // Si ya paso el tiempo limite, cerrar sesion
     if (inactiveTime >= this.config.timeoutTime) {
-      console.log('⏰ Tiempo límite alcanzado, cerrando sesión...');
       this.logout();
       return;
     }
 
     // Si está en tiempo de advertencia y no se ha mostrado el warning
     if (inactiveTime >= this.config.warningTime && !this.warningShown) {
-      console.log('⚠️ Tiempo de advertencia alcanzado, mostrando popup...');
       this.showWarning();
     }
   }
@@ -137,7 +128,6 @@ class InactivityManager {
   showWarning() {
     if (this.warningShown) return;
 
-    console.log('⚠️ Mostrando advertencia de inactividad');
     this.warningShown = true;
 
     // Mostrar modal
@@ -168,7 +158,6 @@ class InactivityManager {
   hideWarning() {
     if (!this.warningShown) return;
 
-    console.log('✅ Ocultando advertencia de inactividad');
     this.warningShown = false;
 
     // Ocultar modal
@@ -222,8 +211,6 @@ class InactivityManager {
    * Destruir completamente el manager
    */
   destroy() {
-    console.log('🗑️ Destruyendo inactivity manager...');
-    
     // Detener primero
     this.stop();
     
@@ -300,7 +287,6 @@ class InactivityManager {
 
     if (continueBtn && !continueBtn.hasListener) {
       continueBtn.addEventListener('click', () => {
-        console.log('✅ Usuario continuó la sesión');
         this.resetTimer();
       });
       continueBtn.hasListener = true;
@@ -308,7 +294,6 @@ class InactivityManager {
 
     if (logoutBtn && !logoutBtn.hasListener) {
       logoutBtn.addEventListener('click', () => {
-        console.log('👋 Usuario cerró sesión manualmente');
         this.logout();
       });
       logoutBtn.hasListener = true;

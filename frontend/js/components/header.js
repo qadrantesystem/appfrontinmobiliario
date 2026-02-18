@@ -154,20 +154,23 @@ class HeaderComponent {
     navLinks.forEach(link => {
       link.classList.remove('active');
 
-      // Verificar si el href coincide con la página actual
+      // Comparar pathname limpio: /dashboard → dashboard
       const href = link.getAttribute('href');
-      if (href && (href === this.currentPage || href === `./${this.currentPage}`)) {
+      if (!href) return;
+      const linkPage = href.replace(/^\//, '').replace(/\.html$/, '') || 'index';
+      if (linkPage === this.currentPage) {
         link.classList.add('active');
       }
     });
   }
 
   /**
-   * 📄 Obtener página actual
+   * Obtener pagina actual (pathname limpio)
    */
   getCurrentPage() {
+    // /dashboard → dashboard, / → index, /busqueda → busqueda
     const path = window.location.pathname;
-    const page = path.split('/').pop() || 'index.html';
+    const page = path.replace(/^\//, '').replace(/\.html$/, '') || 'index';
     return page;
   }
 
@@ -400,9 +403,10 @@ class HeaderComponent {
     mobileLinks.forEach(link => {
       link.classList.remove('active');
 
-      // Verificar si el href coincide con la página actual
       const href = link.getAttribute('href');
-      if (href && (href === this.currentPage || href === `./${this.currentPage}`)) {
+      if (!href) return;
+      const linkPage = href.replace(/^\//, '').replace(/\.html$/, '') || 'index';
+      if (linkPage === this.currentPage) {
         link.classList.add('active');
       }
     });

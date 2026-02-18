@@ -42,7 +42,10 @@ class DashboardApp {
     }
 
     // 2. Esperar a que el header se cargue (header.js lo maneja async)
-    await this.waitForHeader();
+    const headerOk = await this.waitForHeader();
+    if (!headerOk) {
+      console.error('❌ Header no disponible, continuando sin header...');
+    }
 
     // 3. Cargar usuario actual (solo datos, header.js muestra la UI)
     await this.loadCurrentUser();
@@ -67,12 +70,13 @@ class DashboardApp {
    * Esperar a que header.js dispare el evento 'headerReady'
    */
   async waitForHeader() {
-    // Si ya está cargado, continuar inmediatamente
-    if (document.querySelector('.dashboard-header') && document.getElementById('userName')) {
+    // Si ya esta cargado, continuar inmediatamente
+    if (this.isHeaderLoaded()) {
       return true;
     }
+
     // Esperar el Custom Event de header.js (timeout 5s)
-    return new Promise((resolve) => {
+    const eventFired = await new Promise((resolve) => {
       const handler = () => {
         document.removeEventListener('headerReady', handler);
         resolve(true);
@@ -83,6 +87,21 @@ class DashboardApp {
         resolve(false);
       }, 5000);
     });
+
+    // Verificar que el header realmente cargo en el DOM
+    if (!this.isHeaderLoaded()) {
+      console.error('❌ Header no se cargo correctamente');
+      return false;
+    }
+
+    return eventFired;
+  }
+
+  /**
+   * Verificar si el header esta presente en el DOM
+   */
+  isHeaderLoaded() {
+    return !!(document.querySelector('.dashboard-header') && document.getElementById('userName'));
   }
 
   /**

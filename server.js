@@ -26,9 +26,10 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Middleware para remover .html de las URLs (redirección 301)
+// Middleware para remover .html de las URLs de navegacion (redireccion 301)
+// Excluye /components/ porque header.js hace fetch() de HTML parciales
 app.use((req, res, next) => {
-  if (req.path.endsWith('.html')) {
+  if (req.path.endsWith('.html') && !req.path.startsWith('/components/')) {
     const newPath = req.path.slice(0, -5);
     return res.redirect(301, newPath);
   }

@@ -250,30 +250,55 @@ class AuthService {
                 window.inactivityManager.stop();
             }
 
-            // Destruir toda la caché del navegador (async, fire-and-forget)
-            this.destroyAllSessions();
-
             // Limpiar estado interno
             this.currentUser = null;
 
-            // Si hay mensaje, guardarlo temporalmente para mostrar en login
+            // Limpiar storage SINCRONAMENTE (antes de cualquier redirect)
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Guardar mensaje DESPUES de limpiar (para mostrarlo en login)
             if (message) {
                 try {
                     sessionStorage.setItem('logout_message', message);
                 } catch (e) {
-                    // sessionStorage ya fue limpiado, ignorar
+                    // Ignorar si sessionStorage no disponible
                 }
             }
 
+            // Limpiar cookies sincronamente
+            document.cookie.split(';').forEach(c => {
+                const name = c.split('=')[0].trim();
+                document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+            });
+
+            // Limpiar Service Workers y CacheStorage (fire-and-forget, no bloquea redirect)
+            this.limpiarCacheAsync();
+
             // Redirigir al login
-            if (window.environment && typeof environment.redirectToLogin === 'function') {
-                environment.redirectToLogin(message);
-            } else {
-                window.location.replace(window.location.origin + '/login');
-            }
+            const loginUrl = window.location.origin + '/login';
+            window.location.replace(loginUrl);
         } catch (error) {
             console.error('❌ Error durante logout:', error);
             window.location.replace(window.location.origin + '/login');
+        }
+    }
+
+    /**
+     * 🧹 Limpiar Service Workers y CacheStorage (no bloquea)
+     */
+    async limpiarCacheAsync() {
+        try {
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let reg of registrations) { await reg.unregister(); }
+            }
+            if ('caches' in window) {
+                const names = await caches.keys();
+                await Promise.all(names.map(n => caches.delete(n)));
+            }
+        } catch (e) {
+            // No bloquear el logout si esto falla
         }
     }
 

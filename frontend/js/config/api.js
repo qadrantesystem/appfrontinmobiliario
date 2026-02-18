@@ -96,15 +96,26 @@ const apiRequest = async (endpoint, options = {}) => {
     
     try {
         const response = await fetch(url, config);
+
+        // Sesion expirada: auto-logout
+        if (response.status === 401) {
+            if (window.authService && authService.isAuthenticated()) {
+                authService.logout('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+            }
+            throw new Error('Sesión expirada');
+        }
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.detail || data.message || 'Error en la petición');
         }
-        
+
         return data;
     } catch (error) {
-        console.error('API Error:', error);
+        if (error.message !== 'Sesión expirada') {
+            console.error('API Error:', error);
+        }
         throw error;
     }
 };
