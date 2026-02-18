@@ -17,20 +17,37 @@
 }
 
 /* Ocultar links de navegacion redundantes en menu movil del dashboard */
+/* !important necesario porque header.js pone inline style="display:flex" */
 .dashboard-body .mobile-menu-link[data-nav="dashboard"],
 .dashboard-body .mobile-menu-link[data-nav="busqueda"],
 .dashboard-body .mobile-menu-link[data-nav="registrar"] {
-  display: none;
+  display: none !important;
 }
 
 /* Ocultar divider huerfano cuando los links de nav estan ocultos */
 .dashboard-body .mobile-menu-link[data-nav="registrar"] + .mobile-menu-divider {
-  display: none;
+  display: none !important;
 }
 
 /* Logo consistente con otras paginas (home=65px, aqui=50px como punto intermedio) */
 .dashboard-body .logo-img {
   height: 50px;
+}
+
+/* Elementos del header mas grandes en dashboard para mejor UX */
+.dashboard-body .user-avatar {
+  width: 34px;
+  height: 34px;
+}
+
+.dashboard-body .hamburger-btn {
+  width: 34px;
+  height: 34px;
+}
+
+.dashboard-body .icon-btn {
+  width: 30px;
+  height: 30px;
 }
 
 /* ========================================
@@ -973,6 +990,16 @@
     height: 44px;
   }
 
+  .dashboard-body .user-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dashboard-body .hamburger-btn {
+    width: 32px;
+    height: 32px;
+  }
+
   .dashboard-main {
     padding: var(--spacing-md);
   }
@@ -1068,7 +1095,22 @@
 
 @media (max-width: 480px) {
   .dashboard-body .logo-img {
-    height: 38px;
+    height: 40px;
+  }
+
+  .dashboard-body .user-avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .dashboard-body .hamburger-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .dashboard-body .icon-btn {
+    width: 28px;
+    height: 28px;
   }
 
   .dashboard-main {
