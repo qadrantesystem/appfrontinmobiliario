@@ -16,6 +16,18 @@
   display: none;
 }
 
+/* Ocultar links de navegacion redundantes en menu movil del dashboard */
+.dashboard-body .mobile-menu-link[data-nav="dashboard"],
+.dashboard-body .mobile-menu-link[data-nav="busqueda"],
+.dashboard-body .mobile-menu-link[data-nav="registrar"] {
+  display: none;
+}
+
+/* Logo mas compacto en el dashboard */
+.dashboard-body .logo-img {
+  height: 36px;
+}
+
 /* ========================================
    CONTENIDO PRINCIPAL
    ======================================== */
@@ -952,6 +964,10 @@
     border-radius: 8px !important;
   }
 
+  .dashboard-body .logo-img {
+    height: 30px;
+  }
+
   .dashboard-main {
     padding: var(--spacing-md);
   }
@@ -1046,6 +1062,10 @@
 }
 
 @media (max-width: 480px) {
+  .dashboard-body .logo-img {
+    height: 26px;
+  }
+
   .dashboard-main {
     padding: 12px 8px;
   }
