@@ -40,7 +40,7 @@ class HeaderComponent {
    */
   async loadHeaderHTML() {
     try {
-      const response = await fetch('/components/header.html');
+      const response = await fetch('/components/header.html?v=2');
       if (!response.ok) {
         throw new Error('No se pudo cargar el header');
       }

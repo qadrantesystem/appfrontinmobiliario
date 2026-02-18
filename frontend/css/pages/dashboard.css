@@ -11,6 +11,11 @@
   flex-direction: column;
 }
 
+/* Ocultar nav del header en dashboard (tiene su propio sistema de tabs) */
+.dashboard-body .main-nav {
+  display: none;
+}
+
 /* ========================================
    CONTENIDO PRINCIPAL
    ======================================== */

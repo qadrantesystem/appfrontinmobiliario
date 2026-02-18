@@ -26,6 +26,15 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Componentes HTML parciales: sin cache para evitar 301 residuales
+app.use('/components', express.static(path.join(__dirname, 'frontend', 'components'), {
+  maxAge: 0,
+  etag: false,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  }
+}));
+
 // Middleware para remover .html de las URLs de navegacion (redireccion 301)
 // Excluye /components/ porque header.js hace fetch() de HTML parciales
 app.use((req, res, next) => {
