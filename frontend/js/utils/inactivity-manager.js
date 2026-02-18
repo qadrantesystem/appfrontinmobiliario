@@ -196,37 +196,25 @@ class InactivityManager {
    * Cerrar sesión por inactividad
    */
   logout() {
-    // Prevenir múltiples llamadas al logout
     if (this.isLoggingOut) return;
     this.isLoggingOut = true;
-    
-    console.log('🔒 Cerrando sesión por inactividad');
-    
-    // Detener el manager inmediatamente
+
     this.stop();
-    
-    // Limpiar TODO antes de redirigir
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    // Guardar mensaje de logout para mostrar en login
-    sessionStorage.setItem('logout_message', 'Tu sesión ha expirado por inactividad');
-    
-    // Usar el servicio de autenticación si está disponible
+
+    // Delegar al servicio de autenticación (destruye todo el cache)
     if (window.authService && typeof authService.logout === 'function') {
       try {
         authService.logout('Tu sesión ha expirado por inactividad');
       } catch (error) {
         console.error('Error en logout:', error);
-        // Fallback: redirigir directamente con ruta dinámica
-        const loginUrl = window.location.origin + '/login';
-        window.location.replace(loginUrl);
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.replace(window.location.origin + '/login');
       }
     } else {
-      // Fallback directo con ruta dinámica
-      const loginUrl = window.location.origin + '/login';
-      console.log('🔄 Redirigiendo a:', loginUrl);
-      window.location.replace(loginUrl);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace(window.location.origin + '/login');
     }
   }
 
@@ -328,15 +316,11 @@ class InactivityManager {
   }
 }
 
-// Crear instancia global
+// Crear instancia global - 5 minutos de inactividad
 const inactivityManager = new InactivityManager({
-  warningTime: 2 * 60 * 1000, // 2 minutos antes de mostrar warning (PARA PRUEBAS)
-  timeoutTime: 3 * 60 * 1000, // 3 minutos total (PARA PRUEBAS)
+  warningTime: 4 * 60 * 1000, // 4 minutos: mostrar warning
+  timeoutTime: 5 * 60 * 1000, // 5 minutos: cerrar sesión
   countdownSeconds: 60 // 60 segundos de countdown
 });
-
-// TODO: Para PRODUCCIÓN cambiar a:
-// warningTime: 29 * 60 * 1000, // 29 minutos
-// timeoutTime: 30 * 60 * 1000, // 30 minutos
 
 window.inactivityManager = inactivityManager;

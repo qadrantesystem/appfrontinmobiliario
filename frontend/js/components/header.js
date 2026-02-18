@@ -15,26 +15,18 @@ class HeaderComponent {
    */
   async init() {
     try {
-      console.log('🚀 HeaderComponent.init() - Iniciando...');
-
-      // ✅ FIX: Si el header ya existe en el DOM (hardcoded), no intentar cargarlo
+      // Si el header ya existe en el DOM, no cargarlo de nuevo
       const existingHeader = document.querySelector('.dashboard-header');
       if (!existingHeader) {
-        console.log('📥 Header no existe, cargando HTML...');
         await this.loadHeaderHTML();
-      } else {
-        console.log('✅ Header ya existe en el DOM (hardcoded), omitiendo carga');
       }
 
       // Verificar si hay sesión
       if (authService && authService.isAuthenticated()) {
-        console.log('👤 Usuario autenticado, configurando header...');
         await this.loadUserData();
         this.setupEventListeners();
         this.highlightCurrentPage();
-        console.log('✅ Header configurado completamente');
       } else {
-        console.log('⚠️ Usuario no autenticado, mostrando header público');
         this.showPublicHeader();
       }
 
@@ -48,7 +40,7 @@ class HeaderComponent {
    */
   async loadHeaderHTML() {
     try {
-      const response = await fetch('components/header.html');
+      const response = await fetch('/components/header.html');
       if (!response.ok) {
         throw new Error('No se pudo cargar el header');
       }
@@ -183,39 +175,25 @@ class HeaderComponent {
    * 🔗 Configurar event listeners
    */
   setupEventListeners() {
-    console.log('🔧 Configurando event listeners del header...');
-
-    // ✅ NUEVO: Event delegation desde document para evitar conflictos
+    // Toggle del menú de usuario (event delegation)
     document.addEventListener('click', (e) => {
-      // Toggle del menú de usuario
       const userMenuBtn = e.target.closest('#userMenuBtn');
       if (userMenuBtn) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('👆 Click en userMenuBtn detectado');
-
         const userMenu = document.querySelector('.user-menu');
-        if (userMenu) {
-          const isActive = userMenu.classList.contains('active');
-          console.log(`📍 Estado actual: ${isActive ? 'ACTIVO' : 'INACTIVO'}`);
-          userMenu.classList.toggle('active');
-          console.log(`📍 Estado nuevo: ${userMenu.classList.contains('active') ? 'ACTIVO' : 'INACTIVO'}`);
-        }
+        if (userMenu) userMenu.classList.toggle('active');
         return;
       }
 
       // Cerrar menú al hacer click fuera
       const userMenu = document.querySelector('.user-menu');
       if (userMenu && userMenu.classList.contains('active')) {
-        const clickedInsideMenu = e.target.closest('.user-menu');
-        if (!clickedInsideMenu) {
-          console.log('🔒 Cerrando menú (click fuera)');
+        if (!e.target.closest('.user-menu')) {
           userMenu.classList.remove('active');
         }
       }
     });
-
-    console.log('✅ Event delegation configurado para userMenuBtn');
 
     // 🧹 Limpiar caché al hacer click en logo/inicio
     document.addEventListener('click', async (e) => {
@@ -223,7 +201,6 @@ class HeaderComponent {
       
       if (homeLink) {
         e.preventDefault();
-        console.log('🏠 Click en Inicio detectado - limpiando caché...');
         
         // Mostrar loading
         Swal.fire({
@@ -246,7 +223,6 @@ class HeaderComponent {
       }
     });
 
-    console.log('✅ Event listener configurado para limpiar caché en inicio');
 
     // 🔥 Toggle del menú móvil acordeón
     const hamburgerBtn = document.getElementById('hamburgerBtn');
@@ -280,13 +256,58 @@ class HeaderComponent {
       this.highlightMobileMenu();
     }
 
+    // 🧹 Limpiar caché desde el menú de usuario
+    document.addEventListener('click', async (e) => {
+      const clearCacheBtn = e.target.closest('#clearCacheBtn');
+      if (clearCacheBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Cerrar dropdown
+        const userMenu = document.querySelector('.user-menu');
+        if (userMenu) userMenu.classList.remove('active');
+
+        const result = await Swal.fire({
+          title: '¿Limpiar Caché?',
+          text: 'Esto eliminará datos temporales y mejorará el rendimiento',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#2C5282',
+          cancelButtonColor: '#718096',
+          confirmButtonText: 'Sí, limpiar',
+          cancelButtonText: 'Cancelar',
+          reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: 'Limpiando caché...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => Swal.showLoading()
+          });
+
+          await authService.clearAllCache();
+
+          Swal.fire({
+            title: 'Caché limpiada',
+            text: 'Recargando página...',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          });
+
+          setTimeout(() => window.location.reload(true), 1500);
+        }
+      }
+    });
+
     // ✅ Logout con event delegation (funciona para desktop y móvil)
     document.addEventListener('click', async (e) => {
       const logoutBtn = e.target.closest('#logoutBtn, #logoutBtnMobile');
       if (logoutBtn) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🚪 Click en Cerrar Sesión detectado');
 
         // ✅ SweetAlert2 con diseño corporativo
         const result = await Swal.fire({
@@ -307,7 +328,6 @@ class HeaderComponent {
         });
 
         if (result.isConfirmed) {
-          console.log('✅ Confirmado, cerrando sesión...');
 
           // Mostrar loading mientras cierra sesión
           Swal.fire({
@@ -324,13 +344,10 @@ class HeaderComponent {
 
           // Cerrar sesión
           authService.logout();
-        } else {
-          console.log('❌ Cancelado por el usuario');
         }
       }
     });
 
-    console.log('✅ Event delegation configurado para logout (desktop + móvil)');
 
     // ✅ Mi Perfil - Abrir modal en lugar de navegar
     document.addEventListener('click', async (e) => {
@@ -338,7 +355,6 @@ class HeaderComponent {
       if (perfilLink) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('👤 Click en Mi Perfil detectado');
         
         // Cerrar dropdown menu
         const userMenu = document.querySelector('.user-menu');
@@ -364,13 +380,12 @@ class HeaderComponent {
       }
     });
 
-    console.log('✅ Event delegation configurado para Mi Perfil');
 
     // Notificaciones (placeholder)
     const notificationsBtn = document.getElementById('notificationsBtn');
     if (notificationsBtn) {
       notificationsBtn.addEventListener('click', () => {
-        console.log('🔔 Notificaciones - Próximamente');
+        // TODO: Implementar notificaciones
         // TODO: Implementar sistema de notificaciones
       });
     }
@@ -436,14 +451,12 @@ window.headerComponent = null;
 // Auto-inicializar el header cuando el DOM esté listo
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🎯 Inicializando HeaderComponent (DOMContentLoaded)...');
     window.headerComponent = new HeaderComponent();
     await window.headerComponent.init();
   });
 } else {
   // DOM ya está listo
   (async () => {
-    console.log('🎯 Inicializando HeaderComponent (DOM ready)...');
     window.headerComponent = new HeaderComponent();
     await window.headerComponent.init();
   })();

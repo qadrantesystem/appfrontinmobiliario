@@ -1041,6 +1041,14 @@
 }
 
 @media (max-width: 480px) {
+  .dashboard-main {
+    padding: 12px 8px;
+  }
+
+  .tab-content-container {
+    padding: 12px;
+  }
+
   /* 🔥 Badges de CRM más compactos en móvil */
   .property-crm-badge {
     font-size: 0.65rem;

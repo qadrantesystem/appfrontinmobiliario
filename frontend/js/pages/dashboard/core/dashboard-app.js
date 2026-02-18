@@ -7,15 +7,6 @@
 
 class DashboardApp {
   constructor() {
-    // Elementos del DOM
-    this.userName = document.getElementById('userName');
-    this.userRole = document.getElementById('userRole');
-    this.userAvatar = document.getElementById('userAvatar');
-    this.avatarInitials = document.getElementById('avatarInitials');
-    this.userMenuBtn = document.getElementById('userMenuBtn');
-    this.userMenu = document.querySelector('.user-menu');
-    this.logoutBtn = document.getElementById('logoutBtn');
-
     // Usuario actual
     this.currentUser = null;
 
@@ -50,17 +41,17 @@ class DashboardApp {
       return;
     }
 
-    // 2. Cargar usuario actual
+    // 2. Esperar a que el header se cargue (header.js lo maneja async)
+    await this.waitForHeader();
+
+    // 3. Cargar usuario actual (solo datos, header.js muestra la UI)
     await this.loadCurrentUser();
 
-    // 3. Inicializar módulos existentes
+    // 4. Inicializar módulos existentes
     this.initializeModules();
 
-    // 4. Inicializar módulos de búsqueda
+    // 5. Inicializar módulos de búsqueda
     await this.initializeSearchModules();
-
-    // 5. Setup UI
-    this.setupUI();
 
     // 6. Inicializar router (carga tabs)
     this.router = new DashboardRouter(this);
@@ -70,6 +61,22 @@ class DashboardApp {
     this.startInactivityManager();
 
     console.log('✅ Dashboard App inicializado');
+  }
+
+  /**
+   * Esperar a que el header se cargue dinámicamente
+   */
+  async waitForHeader() {
+    const maxWait = 5000;
+    const startTime = Date.now();
+    while (Date.now() - startTime < maxWait) {
+      if (document.querySelector('.dashboard-header') && document.getElementById('userName')) {
+        return true;
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    console.error('❌ Header no se cargó a tiempo');
+    return false;
   }
 
   /**
@@ -116,37 +123,25 @@ class DashboardApp {
    */
   async loadCurrentUser() {
     try {
-      console.log('👤 Cargando usuario...');
-
       // Obtener usuario del storage primero (rápido)
       const storedUser = authService.getCurrentUser();
-      console.log('👤 Usuario del storage:', storedUser);
-
       if (storedUser && storedUser.perfil_id) {
         this.currentUser = storedUser;
-        this.displayUserInfo(storedUser);
       }
 
       // Luego obtener datos frescos del backend
       const freshUser = await authService.getMyProfile();
-      console.log('👤 Usuario del backend:', freshUser);
-
       if (freshUser && freshUser.perfil_id) {
         this.currentUser = freshUser;
-        this.displayUserInfo(freshUser);
-      } else {
-        console.warn('⚠️ Usuario del backend sin perfil_id, usando storage');
       }
 
     } catch (error) {
       console.error('❌ Error cargando usuario:', error);
-      showNotification('Error al cargar datos del usuario', 'error');
 
       // Fallback a storage
       const storedUser = authService.getCurrentUser();
       if (storedUser && storedUser.perfil_id) {
         this.currentUser = storedUser;
-        this.displayUserInfo(storedUser);
       } else {
         console.error('❌ No hay usuario válido');
         setTimeout(() => {
@@ -157,75 +152,13 @@ class DashboardApp {
   }
 
   /**
-   * Mostrar información del usuario
-   */
-  displayUserInfo(user) {
-    // Nombre completo
-    const fullName = `${user.nombre} ${user.apellido}`;
-    this.userName.textContent = fullName;
-
-    // Rol/Perfil
-    const perfilId = parseInt(user.perfil_id);
-    const perfilNames = {
-      1: 'Demandante',
-      2: 'Ofertante',
-      3: 'Corredor',
-      4: 'Administrador'
-    };
-    this.userRole.textContent = perfilNames[perfilId] || 'Usuario';
-
-    // Avatar
-    this.generateAvatar(user);
-
-    // Ocultar "Mi Plan" para administradores
-    const planLink = document.getElementById('planLink');
-    if (planLink) {
-      planLink.style.display = perfilId === 4 ? 'none' : 'flex';
-    }
-  }
-
-  /**
-   * Generar avatar
-   */
-  generateAvatar(user) {
-    // Check for any type of avatar (foto_perfil, avatar_url, or avatar_local)
-    const avatarSource = user.foto_perfil || user.avatar_url || user.avatar_local;
-    
-    if (avatarSource) {
-      const img = document.createElement('img');
-      img.src = avatarSource;
-      img.alt = user.nombre || 'Usuario';
-      img.className = 'user-avatar-img';
-      this.userAvatar.innerHTML = '';
-      this.userAvatar.appendChild(img);
-    } else {
-      // Generate initials - handle missing apellido
-      const nameParts = (user.nombre || 'Usuario').split(' ');
-      let initials = '';
-      
-      if (nameParts.length > 1) {
-        // If the name has multiple parts, use first letter of first two parts
-        initials = nameParts.slice(0, 2).map(part => part.charAt(0)).join('');
-      } else if (user.apellido) {
-        // If we have apellido, use first letter of nombre and apellido
-        initials = `${(user.nombre || 'U').charAt(0)}${user.apellido.charAt(0)}`;
-      } else {
-        // Only nombre available, use first two letters
-        initials = (user.nombre || 'US').substring(0, 2);
-      }
-      
-      this.avatarInitials.textContent = initials.toUpperCase();
-    }
-  }
-
-  /**
-   * Refresh user info (can be called externally)
+   * Refresh user info (actualiza header via headerComponent)
    */
   refreshUserInfo() {
     const currentUser = JSON.parse(localStorage.getItem('current_user') || '{}');
-    if (currentUser && currentUser.usuario_id) {
+    if (currentUser && currentUser.usuario_id && window.headerComponent) {
       this.currentUser = currentUser;
-      this.displayUserInfo(currentUser);
+      window.headerComponent.displayUserInfo(currentUser);
     }
   }
 
@@ -277,52 +210,7 @@ class DashboardApp {
     }
   }
 
-  /**
-   * Setup de UI
-   */
-  setupUI() {
-    this.setupUserMenu();
-    // ❌ REMOVIDO: setupLogout() - Ahora lo maneja header.js
-    // this.setupLogout();
-  }
-
-  /**
-   * Setup de menú de usuario
-   */
-  setupUserMenu() {
-    if (!this.userMenuBtn || !this.userMenu) {
-      console.error('❌ Elementos del menú de usuario no encontrados');
-      return;
-    }
-
-    // Toggle del menú
-    this.userMenuBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isActive = this.userMenu.classList.toggle('active');
-      console.log(`${isActive ? '✅' : '❌'} Menú de usuario ${isActive ? 'abierto' : 'cerrado'}`);
-    });
-
-    // Cerrar menú al hacer click fuera
-    document.addEventListener('click', (e) => {
-      if (!this.userMenu.contains(e.target)) {
-        this.userMenu.classList.remove('active');
-      }
-    });
-
-    console.log('✅ setupUserMenu() completado');
-  }
-
-  /**
-   * Setup de logout
-   */
-  setupLogout() {
-    this.logoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
-        authService.logout();
-      }
-    });
-  }
+  // ✅ UI del header (menú usuario, logout, hamburguesa) gestionada por header.js
 
   /**
    * Iniciar gestor de inactividad

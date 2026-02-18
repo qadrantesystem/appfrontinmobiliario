@@ -250,51 +250,61 @@ class AuthService {
                 window.inactivityManager.stop();
             }
 
-            // Limpiar TODO del localStorage
-            const keysToRemove = ['access_token', 'token_type', 'current_user', 'refresh_token'];
-            keysToRemove.forEach(key => {
-                try {
-                    localStorage.removeItem(key);
-                } catch (e) {
-                    console.error(`Error removing ${key}:`, e);
-                }
-            });
-            
-            // Limpiar sessionStorage también
-            try {
-                sessionStorage.clear();
-            } catch (e) {
-                console.error('Error clearing sessionStorage:', e);
-            }
-            
+            // Destruir toda la caché del navegador (async, fire-and-forget)
+            this.destroyAllSessions();
+
             // Limpiar estado interno
             this.currentUser = null;
-            
+
             // Si hay mensaje, guardarlo temporalmente para mostrar en login
             if (message) {
                 try {
                     sessionStorage.setItem('logout_message', message);
                 } catch (e) {
-                    console.error('Error saving logout message:', e);
+                    // sessionStorage ya fue limpiado, ignorar
                 }
             }
-            
-            // Usar el helper de ambiente si está disponible
+
+            // Redirigir al login
             if (window.environment && typeof environment.redirectToLogin === 'function') {
                 environment.redirectToLogin(message);
             } else {
-                // Fallback: construir URL manualmente
-                const origin = window.location.origin;
-                const loginPath = '/login';
-                const loginUrl = origin + loginPath;
-
-                window.location.replace(loginUrl);
+                window.location.replace(window.location.origin + '/login');
             }
         } catch (error) {
             console.error('❌ Error durante logout:', error);
-            // Forzar redirección aunque haya errores
-            const fallbackUrl = window.location.origin + '/login';
-            window.location.replace(fallbackUrl);
+            window.location.replace(window.location.origin + '/login');
+        }
+    }
+
+    /**
+     * 🧹 Destruir TODAS las sesiones y caché del navegador
+     */
+    async destroyAllSessions() {
+        try {
+            // 1. Service Workers
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let reg of registrations) {
+                    await reg.unregister();
+                }
+            }
+            // 2. Cache Storage
+            if ('caches' in window) {
+                const names = await caches.keys();
+                await Promise.all(names.map(n => caches.delete(n)));
+            }
+            // 3. localStorage
+            localStorage.clear();
+            // 4. sessionStorage
+            sessionStorage.clear();
+            // 5. Cookies
+            document.cookie.split(';').forEach(c => {
+                const name = c.split('=')[0].trim();
+                document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+            });
+        } catch (error) {
+            console.error('❌ Error destruyendo sesiones:', error);
         }
     }
 
