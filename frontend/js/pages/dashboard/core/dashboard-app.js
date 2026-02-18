@@ -64,19 +64,25 @@ class DashboardApp {
   }
 
   /**
-   * Esperar a que el header se cargue dinámicamente
+   * Esperar a que header.js dispare el evento 'headerReady'
    */
   async waitForHeader() {
-    const maxWait = 5000;
-    const startTime = Date.now();
-    while (Date.now() - startTime < maxWait) {
-      if (document.querySelector('.dashboard-header') && document.getElementById('userName')) {
-        return true;
-      }
-      await new Promise(resolve => setTimeout(resolve, 100));
+    // Si ya está cargado, continuar inmediatamente
+    if (document.querySelector('.dashboard-header') && document.getElementById('userName')) {
+      return true;
     }
-    console.error('❌ Header no se cargó a tiempo');
-    return false;
+    // Esperar el Custom Event de header.js (timeout 5s)
+    return new Promise((resolve) => {
+      const handler = () => {
+        document.removeEventListener('headerReady', handler);
+        resolve(true);
+      };
+      document.addEventListener('headerReady', handler);
+      setTimeout(() => {
+        document.removeEventListener('headerReady', handler);
+        resolve(false);
+      }, 5000);
+    });
   }
 
   /**

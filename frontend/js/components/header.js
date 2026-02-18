@@ -445,19 +445,19 @@ class HeaderComponent {
   }
 }
 
-// ✅ Crear instancia global del header
+// Crear instancia global del header
 window.headerComponent = null;
 
-// Auto-inicializar el header cuando el DOM esté listo
+// Auto-inicializar y notificar cuando esté listo
+async function initHeader() {
+  window.headerComponent = new HeaderComponent();
+  await window.headerComponent.init();
+  // Notificar a otros módulos que el header está listo
+  document.dispatchEvent(new CustomEvent('headerReady'));
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', async () => {
-    window.headerComponent = new HeaderComponent();
-    await window.headerComponent.init();
-  });
+  document.addEventListener('DOMContentLoaded', initHeader);
 } else {
-  // DOM ya está listo
-  (async () => {
-    window.headerComponent = new HeaderComponent();
-    await window.headerComponent.init();
-  })();
+  initHeader();
 }
