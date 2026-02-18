@@ -1000,6 +1000,34 @@
     height: 32px;
   }
 
+  /* --- Tab Headers Compactos (transversal a todos los tabs) --- */
+  .propiedades-header > div[style],
+  .busquedas-header > div[style],
+  .favoritos-header,
+  .suscripciones-header,
+  .tab-header {
+    margin-bottom: 12px !important;
+  }
+
+  .propiedades-header h2,
+  .favoritos-header h2,
+  .busquedas-header h2,
+  .suscripciones-header h2,
+  .suscripciones-title,
+  .tab-header h2,
+  .dashboard-hero h1 {
+    font-size: 1.1rem !important;
+    margin-bottom: 0 !important;
+  }
+
+  .propiedades-header .btn,
+  .busquedas-header .btn,
+  .tab-header .btn {
+    padding: 6px 12px !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap;
+  }
+
   .dashboard-main {
     padding: var(--spacing-md);
   }
@@ -1111,6 +1139,30 @@
   .dashboard-body .icon-btn {
     width: 28px;
     height: 28px;
+  }
+
+  /* --- Tab Headers ultra-compactos --- */
+  .propiedades-header > div[style],
+  .busquedas-header > div[style] {
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .propiedades-header h2,
+  .favoritos-header h2,
+  .busquedas-header h2,
+  .suscripciones-header h2,
+  .suscripciones-title,
+  .tab-header h2,
+  .dashboard-hero h1 {
+    font-size: 1rem !important;
+  }
+
+  .propiedades-header .btn,
+  .busquedas-header .btn,
+  .tab-header .btn {
+    padding: 5px 10px !important;
+    font-size: 0.75rem !important;
   }
 
   .dashboard-main {

@@ -354,16 +354,20 @@ class HeaderComponent {
 
     // ✅ Mi Perfil - Abrir modal en lugar de navegar
     document.addEventListener('click', async (e) => {
-      const perfilLink = e.target.closest('#perfilLink');
+      const perfilLink = e.target.closest('#perfilLink, #perfilLinkMobile');
       if (perfilLink) {
         e.preventDefault();
         e.stopPropagation();
-        
-        // Cerrar dropdown menu
+
+        // Cerrar dropdown menu y menu movil
         const userMenu = document.querySelector('.user-menu');
         if (userMenu) {
           userMenu.classList.remove('active');
         }
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (hamburgerBtn) hamburgerBtn.classList.remove('active');
+        if (mobileMenu) mobileMenu.classList.remove('active');
         
         // Abrir modal de perfil
         try {
