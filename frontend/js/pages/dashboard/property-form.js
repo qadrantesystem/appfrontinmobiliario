@@ -814,7 +814,7 @@ class PropertyForm {
     if (!response.ok) return;
 
     const result = await response.json();
-    const pisos = result.data || [];
+    const pisos = Array.isArray(result) ? result : (result.data || []);
 
     if (pisos.length > 0) {
       this.formData.pisos = pisos.map(p => ({
