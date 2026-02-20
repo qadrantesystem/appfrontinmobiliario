@@ -64,39 +64,39 @@ class MaintenanceService {
    * Listar todos los tipos de inmueble
    */
   async getTiposInmueble() {
-    return await this.request('/tipos-inmueble', 'GET', null, false);
+    return await this.request('/admin/tipos-inmueble', 'GET', null, true);
   }
 
   /**
-   * Listar tipos de inmueble con paginación
+   * Listar tipos de inmueble con paginación (admin: ve todos, activos e inactivos)
    */
   async getTiposInmueblePaginado(page = 1, pageSize = 5, search = '') {
-    let url = `/tipos-inmueble/paginado?page=${page}&page_size=${pageSize}`;
+    let url = `/admin/tipos-inmueble/paginado?page=${page}&page_size=${pageSize}`;
     if (search) {
       url += `&search=${encodeURIComponent(search)}`;
     }
-    return await this.request(url, 'GET', null, false);
+    return await this.request(url, 'GET', null, true);
   }
 
   /**
    * Crear tipo de inmueble
    */
   async createTipoInmueble(data) {
-    return await this.request('/tipos-inmueble', 'POST', data, true);
+    return await this.request('/admin/tipos-inmueble', 'POST', data, true);
   }
 
   /**
    * Actualizar tipo de inmueble
    */
   async updateTipoInmueble(id, data) {
-    return await this.request(`/tipos-inmueble/${id}`, 'PUT', data, true);
+    return await this.request(`/admin/tipos-inmueble/${id}`, 'PUT', data, true);
   }
 
   /**
-   * Eliminar tipo de inmueble
+   * Eliminar (desactivar) tipo de inmueble
    */
   async deleteTipoInmueble(id) {
-    return await this.request(`/tipos-inmueble/${id}`, 'DELETE', null, true);
+    return await this.request(`/admin/tipos-inmueble/${id}`, 'DELETE', null, true);
   }
 
   // ==========================================

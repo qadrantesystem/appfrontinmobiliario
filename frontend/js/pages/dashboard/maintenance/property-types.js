@@ -118,9 +118,9 @@ class PropertyTypesModule {
   async deleteItem(id) {
     const i = this.data.find(x => x.tipo_inmueble_id === id);
     if (!i) return;
-    const r = await Swal.fire({ title: '¿Eliminar?', text: `Se eliminará "${i.nombre}"`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Sí', cancelButtonText: 'No' });
+    const r = await Swal.fire({ title: '¿Desactivar?', text: `Se desactivará "${i.nombre}" y no aparecerá en formularios`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Sí, desactivar', cancelButtonText: 'Cancelar' });
     if (r.isConfirmed) {
-      try { await maintenanceService.deleteTipoInmueble(id); Swal.fire({ icon: 'success', title: 'Eliminado', timer: 2000, showConfirmButton: false }); await this.refreshTable(); } catch(err) { Swal.fire({ icon: 'error', title: 'Error', text: err.message }); }
+      try { await maintenanceService.deleteTipoInmueble(id); Swal.fire({ icon: 'success', title: 'Desactivado', timer: 2000, showConfirmButton: false }); await this.refreshTable(); } catch(err) { Swal.fire({ icon: 'error', title: 'Error', text: err.message }); }
     }
   }
 }
