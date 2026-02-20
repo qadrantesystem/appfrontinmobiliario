@@ -107,26 +107,7 @@ class PropertyForm {
       this.tiposInmuebles = tiposData.data || tiposData || [];
       this.distritos = distritosData.data || distritosData || [];
       
-      // ✅ Orden personalizado de tipos de inmueble (prioriza edificios completos antes que unidades)
-      const getTipoPriority = (tipo) => {
-        const nombre = (tipo?.nombre || '').toLowerCase();
-        if (nombre.includes('edificio') && nombre.includes('oficina') && nombre.includes('completo')) return 1;
-        if (nombre.includes('edificio') && nombre.includes('departamento') && nombre.includes('completo')) return 2;
-        if (nombre.includes('condominio')) return 3;
-        if (nombre.includes('oficina')) return 4;
-        if (nombre.includes('departamento')) return 5;
-        if (nombre.includes('casa')) return 6;
-        return 9;
-      };
-
-      this.tiposInmuebles.sort((a, b) => {
-        const prioDiff = getTipoPriority(a) - getTipoPriority(b);
-        if (prioDiff !== 0) return prioDiff;
-        const ordenA = a.orden || 999;
-        const ordenB = b.orden || 999;
-        if (ordenA !== ordenB) return ordenA - ordenB;
-        return (a.nombre || '').localeCompare(b.nombre || '');
-      });
+      // Respetar orden del backend (campo "orden" en tipo_inmueble_mae)
       
       console.log('✅ Catálogos cargados correctamente:', {
         totalTipos: this.tiposInmuebles.length,
