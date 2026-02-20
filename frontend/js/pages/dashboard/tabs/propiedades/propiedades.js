@@ -337,8 +337,15 @@ class PropiedadesTab {
                   Publicar
                 </button>
               ` : ''}
-              ${this.app.currentUser?.perfil_id === 4 ? `
-                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}">Asignar</button>
+              ${this.app.currentUser?.perfil_id === 4 && !prop.corredor_asignado_id ? `
+                <button class="btn-admin btn-asignar-corredor" data-assign-broker="${prop.registro_cab_id}">
+                  <i class="fas fa-user-tie"></i> Asignar Corredor
+                </button>
+              ` : ''}
+              ${this.app.currentUser?.perfil_id === 4 && prop.corredor_asignado_id ? `
+                <span class="btn-admin" style="background: var(--azul-corporativo); color: white; cursor: default; font-size: 0.7rem;">
+                  <i class="fas fa-user-tie"></i> Corredor #${prop.corredor_asignado_id}
+                </span>
               ` : ''}
             </div>
           </div>

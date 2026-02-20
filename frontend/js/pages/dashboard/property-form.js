@@ -34,7 +34,8 @@ class PropertyForm {
       descripcion: '',
       imagen_principal: null,
       imagenes_galeria: [],
-      caracteristicas: []
+      caracteristicas: [],
+      pisos: []
     };
 
     // 🆕 Componentes reutilizables
@@ -375,9 +376,12 @@ class PropertyForm {
         
         // 🆕 Oficinas existentes (para edificios completos)
         oficinasExistentes: prop.oficinas || [],
-        
+
         // 🆕 IMPORTANTE: Inicializar oficinasSeleccionadas vacío (se llenará en renderStep4)
-        oficinasSeleccionadas: []
+        oficinasSeleccionadas: [],
+
+        // Pisos configurados (se cargaran desde la API si existen)
+        pisos: []
       };
       
       console.log('✅ formData MAPEADO:', this.formData);
@@ -403,12 +407,19 @@ class PropertyForm {
         console.log('🏢 Detectado Edificio Completo en modo editar:', nombreTipo);
         console.log('📦 Oficinas ya en respuesta:', tieneOficinasEnRespuesta);
         console.log('📊 Cantidad de oficinas:', prop.oficinas?.length || 0);
-        
+
         // ✅ SIEMPRE cargar oficinas para construir edificioConfig
         try {
           await this.loadOficinasEdificio(this.propId);
         } catch (error) {
           console.error('⚠️ Error cargando oficinas:', error);
+        }
+
+        // Cargar pisos configurados del edificio
+        try {
+          await this.loadPisosEdificio(this.propId);
+        } catch (error) {
+          // Endpoint puede no existir aun
         }
       }
       
@@ -788,6 +799,29 @@ class PropertyForm {
       // No bloquear la edición si falla la carga de oficinas
       // El usuario podrá reconfigurar en Step 4
       showNotification('⚠️ No se pudieron cargar las oficinas. Reconfigura en el Paso 4', 'warning');
+    }
+  }
+
+  /**
+   * Cargar pisos configurados del edificio desde la API
+   */
+  async loadPisosEdificio(edificioId) {
+    const token = authService.getToken();
+    const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${edificioId}/pisos`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) return;
+
+    const result = await response.json();
+    const pisos = result.data || [];
+
+    if (pisos.length > 0) {
+      this.formData.pisos = pisos.map(p => ({
+        numero_piso: p.numero_piso,
+        tipo_uso: p.tipo_uso,
+        area_comercializable: parseFloat(p.area_comercializable) || 0
+      }));
     }
   }
 
@@ -1847,6 +1881,15 @@ class PropertyForm {
               >
                 🔧 Equipar
               </button>
+              <button
+                type="button"
+                id="btn-pisos"
+                class="btn-secondary"
+                title="Configurar tipo de uso y metraje por piso"
+                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: #6366f1; color: white; border: none; border-radius: 8px;"
+              >
+                <i class="fas fa-layer-group"></i> Pisos
+              </button>
             </div>
 
             <!-- Edificio clickeable con borde -->
@@ -2481,6 +2524,11 @@ class PropertyForm {
       const numerosOficinas = Array.from(oficinasSeleccionadas).map(el => el.dataset.oficinaId);
 
       this.mostrarModalEquipamiento(numerosOficinas);
+    });
+
+    // 🆕 BOTON PISOS (Paso 4)
+    document.getElementById('btn-pisos')?.addEventListener('click', () => {
+      this.mostrarConfigPisos();
     });
 
     // 🆕 STEP 4: Inputs dinámicos de oficinas por piso (si existe la torre)
@@ -5274,6 +5322,172 @@ class PropertyForm {
   }
 
   /**
+   * Configurar pisos del edificio: tipo de uso y metraje comercializable por piso
+   */
+  mostrarConfigPisos() {
+    const cantidadPisos = parseInt(this.getCaracteristicaValor(110)) || 0;
+    const cantidadSotanos = parseInt(this.getCaracteristicaValor(121)) || 0;
+
+    if (!cantidadPisos) {
+      showNotification('Completa "Cantidad de Pisos" en el Paso 3 antes de configurar pisos', 'warning');
+      return;
+    }
+
+    // Recuperar datos previos si existen
+    const pisosGuardados = this.formData.pisos || [];
+
+    const obtenerDatoGuardado = (numPiso, campo, valorDefault) => {
+      const guardado = pisosGuardados.find(p => p.numero_piso === numPiso);
+      return guardado ? guardado[campo] : valorDefault;
+    };
+
+    const startFloor = -(cantidadSotanos || 0);
+    const endFloor = cantidadPisos;
+
+    let rowsHtml = '';
+    for (let piso = startFloor; piso <= endFloor; piso++) {
+      const defaultTipo = piso < 0 ? 'estacionamiento' : piso === 0 ? 'lobby' : 'oficinas';
+      const tipoGuardado = obtenerDatoGuardado(piso, 'tipo_uso', defaultTipo);
+      const metrajeGuardado = obtenerDatoGuardado(piso, 'area_comercializable', '');
+
+      let etiquetaPiso;
+      if (piso < 0) etiquetaPiso = 'Sotano ' + Math.abs(piso);
+      else if (piso === 0) etiquetaPiso = 'Planta Baja';
+      else etiquetaPiso = 'Piso ' + piso;
+
+      const opciones = [
+        { value: 'oficinas', label: 'Oficinas' },
+        { value: 'comercial', label: 'Comercial' },
+        { value: 'estacionamiento', label: 'Estacionamiento' },
+        { value: 'mixto', label: 'Mixto' },
+        { value: 'lobby', label: 'Lobby' },
+        { value: 'azotea', label: 'Azotea' }
+      ];
+
+      const selectOptions = opciones.map(o =>
+        `<option value="${o.value}" ${tipoGuardado === o.value ? 'selected' : ''}>${o.label}</option>`
+      ).join('');
+
+      // Calcular metraje disponible: suma de metrajes de oficinas en este piso
+      const oficinasEnPiso = (this.formData.edificioConfig?.oficinas || [])
+        .filter(o => parseInt(o.piso) === piso);
+      const metrajeOficinas = oficinasEnPiso.reduce((sum, o) => sum + (parseFloat(o.area) || 0), 0);
+      const tooltipTexto = metrajeOficinas > 0
+        ? `${oficinasEnPiso.length} oficina(s), ${metrajeOficinas.toFixed(2)} m2 asignados`
+        : 'Sin oficinas configuradas';
+
+      rowsHtml += `
+        <tr data-piso="${piso}">
+          <td style="padding: 8px 12px; font-weight: 600; color: var(--azul-corporativo); white-space: nowrap;">${etiquetaPiso}</td>
+          <td style="padding: 8px;">
+            <select class="piso-tipo-uso" data-piso="${piso}"
+              style="width: 100%; padding: 8px 10px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.85rem; background: white;">
+              ${selectOptions}
+            </select>
+          </td>
+          <td style="padding: 8px;">
+            <input type="number" class="piso-metraje" data-piso="${piso}"
+              value="${metrajeGuardado}" placeholder="0.00" step="0.01" min="0"
+              style="width: 100%; padding: 8px 10px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.85rem; text-align: right;">
+          </td>
+          <td style="padding: 8px; text-align: center;">
+            <span title="${tooltipTexto}" style="cursor: help; font-size: 0.8rem; color: var(--gris-medio);">
+              ${metrajeOficinas > 0 ? metrajeOficinas.toFixed(0) + ' m2' : '-'}
+            </span>
+          </td>
+        </tr>
+      `;
+    }
+
+    const html = `
+      <div id="modal-pisos" style="
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.7); display: flex; align-items: center;
+        justify-content: center; z-index: 9999;
+      ">
+        <div style="
+          background: white; border-radius: 12px; width: 90%; max-width: 600px;
+          max-height: 90vh; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        ">
+          <div style="
+            background: linear-gradient(135deg, #6366f1, #818cf8);
+            color: white; padding: 12px var(--spacing-md);
+            display: flex; justify-content: space-between; align-items: center;
+          ">
+            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: white;">
+              <i class="fas fa-layer-group"></i> Configurar Pisos
+            </h3>
+            <button id="btn-cerrar-pisos" style="
+              background: transparent; border: none; color: white;
+              font-size: 1.5rem; cursor: pointer; padding: 0; width: 32px; height: 32px;
+            "><i class="fas fa-times"></i></button>
+          </div>
+          <div style="padding: var(--spacing-md); overflow-y: auto; max-height: calc(90vh - 120px);">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background: var(--fondo-gris); border-bottom: 2px solid var(--borde);">
+                  <th style="padding: 10px 12px; text-align: left; font-size: 0.85rem; color: var(--azul-corporativo);">Piso</th>
+                  <th style="padding: 10px 12px; text-align: left; font-size: 0.85rem; color: var(--azul-corporativo);">Tipo de Uso</th>
+                  <th style="padding: 10px 12px; text-align: left; font-size: 0.85rem; color: var(--azul-corporativo);">Metraje Comercializable (m2)</th>
+                  <th style="padding: 10px 12px; text-align: center; font-size: 0.85rem; color: var(--azul-corporativo);" title="Metraje asignado a oficinas en este piso">Disponible</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </div>
+          <div style="padding: 12px var(--spacing-md); border-top: 1px solid var(--borde); display: flex; justify-content: flex-end; gap: 8px;">
+            <button id="btn-cancelar-pisos" style="
+              padding: 10px 20px; border: 2px solid var(--borde); background: white;
+              border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--gris-medio);
+            ">Cancelar</button>
+            <button id="btn-guardar-pisos" style="
+              padding: 10px 20px; background: #6366f1; color: white; border: none;
+              border-radius: 8px; cursor: pointer; font-weight: 600;
+            ">Guardar Pisos</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    // Cerrar modal
+    const cerrarModal = () => {
+      document.getElementById('modal-pisos')?.remove();
+    };
+
+    document.getElementById('btn-cerrar-pisos').addEventListener('click', cerrarModal);
+    document.getElementById('btn-cancelar-pisos').addEventListener('click', cerrarModal);
+
+    // Guardar datos
+    document.getElementById('btn-guardar-pisos').addEventListener('click', () => {
+      this.formData.pisos = this.recopilarDatosPisos();
+      showNotification('Configuracion de pisos guardada', 'success');
+      cerrarModal();
+    });
+  }
+
+  /**
+   * Recopilar datos de la tabla de pisos
+   */
+  recopilarDatosPisos() {
+    const pisos = [];
+    document.querySelectorAll('#modal-pisos tbody tr').forEach(row => {
+      const numeroPiso = parseInt(row.dataset.piso);
+      const tipoUso = row.querySelector('.piso-tipo-uso').value;
+      const metraje = parseFloat(row.querySelector('.piso-metraje').value) || 0;
+      pisos.push({
+        numero_piso: numeroPiso,
+        tipo_uso: tipoUso,
+        area_comercializable: metraje
+      });
+    });
+    return pisos;
+  }
+
+  /**
    * 🅿️ NUEVO: Renderizar sótanos COMPACTO
    * Input de parqueos DENTRO del rectángulo del sótano
    */
@@ -5490,10 +5704,17 @@ class PropertyForm {
       });
     }
     
+    const pisosConfig = (this.formData.pisos || []).map(p => ({
+      numero_piso: p.numero_piso,
+      tipo_uso: p.tipo_uso,
+      area_comercializable: p.area_comercializable || 0
+    }));
+
     const edificioCompleto = {
       edificio: edificio,
       oficinas: oficinas,
       sotanos: sotanos,
+      pisos: pisosConfig,
       oficinas_para_eliminar: this.formData.oficinasParaEliminar || []  // 🗑️ IDs de oficinas a eliminar
     };
 
@@ -5609,11 +5830,19 @@ class PropertyForm {
         parqueos: sotano.parqueos
       }));
 
-      // 4️⃣ Armar JSON ÉPICO
+      // 4️⃣ Pisos configurados (tipo de uso y metraje comercializable)
+      const pisosData = (this.formData.pisos || []).map(p => ({
+        numero_piso: p.numero_piso,
+        tipo_uso: p.tipo_uso,
+        area_comercializable: p.area_comercializable || 0
+      }));
+
+      // 5️⃣ Armar JSON ÉPICO
       const edificioCompletoJson = {
         edificio: edificioData,
         oficinas: oficinasData,
-        sotanos: sotanosData
+        sotanos: sotanosData,
+        pisos: pisosData
       };
 
       console.log('📊 EDIFICIO:');
