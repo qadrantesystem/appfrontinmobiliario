@@ -1657,13 +1657,13 @@ class PropertyForm {
         <div class="datos-basicos-grid" style="display: grid; grid-template-columns: 150px 150px 1fr; gap: var(--spacing-sm);">
           ${this.renderInputCompact('area', 'Área (m²)', 'number', true, '120', { step: '0.01', min: '1' })}
           ${this.renderInputCompact('antiguedad', 'Años de Antigüedad', 'number', false, '5', { min: '0' })}
-          ${this.renderSelectCompact('implementacion', 'Implementación', [
+          ${![12, 13].includes(parseInt(this.formData.tipo_inmueble_id)) ? this.renderSelectCompact('implementacion', 'Implementación', [
             { value: '', label: 'Seleccionar...' },
             { value: '1', label: 'Sin implementar' },
             { value: '2', label: 'Semi implementado' },
             { value: '3', label: 'Implementado' },
             { value: '4', label: 'Totalmente implementado' }
-          ], false)}
+          ], false) : ''}
         </div>
         <p style="color: var(--gris-medio); margin-top: var(--spacing-sm); font-size: 0.85rem;">
           ℹ️ Habitaciones, baños y parqueos se agregan en "Características Adicionales" abajo
@@ -1870,6 +1870,15 @@ class PropertyForm {
                 style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: #6366f1; color: white; border: none; border-radius: 8px;"
               >
                 <i class="fas fa-layer-group"></i> Pisos
+              </button>
+              <button
+                type="button"
+                id="btn-datos-oficina"
+                class="btn-secondary"
+                title="Datos de alquiler/ocupación de oficinas seleccionadas"
+                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: #059669; color: white; border: none; border-radius: 8px;"
+              >
+                <i class="fas fa-file-contract"></i> Ocupación
               </button>
             </div>
 
@@ -2510,6 +2519,17 @@ class PropertyForm {
     // 🆕 BOTON PISOS (Paso 4)
     document.getElementById('btn-pisos')?.addEventListener('click', () => {
       this.mostrarConfigPisos();
+    });
+
+    // 🆕 BOTON DATOS OFICINA/OCUPACION (Paso 4)
+    document.getElementById('btn-datos-oficina')?.addEventListener('click', () => {
+      const oficinasSeleccionadas = document.querySelectorAll('.oficina-seleccionable.selected');
+      if (oficinasSeleccionadas.length === 0) {
+        showNotification('Primero selecciona las oficinas para configurar datos de ocupación', 'warning');
+        return;
+      }
+      const numerosOficinas = Array.from(oficinasSeleccionadas).map(el => el.dataset.oficinaId);
+      this.mostrarModalDatosOficina(numerosOficinas);
     });
 
     // 🆕 STEP 4: Inputs dinámicos de oficinas por piso (si existe la torre)
@@ -3308,13 +3328,6 @@ class PropertyForm {
       }
 
       const result = await response.json();
-      
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('📥 RESPUESTA DEL SERVIDOR:');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('Status:', response.status);
-      console.log('Respuesta completa:', JSON.stringify(result, null, 2));
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       // ⚠️ MANEJO DE TOKEN EXPIRADO (401)
       if (response.status === 401) {
@@ -3339,12 +3352,6 @@ class PropertyForm {
 
       // 🏢 Si fue Edificio Completo, mostrar estadísticas
       if (!isEdit && esEdificioCompleto && result.data && result.data.oficinas) {
-        console.log('🏢 Estadísticas del Edificio Creado:');
-        console.log(`📊 Total oficinas: ${result.data.total_oficinas}`);
-        console.log(`🅿️ Total sótanos: ${result.data.total_sotanos}`);
-        console.log(`🚗 Total parqueos: ${result.data.total_parqueos}`);
-        
-        // Mostrar notificación detallada
         setTimeout(() => {
           showNotification(
             `🏢 Edificio creado: ${result.data.total_oficinas} oficinas, ${result.data.total_sotanos} sótanos`,
@@ -3372,8 +3379,6 @@ class PropertyForm {
    * 🆕 Inicializar componente AutoFillDNI (Step 1)
    */
   initAutoFillDNI() {
-    console.log('🔧 Inicializando AutoFillDNI...');
-
     if (!this.autoFillDNI) {
       this.autoFillDNI = new AutoFillDNI(
         '#propietario_dni',
@@ -3953,7 +3958,6 @@ class PropertyForm {
         if (oficina.classList.contains('selected')) {
           oficina.style.background = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)';
           oficina.style.transform = 'scale(1.05)';
-          console.log(`🎯 Oficina ${oficinaId} SELECCIONADA para equipar`);
         } else {
           // Restaurar color original según tipo
           const esNueva = oficina.classList.contains('oficina-nueva');
@@ -3970,7 +3974,6 @@ class PropertyForm {
             oficina.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
           }
           oficina.style.transform = 'scale(1)';
-          console.log(`🎯 Oficina ${oficinaId} DESELECCIONADA`);
         }
       });
     });
@@ -4052,14 +4055,6 @@ class PropertyForm {
    */
   renderTorreClickeable(pisos, oficinasPorPiso, sotanos) {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🏗️ RENDERIZANDO TORRE CLICKEABLE');
-    console.log('  Pisos (teórico):', pisos);
-    console.log('  Oficinas por piso (teórico):', oficinasPorPiso);
-    console.log('  Oficinas existentes (DB):', this.formData.oficinasExistentes?.length || 0);
-    console.log('  Oficinas seleccionadas:', this.formData.oficinasSeleccionadas?.length || 0);
-    console.log('  Modo:', this.propId ? 'EDICIÓN' : 'CREACIÓN');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
     let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
 
     // 🆕 MODO EDICIÓN: Usar oficinas REALES agrupadas por piso
@@ -4359,10 +4354,6 @@ class PropertyForm {
           );
           const estaSeleccionada = !!oficinaExistente;
 
-          if (estaSeleccionada) {
-            console.log(`  ✅ Oficina ${oficinaNum} encontrada en seleccionadas:`, oficinaExistente);
-          }
-
           html += `
             <div
               class="oficina-seleccionable ${estaSeleccionada ? 'selected' : ''}"
@@ -4394,17 +4385,6 @@ class PropertyForm {
                 ? `Oficina ${oficinaNum} - ${oficinaExistente?.area || 50}m² - Estado: ${oficinaExistente?.estado || 'borrador'}`
                 : `Seleccionar Oficina ${oficinaNum}`
               }"
-              onclick="
-                this.classList.toggle('selected');
-                if (this.classList.contains('selected')) {
-                  this.style.background = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)';
-                  this.style.transform = 'scale(1.05)';
-                } else {
-                  this.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
-                  this.style.transform = 'scale(1)';
-                }
-              "
-              title="Oficina ${oficinaNum} - Click para seleccionar"
             >
               ${oficinaNum}
             </div>
@@ -4795,9 +4775,6 @@ class PropertyForm {
    * @param {Array} oficinasSeleccionadas - Array con IDs de oficinas seleccionadas
    */
   mostrarModalEquipamiento(oficinasSeleccionadas) {
-    console.log('🛠️ Abriendo modal de equipamiento...');
-    console.log('📊 Oficinas seleccionadas:', oficinasSeleccionadas);
-    
     // ✅ Equipamientos con IDs CORRECTOS (122-130)
     const equipamientos = [
       { id: 122, nombre: 'Falsos techos' },
@@ -4824,8 +4801,6 @@ class PropertyForm {
       };
     });
     
-    console.log('📋 Oficinas con datos:', oficinasConDatos);
-
     // Usar las oficinas seleccionadas
     const oficinas = oficinasSeleccionadas;
 
@@ -5051,9 +5026,6 @@ class PropertyForm {
    * @param {Array} oficinasData - Array con datos de oficinas seleccionadas
    */
   mostrarModalMetraje(oficinasData) {
-    console.log('📐 Abriendo modal de metraje...');
-    console.log('📊 Oficinas seleccionadas:', oficinasData);
-
     // Crear HTML del modal
     let html = `
       <div id="modal-metraje" style="
@@ -5263,7 +5235,6 @@ class PropertyForm {
         const oficinaEl = document.querySelector(`.oficina-seleccionable[data-oficina-id="${oficinaId}"]`);
         if (oficinaEl) {
           oficinaEl.dataset.metraje = metraje;
-          console.log(`📐 Oficina ${oficinaId}: metraje actualizado a ${metraje}m²`);
           actualizados++;
         }
 
@@ -5466,6 +5437,237 @@ class PropertyForm {
       });
     });
     return pisos;
+  }
+
+  /**
+   * Configurar datos de ocupación/alquiler por oficina seleccionada
+   * Campos: estado, fechas, precios, parqueos
+   */
+  mostrarModalDatosOficina(oficinasSeleccionadas) {
+    // Obtener datos previos de transacciones guardadas
+    const oficinasConDatos = oficinasSeleccionadas.map(numOficina => {
+      const datosGuardados = (this.formData.datosOcupacion || []).find(
+        d => d.numero_oficina == numOficina
+      );
+      return {
+        numero: numOficina,
+        estado_ocupacion: datosGuardados?.estado_ocupacion || 'libre',
+        fecha_inicio: datosGuardados?.fecha_inicio || '',
+        fecha_fin: datosGuardados?.fecha_fin || '',
+        precio_oficina: datosGuardados?.precio_oficina || '',
+        precio_estacionamiento: datosGuardados?.precio_estacionamiento || '',
+        parqueos_simples: datosGuardados?.parqueos_simples || 0,
+        parqueos_dobles: datosGuardados?.parqueos_dobles || 0,
+        inquilino_nombre: datosGuardados?.inquilino_nombre || '',
+        inquilino_ruc: datosGuardados?.inquilino_ruc || ''
+      };
+    });
+
+    // Si hay varias oficinas, ofrecer aplicar masivo
+    const esMasivo = oficinasConDatos.length > 1;
+    const primerDato = oficinasConDatos[0];
+
+    let rowsHtml = '';
+    oficinasConDatos.forEach(ofi => {
+      rowsHtml += `
+        <tr data-oficina="${ofi.numero}" style="border-bottom: 1px solid var(--borde);">
+          <td style="padding: 8px; font-weight: 600; color: var(--azul-corporativo); white-space: nowrap; text-align: center;">
+            ${ofi.numero}
+          </td>
+          <td style="padding: 6px 4px;">
+            <select class="ocupacion-estado" data-oficina="${ofi.numero}"
+              style="width: 100%; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem;">
+              <option value="libre" ${ofi.estado_ocupacion === 'libre' ? 'selected' : ''}>Libre</option>
+              <option value="ocupada" ${ofi.estado_ocupacion === 'ocupada' ? 'selected' : ''}>Ocupada</option>
+              <option value="reservada" ${ofi.estado_ocupacion === 'reservada' ? 'selected' : ''}>Reservada</option>
+            </select>
+          </td>
+          <td style="padding: 6px 4px;">
+            <input type="date" class="ocupacion-fecha-inicio" data-oficina="${ofi.numero}" value="${ofi.fecha_inicio}"
+              style="width: 100%; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem;">
+          </td>
+          <td style="padding: 6px 4px;">
+            <input type="date" class="ocupacion-fecha-fin" data-oficina="${ofi.numero}" value="${ofi.fecha_fin}"
+              style="width: 100%; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem;">
+          </td>
+          <td style="padding: 6px 4px;">
+            <input type="number" class="ocupacion-precio-ofi" data-oficina="${ofi.numero}" value="${ofi.precio_oficina}"
+              placeholder="0.00" step="0.01" min="0"
+              style="width: 100%; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem; text-align: right;">
+          </td>
+          <td style="padding: 6px 4px;">
+            <input type="number" class="ocupacion-precio-est" data-oficina="${ofi.numero}" value="${ofi.precio_estacionamiento}"
+              placeholder="0.00" step="0.01" min="0"
+              style="width: 100%; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem; text-align: right;">
+          </td>
+          <td style="padding: 6px 4px;">
+            <input type="number" class="ocupacion-parqueo-simple" data-oficina="${ofi.numero}" value="${ofi.parqueos_simples}"
+              min="0" max="20"
+              style="width: 60px; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem; text-align: center;">
+          </td>
+          <td style="padding: 6px 4px;">
+            <input type="number" class="ocupacion-parqueo-doble" data-oficina="${ofi.numero}" value="${ofi.parqueos_dobles}"
+              min="0" max="20"
+              style="width: 60px; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem; text-align: center;">
+          </td>
+        </tr>
+      `;
+    });
+
+    const html = `
+      <div id="modal-datos-oficina" style="
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.7); display: flex; align-items: center;
+        justify-content: center; z-index: 9999;
+      ">
+        <div style="
+          background: white; border-radius: 12px; width: 95%; max-width: 1100px;
+          max-height: 90vh; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        ">
+          <div style="
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white; padding: 12px var(--spacing-md);
+            display: flex; justify-content: space-between; align-items: center;
+          ">
+            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: white;">
+              <i class="fas fa-file-contract"></i> Datos de Ocupación - ${oficinasConDatos.length} oficina(s)
+            </h3>
+            <button id="btn-cerrar-datos-oficina" style="
+              background: transparent; border: none; color: white;
+              font-size: 1.5rem; cursor: pointer; padding: 0; width: 32px; height: 32px;
+            "><i class="fas fa-times"></i></button>
+          </div>
+
+          ${esMasivo ? `
+            <div style="padding: 8px var(--spacing-md); background: #ecfdf5; border-bottom: 1px solid #d1fae5;">
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #065f46; cursor: pointer;">
+                <input type="checkbox" id="aplicarMasivoOcupacion">
+                <strong>Aplicar mismos datos a todas las oficinas seleccionadas</strong>
+              </label>
+            </div>
+          ` : ''}
+
+          <div style="padding: var(--spacing-md); overflow-x: auto; overflow-y: auto; max-height: calc(90vh - 160px);">
+            <table style="width: 100%; border-collapse: collapse; min-width: 900px;">
+              <thead>
+                <tr style="background: var(--fondo-gris); border-bottom: 2px solid var(--borde);">
+                  <th style="padding: 8px; text-align: center; font-size: 0.8rem; color: var(--azul-corporativo);">Oficina</th>
+                  <th style="padding: 8px; text-align: left; font-size: 0.8rem; color: var(--azul-corporativo);">Estado</th>
+                  <th style="padding: 8px; text-align: left; font-size: 0.8rem; color: var(--azul-corporativo);">Inicio</th>
+                  <th style="padding: 8px; text-align: left; font-size: 0.8rem; color: var(--azul-corporativo);">Término</th>
+                  <th style="padding: 8px; text-align: right; font-size: 0.8rem; color: var(--azul-corporativo);">Alq. Oficina (USD)</th>
+                  <th style="padding: 8px; text-align: right; font-size: 0.8rem; color: var(--azul-corporativo);">Alq. Estac. (USD)</th>
+                  <th style="padding: 8px; text-align: center; font-size: 0.8rem; color: var(--azul-corporativo);">Parq. Simple</th>
+                  <th style="padding: 8px; text-align: center; font-size: 0.8rem; color: var(--azul-corporativo);">Parq. Doble</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <div style="padding: 12px var(--spacing-md); border-top: 1px solid var(--borde); display: flex; justify-content: flex-end; gap: 8px;">
+            <button id="btn-cancelar-datos-oficina" style="
+              padding: 10px 20px; border: 2px solid var(--borde); background: white;
+              border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--gris-medio);
+            ">Cancelar</button>
+            <button id="btn-guardar-datos-oficina" style="
+              padding: 10px 20px; background: #059669; color: white; border: none;
+              border-radius: 8px; cursor: pointer; font-weight: 600;
+            ">Guardar Datos</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    // Masivo: copiar primera fila a las demás
+    if (esMasivo) {
+      document.getElementById('aplicarMasivoOcupacion')?.addEventListener('change', (e) => {
+        if (!e.target.checked) return;
+        const primeraFila = document.querySelector('#modal-datos-oficina tbody tr');
+        if (!primeraFila) return;
+
+        const valoresBase = {
+          estado: primeraFila.querySelector('.ocupacion-estado').value,
+          fechaInicio: primeraFila.querySelector('.ocupacion-fecha-inicio').value,
+          fechaFin: primeraFila.querySelector('.ocupacion-fecha-fin').value,
+          precioOfi: primeraFila.querySelector('.ocupacion-precio-ofi').value,
+          precioEst: primeraFila.querySelector('.ocupacion-precio-est').value,
+          parqueoSimple: primeraFila.querySelector('.ocupacion-parqueo-simple').value,
+          parqueoDoble: primeraFila.querySelector('.ocupacion-parqueo-doble').value
+        };
+
+        document.querySelectorAll('#modal-datos-oficina tbody tr').forEach(row => {
+          row.querySelector('.ocupacion-estado').value = valoresBase.estado;
+          row.querySelector('.ocupacion-fecha-inicio').value = valoresBase.fechaInicio;
+          row.querySelector('.ocupacion-fecha-fin').value = valoresBase.fechaFin;
+          row.querySelector('.ocupacion-precio-ofi').value = valoresBase.precioOfi;
+          row.querySelector('.ocupacion-precio-est').value = valoresBase.precioEst;
+          row.querySelector('.ocupacion-parqueo-simple').value = valoresBase.parqueoSimple;
+          row.querySelector('.ocupacion-parqueo-doble').value = valoresBase.parqueoDoble;
+        });
+        showNotification('Datos copiados a todas las oficinas', 'info');
+      });
+    }
+
+    // Cerrar modal
+    const cerrarModal = () => {
+      document.getElementById('modal-datos-oficina')?.remove();
+    };
+    document.getElementById('btn-cerrar-datos-oficina').addEventListener('click', cerrarModal);
+    document.getElementById('btn-cancelar-datos-oficina').addEventListener('click', cerrarModal);
+
+    // Guardar datos
+    document.getElementById('btn-guardar-datos-oficina').addEventListener('click', () => {
+      if (!this.formData.datosOcupacion) {
+        this.formData.datosOcupacion = [];
+      }
+
+      let guardados = 0;
+      document.querySelectorAll('#modal-datos-oficina tbody tr').forEach(row => {
+        const numOficina = row.dataset.oficina;
+        const datos = {
+          numero_oficina: numOficina,
+          estado_ocupacion: row.querySelector('.ocupacion-estado').value,
+          fecha_inicio: row.querySelector('.ocupacion-fecha-inicio').value || null,
+          fecha_fin: row.querySelector('.ocupacion-fecha-fin').value || null,
+          precio_oficina: parseFloat(row.querySelector('.ocupacion-precio-ofi').value) || null,
+          precio_estacionamiento: parseFloat(row.querySelector('.ocupacion-precio-est').value) || null,
+          parqueos_simples: parseInt(row.querySelector('.ocupacion-parqueo-simple').value) || 0,
+          parqueos_dobles: parseInt(row.querySelector('.ocupacion-parqueo-doble').value) || 0
+        };
+
+        // Upsert en formData.datosOcupacion
+        const idx = this.formData.datosOcupacion.findIndex(d => d.numero_oficina == numOficina);
+        if (idx >= 0) {
+          this.formData.datosOcupacion[idx] = datos;
+        } else {
+          this.formData.datosOcupacion.push(datos);
+        }
+        guardados++;
+      });
+
+      // Deseleccionar oficinas
+      document.querySelectorAll('.oficina-seleccionable.selected').forEach(oficina => {
+        oficina.classList.remove('selected');
+        const esNueva = oficina.classList.contains('oficina-nueva');
+        const esEquipada = oficina.classList.contains('equipada');
+        if (esNueva) {
+          oficina.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        } else if (esEquipada) {
+          oficina.style.background = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)';
+        } else {
+          oficina.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
+        }
+        oficina.style.transform = 'scale(1)';
+      });
+
+      showNotification(`Datos de ocupación guardados para ${guardados} oficina(s)`, 'success');
+      cerrarModal();
+    });
   }
 
   /**
