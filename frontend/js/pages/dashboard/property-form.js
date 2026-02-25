@@ -5293,21 +5293,21 @@ class PropertyForm {
 
     let rowsHtml = '';
     for (let piso = endFloor; piso >= startFloor; piso--) {
-      const defaultTipo = piso < 0 ? 'estacionamiento' : piso === 0 ? 'lobby' : 'oficinas';
+      if (piso === 0) continue; // No existe piso 0 en la estructura
+
+      const defaultTipo = piso < 0 ? 'estacionamiento' : 'oficinas';
       const tipoGuardado = obtenerDatoGuardado(piso, 'tipo_uso', defaultTipo);
       const metrajeGuardado = obtenerDatoGuardado(piso, 'area_comercializable', '');
 
-      let etiquetaPiso;
-      if (piso < 0) etiquetaPiso = 'Sotano ' + Math.abs(piso);
-      else if (piso === 0) etiquetaPiso = 'Planta Baja';
-      else etiquetaPiso = 'Piso ' + piso;
+      const etiquetaPiso = piso < 0
+        ? 'Sotano ' + Math.abs(piso)
+        : 'Piso ' + piso;
 
       const opciones = [
         { value: 'oficinas', label: 'Oficinas' },
         { value: 'comercial', label: 'Comercial' },
         { value: 'estacionamiento', label: 'Estacionamiento' },
         { value: 'mixto', label: 'Mixto' },
-        { value: 'lobby', label: 'Lobby' },
         { value: 'azotea', label: 'Azotea' }
       ];
 
