@@ -1848,37 +1848,33 @@ class PropertyForm {
             <div id="oficinasControlPanel" style="display: flex; gap: 8px; margin-bottom: var(--spacing-md);">
               <button
                 type="button"
+                id="btn-pisos"
+                title="Configurar tipo de uso y metraje por piso"
+                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer;"
+              >
+                <i class="fas fa-layer-group"></i> Pisos
+              </button>
+              <button
+                type="button"
                 id="btn-metraje"
-                class="btn-primary"
                 title="Asignar metraje a las oficinas seleccionadas (doradas)"
-                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600;"
+                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: var(--azul-corporativo); color: white; border: none; border-radius: 8px; cursor: pointer;"
               >
                 📐 Metraje
               </button>
               <button
                 type="button"
                 id="btn-equipar"
-                class="btn-secondary"
                 title="Configurar equipamiento de las oficinas seleccionadas (doradas)"
-                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: var(--dorado); color: white; border: none;"
+                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: var(--dorado); color: white; border: none; border-radius: 8px; cursor: pointer;"
               >
                 🔧 Equipar
               </button>
               <button
                 type="button"
-                id="btn-pisos"
-                class="btn-secondary"
-                title="Configurar tipo de uso y metraje por piso"
-                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: #6366f1; color: white; border: none; border-radius: 8px;"
-              >
-                <i class="fas fa-layer-group"></i> Pisos
-              </button>
-              <button
-                type="button"
                 id="btn-datos-oficina"
-                class="btn-secondary"
                 title="Datos de alquiler/ocupación de oficinas seleccionadas"
-                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: #059669; color: white; border: none; border-radius: 8px;"
+                style="flex: 1; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: #059669; color: white; border: none; border-radius: 8px; cursor: pointer;"
               >
                 <i class="fas fa-file-contract"></i> Ocupación
               </button>
@@ -5296,7 +5292,7 @@ class PropertyForm {
     const endFloor = cantidadPisos;
 
     let rowsHtml = '';
-    for (let piso = startFloor; piso <= endFloor; piso++) {
+    for (let piso = endFloor; piso >= startFloor; piso--) {
       const defaultTipo = piso < 0 ? 'estacionamiento' : piso === 0 ? 'lobby' : 'oficinas';
       const tipoGuardado = obtenerDatoGuardado(piso, 'tipo_uso', defaultTipo);
       const metrajeGuardado = obtenerDatoGuardado(piso, 'area_comercializable', '');
