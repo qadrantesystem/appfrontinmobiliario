@@ -74,7 +74,9 @@ class PropertyForm {
     
     console.log('3️⃣ Renderizando formulario...');
     this.render();
-    console.log('✅ PropertyForm inicializado completamente');
+
+    // Snapshot para detectar cambios no guardados
+    this.tomarSnapshot();
   }
 
   async loadCatalogos() {
@@ -1383,8 +1385,8 @@ class PropertyForm {
             Paso ${this.currentStep} de ${this.totalSteps}: ${this.getStepName(this.currentStep)}
           </p>
         </div>
-        <button id="btnVolverLista" class="btn btn-secondary">
-          ← Volver a Lista
+        <button id="btnVolverLista" class="btn btn-volver-lista">
+          <i class="fas fa-arrow-left"></i> Volver a Lista
         </button>
       </div>
     `;
@@ -2279,13 +2281,7 @@ class PropertyForm {
     // Volver a lista
     const btnVolver = document.getElementById('btnVolverLista');
     if (btnVolver) {
-      btnVolver.addEventListener('click', () => {
-        console.log('🔙 Click en Volver a Lista');
-        this.close();  // ✅ Cerrar el formulario
-      });
-      console.log('✅ Botón "Volver a Lista" conectado');
-    } else {
-      console.error('❌ Botón "btnVolverLista" NO ENCONTRADO');
+      btnVolver.addEventListener('click', () => this.confirmarSalida());
     }
 
     // Navegación
@@ -3345,12 +3341,15 @@ class PropertyForm {
       }
 
       showNotification(
-        isEdit ? '✅ Propiedad actualizada exitosamente' : 
+        isEdit ? '✅ Propiedad actualizada exitosamente' :
         (esEdificioCompleto ? '🏢 Edificio completo creado con todas sus oficinas' : '✅ Propiedad publicada exitosamente'),
         'success'
       );
 
-      // 🏢 Si fue Edificio Completo, mostrar estadísticas
+      // Actualizar snapshot post-guardado
+      this.tomarSnapshot();
+
+      // Si fue Edificio Completo, mostrar estadísticas
       if (!isEdit && esEdificioCompleto && result.data && result.data.oficinas) {
         setTimeout(() => {
           showNotification(
@@ -6132,41 +6131,58 @@ class PropertyForm {
   }
 
   /**
-   * 🚪 Cerrar el formulario y volver a la lista
+   * Tomar snapshot del estado actual del formulario
+   */
+  tomarSnapshot() {
+    this._snapshot = JSON.stringify(this.formData);
+  }
+
+  /**
+   * Verificar si hay cambios sin guardar comparando con el snapshot
+   */
+  tieneCambiosSinGuardar() {
+    if (!this._snapshot) return false;
+    return JSON.stringify(this.formData) !== this._snapshot;
+  }
+
+  /**
+   * Confirmar salida si hay cambios pendientes
+   */
+  async confirmarSalida() {
+    if (!this.tieneCambiosSinGuardar()) {
+      this.close();
+      return;
+    }
+
+    const resultado = await Swal.fire({
+      title: 'Cambios sin guardar',
+      text: 'Tienes cambios que no se han guardado. Si sales, se perderán.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#0f4761',
+      confirmButtonText: 'Salir sin guardar',
+      cancelButtonText: 'Seguir editando'
+    });
+
+    if (resultado.isConfirmed) {
+      this.close();
+    }
+  }
+
+  /**
+   * Cerrar el formulario y volver a la lista
    */
   close() {
-    console.log('🚪 Cerrando formulario PropertyForm...');
-    
-    // Destruir el formulario del DOM
     if (this.container) {
       this.container.remove();
-      console.log('✅ Formulario eliminado del DOM');
     }
-    
-    // ✅ SOLUCIÓN: Simplemente cerrar, no recargar la página
-    // El tab de propiedades ya está activo y mostrará la lista
-    console.log('✅ Formulario cerrado, permaneciendo en el tab actual');
-    
+
     // Forzar el refresco del tab de propiedades
-    if (this.dashboard && this.dashboard.router) {
-      console.log('🔄 Forzando refresco de propiedades...');
-      console.log('📍 Tab actual:', this.dashboard.router.currentTab);
-      
-      // Temporalmente cambiar el tab para forzar recarga
-      const originalTab = this.dashboard.router.currentTab;
-      this.dashboard.router.currentTab = null; // Resetear forzado
-      
-      // Navegar a propiedades para forzar recarga completa
-      setTimeout(() => {
-        this.dashboard.router.navigate('propiedades');
-      }, 100);
-    } else {
-      console.warn('⚠️ No se encontró dashboard o router para refrescar');
-      // Fallback: intentar con window.DashboardApp si existe
-      if (window.DashboardApp && window.DashboardApp.router) {
-        console.log('🔄 Usando fallback window.DashboardApp...');
-        window.DashboardApp.router.navigate('propiedades');
-      }
+    const router = this.dashboard?.router || window.DashboardApp?.router;
+    if (router) {
+      router.currentTab = null;
+      setTimeout(() => router.navigate('propiedades'), 100);
     }
   }
 }
