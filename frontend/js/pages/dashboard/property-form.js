@@ -404,6 +404,9 @@ class PropertyForm {
         } catch (error) {
           // Endpoint puede no existir aun
         }
+
+        // Cargar transacciones vigentes de cada oficina (datos de ocupación)
+        await this.cargarTransaccionesVigentes();
       }
       
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -421,6 +424,52 @@ class PropertyForm {
       showNotification('❌ Error al cargar la propiedad', 'error');
       // Volver a la lista
       await this.dashboard.loadTabContent('propiedades', this.dashboard.currentUser.perfil_id);
+    }
+  }
+
+  /**
+   * 📋 Cargar transacciones vigentes de oficinas de un edificio (1 request batch)
+   * Puebla formData.datosOcupacion con datos del backend
+   */
+  async cargarTransaccionesVigentes() {
+    const oficinas = this.formData.oficinasExistentes || [];
+    if (oficinas.length === 0) return;
+
+    this.formData.datosOcupacion = [];
+
+    try {
+      const token = authService.getToken();
+      const res = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${this.propId}/transacciones-edificio`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!res.ok) return;
+      const transacciones = await res.json();
+      if (!transacciones || transacciones.length === 0) return;
+
+      transacciones.forEach(tx => {
+        // Encontrar la oficina para extraer numero_oficina del nombre
+        const oficina = oficinas.find(o => o.registro_cab_id === tx.registro_cab_id);
+        const match = (oficina?.nombre_inmueble || '').match(/(\d+)/);
+        const numOficina = match ? parseInt(match[1]) : tx.registro_cab_id;
+
+        this.formData.datosOcupacion.push({
+          numero_oficina: numOficina,
+          estado_ocupacion: tx.estado_ocupacion || 'libre',
+          ocupante_dni: tx.inquilino_ruc || null,
+          ocupante_nombre: tx.inquilino_nombre || null,
+          ocupante_empresa: tx.inquilino_contacto || null,
+          ocupante_id: tx.ocupante_id || null,
+          fecha_inicio: tx.fecha_inicio || null,
+          fecha_fin: tx.fecha_fin || null,
+          precio_oficina: tx.precio_oficina ? parseFloat(tx.precio_oficina) : null,
+          precio_estacionamiento: tx.precio_estacionamiento ? parseFloat(tx.precio_estacionamiento) : null,
+          parqueos_simples: 0,
+          parqueos_dobles: 0
+        });
+      });
+    } catch (error) {
+      console.error('Error cargando transacciones vigentes:', error);
     }
   }
 
@@ -1894,25 +1943,7 @@ class PropertyForm {
               ${this.renderTorreClickeable(cantidadPisos, oficinasPorPiso, cantidadSotanos)}
             </div>
 
-            <!-- Leyenda de colores (alineada a la izquierda) -->
-            <div style="margin-top: var(--spacing-sm); display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.7rem; color: var(--gris-medio);">
-              <div style="display: flex; align-items: center; gap: 3px;">
-                <span style="width: 12px; height: 12px; background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%); border-radius: 2px;"></span>
-                <span>Sin equipar</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 3px;">
-                <span style="width: 12px; height: 12px; background: linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%); border-radius: 2px;"></span>
-                <span>⭐ Equipada</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 3px;">
-                <span style="width: 12px; height: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 2px;"></span>
-                <span>Nueva</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 3px;">
-                <span style="width: 12px; height: 12px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 2px;"></span>
-                <span>A eliminar</span>
-              </div>
-            </div>
+            <!-- Leyenda se renderiza dentro de renderTorreClickeable() -->
           </div>
         ` : `
           <div style="background: #fff3cd; border: 2px solid #ffc107; padding: var(--spacing-lg); border-radius: 12px; text-align: center;">
@@ -4239,9 +4270,15 @@ class PropertyForm {
             extraClass = '';
           }
 
+          // Clase de estado de ocupación (barra inferior)
+          const datosOcup = (this.formData.datosOcupacion || []).find(d => d.numero_oficina == numeroOficina);
+          let claseEstadoOcup = '';
+          if (datosOcup?.estado_ocupacion === 'ocupada') claseEstadoOcup = 'oficina-ocupada';
+          else if (datosOcup?.estado_ocupacion === 'reservada') claseEstadoOcup = 'oficina-reservada';
+
           html += `
             <div
-              class="oficina-seleccionable oficina-existente ${extraClass}"
+              class="oficina-seleccionable oficina-existente ${extraClass} ${claseEstadoOcup}"
               data-oficina-id="${numeroOficina}"
               data-registro-cab-id="${oficina.registro_cab_id}"
               data-metraje="${oficina.area || 50}"
@@ -4268,9 +4305,7 @@ class PropertyForm {
               "
               title="${paraEliminar
                 ? '🗑️ MARCADA PARA ELIMINAR'
-                : tieneEquipamiento
-                  ? `⭐ ${displayName} - ${oficina.area || 50}m² - EQUIPADA`
-                  : `${displayName} - ${oficina.area || 50}m² - Click para seleccionar`}"
+                : `${displayName} - ${oficina.area || 50}m²${tieneEquipamiento ? ' · ⭐ EQUIPADA' : ''}${datosOcup ? ` · ${datosOcup.estado_ocupacion === 'ocupada' ? '🟠 OCUPADA' : datosOcup.estado_ocupacion === 'reservada' ? '🟣 RESERVADA' : '🟢 LIBRE'}` : ''}`}"
             >
               ${iconPrefix}${shortName}
             </div>
@@ -4398,9 +4433,15 @@ class PropertyForm {
           );
           const estaSeleccionada = !!oficinaExistente;
 
+          // Clase de estado de ocupación (barra inferior)
+          const datosOcupNew = (this.formData.datosOcupacion || []).find(d => d.numero_oficina == oficinaNum);
+          let claseEstadoNew = '';
+          if (datosOcupNew?.estado_ocupacion === 'ocupada') claseEstadoNew = 'oficina-ocupada';
+          else if (datosOcupNew?.estado_ocupacion === 'reservada') claseEstadoNew = 'oficina-reservada';
+
           html += `
             <div
-              class="oficina-seleccionable ${estaSeleccionada ? 'selected' : ''}"
+              class="oficina-seleccionable ${estaSeleccionada ? 'selected' : ''} ${claseEstadoNew}"
               data-oficina-id="${oficinaNum}"
               data-piso="${piso}"
               data-metraje="${oficinaExistente?.area || 50}"
@@ -4488,6 +4529,40 @@ class PropertyForm {
         `;
       }
     }
+
+    // Leyenda completa: Tipo (color fondo) + Ocupación (barra inferior)
+    html += `
+      <div class="leyenda-torre-completa">
+        <div class="leyenda-torre-seccion">
+          <span class="leyenda-torre-seccion__titulo">Tipo:</span>
+          <span class="leyenda-torre-item">
+            <span class="leyenda-torre-cuadro" style="background: linear-gradient(135deg, var(--azul-corporativo), var(--azul-claro));"></span> Existente
+          </span>
+          <span class="leyenda-torre-item">
+            <span class="leyenda-torre-cuadro" style="background: linear-gradient(135deg, var(--dorado), var(--dorado-hover));"></span> Equipada
+          </span>
+          <span class="leyenda-torre-item">
+            <span class="leyenda-torre-cuadro" style="background: linear-gradient(135deg, #10b981, #059669); border: 1px dashed rgba(255,255,255,0.5);"></span> Nueva
+          </span>
+          <span class="leyenda-torre-item">
+            <span class="leyenda-torre-cuadro" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: 1px dashed rgba(255,255,255,0.5);"></span> Eliminar
+          </span>
+        </div>
+        <span class="leyenda-torre-separador"></span>
+        <div class="leyenda-torre-seccion">
+          <span class="leyenda-torre-seccion__titulo">Ocupación:</span>
+          <span class="leyenda-torre-item">
+            <span class="leyenda-torre-barra leyenda-torre-barra--libre"></span> Libre (sin barra)
+          </span>
+          <span class="leyenda-torre-item">
+            <span class="leyenda-torre-barra leyenda-torre-barra--ocupada"></span> Ocupada
+          </span>
+          <span class="leyenda-torre-item">
+            <span class="leyenda-torre-barra leyenda-torre-barra--reservada"></span> Reservada
+          </span>
+        </div>
+      </div>
+    `;
 
     html += '</div>';
 
@@ -5573,10 +5648,12 @@ class PropertyForm {
 
   /**
    * Configurar datos de ocupación/alquiler por oficina seleccionada
-   * Campos: estado, fechas, precios, parqueos
+   * Diseño: Accordion por oficina con secciones Ocupante + Contrato
    */
   mostrarModalDatosOficina(oficinasSeleccionadas) {
-    // Obtener datos previos de transacciones guardadas
+    // Guard: evitar modal duplicado
+    document.getElementById('modal-datos-oficina')?.remove();
+
     const oficinasConDatos = oficinasSeleccionadas.map(numOficina => {
       const datosGuardados = (this.formData.datosOcupacion || []).find(
         d => d.numero_oficina == numOficina
@@ -5590,186 +5667,383 @@ class PropertyForm {
         precio_estacionamiento: datosGuardados?.precio_estacionamiento || '',
         parqueos_simples: datosGuardados?.parqueos_simples || 0,
         parqueos_dobles: datosGuardados?.parqueos_dobles || 0,
-        inquilino_nombre: datosGuardados?.inquilino_nombre || '',
-        inquilino_ruc: datosGuardados?.inquilino_ruc || ''
+        ocupante_dni: datosGuardados?.ocupante_dni || '',
+        ocupante_nombre: datosGuardados?.ocupante_nombre || '',
+        ocupante_empresa: datosGuardados?.ocupante_empresa || '',
+        ocupante_id: datosGuardados?.ocupante_id || null
       };
     });
 
-    // Si hay varias oficinas, ofrecer aplicar masivo
     const esMasivo = oficinasConDatos.length > 1;
-    const primerDato = oficinasConDatos[0];
 
-    let rowsHtml = '';
-    oficinasConDatos.forEach(ofi => {
-      rowsHtml += `
-        <tr data-oficina="${ofi.numero}" style="border-bottom: 1px solid var(--borde);">
-          <td style="padding: 8px; font-weight: 600; color: var(--azul-corporativo); white-space: nowrap; text-align: center;">
-            ${ofi.numero}
-          </td>
-          <td style="padding: 6px 4px;">
-            <select class="ocupacion-estado" data-oficina="${ofi.numero}"
-              style="width: 100%; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem;">
-              <option value="libre" ${ofi.estado_ocupacion === 'libre' ? 'selected' : ''}>Libre</option>
-              <option value="ocupada" ${ofi.estado_ocupacion === 'ocupada' ? 'selected' : ''}>Ocupada</option>
-              <option value="reservada" ${ofi.estado_ocupacion === 'reservada' ? 'selected' : ''}>Reservada</option>
-            </select>
-          </td>
-          <td style="padding: 6px 4px;">
-            <input type="date" class="ocupacion-fecha-inicio" data-oficina="${ofi.numero}" value="${ofi.fecha_inicio}"
-              style="width: 100%; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem;">
-          </td>
-          <td style="padding: 6px 4px;">
-            <input type="date" class="ocupacion-fecha-fin" data-oficina="${ofi.numero}" value="${ofi.fecha_fin}"
-              style="width: 100%; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem;">
-          </td>
-          <td style="padding: 6px 4px;">
-            <input type="number" class="ocupacion-precio-ofi" data-oficina="${ofi.numero}" value="${ofi.precio_oficina}"
-              placeholder="0.00" step="0.01" min="0"
-              style="width: 100%; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem; text-align: right;">
-          </td>
-          <td style="padding: 6px 4px;">
-            <input type="number" class="ocupacion-precio-est" data-oficina="${ofi.numero}" value="${ofi.precio_estacionamiento}"
-              placeholder="0.00" step="0.01" min="0"
-              style="width: 100%; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem; text-align: right;">
-          </td>
-          <td style="padding: 6px 4px;">
-            <input type="number" class="ocupacion-parqueo-simple" data-oficina="${ofi.numero}" value="${ofi.parqueos_simples}"
-              min="0" max="20"
-              style="width: 60px; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem; text-align: center;">
-          </td>
-          <td style="padding: 6px 4px;">
-            <input type="number" class="ocupacion-parqueo-doble" data-oficina="${ofi.numero}" value="${ofi.parqueos_dobles}"
-              min="0" max="20"
-              style="width: 60px; padding: 6px; border: 2px solid var(--borde); border-radius: 6px; font-size: 0.8rem; text-align: center;">
-          </td>
-        </tr>
+    // Generar badge class
+    const badgeClass = (estado) => `ocupacion-badge ocupacion-badge--${estado}`;
+    const badgeTexto = (estado) => ({ libre: 'Libre', ocupada: 'Ocupada', reservada: 'Reservada' }[estado] || 'Libre');
+
+    // Generar resumen para header del accordion
+    const generarResumen = (ofi) => {
+      if (ofi.estado_ocupacion === 'libre') return '';
+      const partes = [];
+      if (ofi.ocupante_nombre) partes.push(ofi.ocupante_nombre);
+      if (ofi.ocupante_empresa) partes.push(ofi.ocupante_empresa);
+      if (ofi.precio_oficina) partes.push(`S/ ${ofi.precio_oficina}`);
+      return partes.join(' · ');
+    };
+
+    // Generar HTML de cada accordion item
+    const accordionHtml = oficinasConDatos.map((ofi, idx) => {
+      const abierto = oficinasConDatos.length === 1 || idx === 0;
+      const esLibre = ofi.estado_ocupacion === 'libre';
+      const disabledClass = esLibre ? 'ocupacion-seccion--disabled' : '';
+
+      return `
+        <div class="ocupacion-item" data-oficina="${ofi.numero}" data-estado="${ofi.estado_ocupacion}" aria-expanded="${abierto}">
+          <div class="ocupacion-item__cabecera">
+            <span class="ocupacion-item__numero">Ofi. ${ofi.numero}</span>
+            <span class="${badgeClass(ofi.estado_ocupacion)}" data-badge="${ofi.numero}">${badgeTexto(ofi.estado_ocupacion)}</span>
+            <span class="ocupacion-item__resumen" data-resumen="${ofi.numero}">${generarResumen(ofi)}</span>
+            <i class="fas fa-chevron-down ocupacion-item__chevron"></i>
+          </div>
+
+          <div class="ocupacion-item__cuerpo-wrapper">
+            <div class="ocupacion-item__cuerpo">
+              <div class="ocupacion-item__cuerpo-inner">
+
+                <!-- Estado (Radio Buttons) -->
+                <div class="ocupacion-estado-grupo">
+                  <input type="radio" class="ocupacion-estado-radio" name="estado-${ofi.numero}" id="estado-libre-${ofi.numero}" value="libre" ${ofi.estado_ocupacion === 'libre' ? 'checked' : ''}>
+                  <label for="estado-libre-${ofi.numero}" class="ocupacion-estado-label">
+                    <i class="fas fa-door-open"></i> Libre
+                  </label>
+
+                  <input type="radio" class="ocupacion-estado-radio" name="estado-${ofi.numero}" id="estado-ocupada-${ofi.numero}" value="ocupada" ${ofi.estado_ocupacion === 'ocupada' ? 'checked' : ''}>
+                  <label for="estado-ocupada-${ofi.numero}" class="ocupacion-estado-label">
+                    <i class="fas fa-user-check"></i> Ocupada
+                  </label>
+
+                  <input type="radio" class="ocupacion-estado-radio" name="estado-${ofi.numero}" id="estado-reservada-${ofi.numero}" value="reservada" ${ofi.estado_ocupacion === 'reservada' ? 'checked' : ''}>
+                  <label for="estado-reservada-${ofi.numero}" class="ocupacion-estado-label">
+                    <i class="fas fa-clock"></i> Reservada
+                  </label>
+                </div>
+
+                <!-- Secciones: Ocupante + Contrato -->
+                <div class="ocupacion-secciones">
+
+                  <!-- SECCIÓN OCUPANTE -->
+                  <div class="ocupacion-seccion ocupacion-seccion-ocupante-${ofi.numero} ${disabledClass}">
+                    <h4 class="ocupacion-seccion__titulo">
+                      <i class="fas fa-user"></i> Ocupante
+                    </h4>
+
+                    <div class="ocupacion-campo">
+                      <label class="ocupacion-campo__label">DNI / RUC</label>
+                      <div class="ocupacion-dni-wrapper">
+                        <input type="text" class="ocupacion-campo__input ocupacion-dni" data-oficina="${ofi.numero}"
+                          value="${ofi.ocupante_dni}" placeholder="Ej: 12345678" maxlength="20"
+                          data-ocupante-id="${ofi.ocupante_id || ''}">
+                        <button type="button" class="ocupacion-dni-buscar" data-oficina="${ofi.numero}" title="Buscar ocupante">
+                          <i class="fas fa-search"></i>
+                        </button>
+                      </div>
+                      <div class="ocupacion-dni-feedback" data-feedback="${ofi.numero}"></div>
+                    </div>
+
+                    <div class="ocupacion-campo">
+                      <label class="ocupacion-campo__label">Nombre / Razón Social</label>
+                      <input type="text" class="ocupacion-campo__input ocupacion-nombre" data-oficina="${ofi.numero}"
+                        value="${ofi.ocupante_nombre}" placeholder="Nombre del ocupante"
+                        ${ofi.ocupante_id ? 'readonly' : ''}>
+                    </div>
+
+                    <div class="ocupacion-campo">
+                      <label class="ocupacion-campo__label">Empresa</label>
+                      <input type="text" class="ocupacion-campo__input ocupacion-empresa" data-oficina="${ofi.numero}"
+                        value="${ofi.ocupante_empresa}" placeholder="Nombre de la empresa"
+                        ${ofi.ocupante_id ? 'readonly' : ''}>
+                    </div>
+                  </div>
+
+                  <!-- SECCIÓN CONTRATO -->
+                  <div class="ocupacion-seccion ocupacion-seccion-contrato-${ofi.numero} ${disabledClass}">
+                    <h4 class="ocupacion-seccion__titulo">
+                      <i class="fas fa-file-contract"></i> Contrato
+                    </h4>
+
+                    <div class="ocupacion-campo">
+                      <label class="ocupacion-campo__label">Fecha inicio</label>
+                      <input type="date" class="ocupacion-campo__input ocupacion-fecha-inicio" data-oficina="${ofi.numero}"
+                        value="${ofi.fecha_inicio}">
+                    </div>
+
+                    <div class="ocupacion-campo">
+                      <label class="ocupacion-campo__label">Fecha término</label>
+                      <input type="date" class="ocupacion-campo__input ocupacion-fecha-fin" data-oficina="${ofi.numero}"
+                        value="${ofi.fecha_fin}">
+                    </div>
+
+                    <div class="ocupacion-campo">
+                      <label class="ocupacion-campo__label">Alquiler oficina (S/)</label>
+                      <input type="number" class="ocupacion-campo__input ocupacion-precio-ofi" data-oficina="${ofi.numero}"
+                        value="${ofi.precio_oficina}" placeholder="0.00" step="0.01" min="0">
+                    </div>
+
+                    <div class="ocupacion-campo">
+                      <label class="ocupacion-campo__label">Alquiler estacionamiento (S/)</label>
+                      <input type="number" class="ocupacion-campo__input ocupacion-precio-est" data-oficina="${ofi.numero}"
+                        value="${ofi.precio_estacionamiento}" placeholder="0.00" step="0.01" min="0">
+                    </div>
+
+                    <div class="ocupacion-parqueos-grid">
+                      <div class="ocupacion-campo">
+                        <label class="ocupacion-campo__label">Parqueos simples</label>
+                        <input type="number" class="ocupacion-campo__input ocupacion-parqueo-simple" data-oficina="${ofi.numero}"
+                          value="${ofi.parqueos_simples}" min="0" max="20">
+                      </div>
+                      <div class="ocupacion-campo">
+                        <label class="ocupacion-campo__label">Parqueos dobles</label>
+                        <input type="number" class="ocupacion-campo__input ocupacion-parqueo-doble" data-oficina="${ofi.numero}"
+                          value="${ofi.parqueos_dobles}" min="0" max="20">
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       `;
-    });
+    }).join('');
 
     const html = `
-      <div id="modal-datos-oficina" style="
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.7); display: flex; align-items: center;
-        justify-content: center; z-index: 9999;
-      ">
-        <div style="
-          background: white; border-radius: 12px; width: 95%; max-width: 1100px;
-          max-height: 90vh; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        ">
-          <div style="
-            background: linear-gradient(135deg, #059669, #10b981);
-            color: white; padding: 12px var(--spacing-md);
-            display: flex; justify-content: space-between; align-items: center;
-          ">
-            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: white;">
-              <i class="fas fa-file-contract"></i> Datos de Ocupación - ${oficinasConDatos.length} oficina(s)
+      <div class="ocupacion-overlay" id="modal-datos-oficina">
+        <div class="ocupacion-modal">
+          <div class="ocupacion-modal__header">
+            <h3 class="ocupacion-modal__titulo">
+              <i class="fas fa-building"></i> Datos de Ocupación — ${oficinasConDatos.length} oficina(s)
             </h3>
-            <button id="btn-cerrar-datos-oficina" style="
-              background: transparent; border: none; color: white;
-              font-size: 1.5rem; cursor: pointer; padding: 0; width: 32px; height: 32px;
-            "><i class="fas fa-times"></i></button>
+            <button class="ocupacion-modal__cerrar" id="btn-cerrar-datos-oficina">
+              <i class="fas fa-times"></i>
+            </button>
           </div>
 
           ${esMasivo ? `
-            <div style="padding: 8px var(--spacing-md); background: #ecfdf5; border-bottom: 1px solid #d1fae5;">
-              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #065f46; cursor: pointer;">
+            <div class="ocupacion-masivo-bar">
+              <label>
                 <input type="checkbox" id="aplicarMasivoOcupacion">
-                <strong>Aplicar mismos datos a todas las oficinas seleccionadas</strong>
+                <strong>Copiar datos de la primera oficina a todas las demás</strong>
               </label>
             </div>
           ` : ''}
 
-          <div style="padding: var(--spacing-md); overflow-x: auto; overflow-y: auto; max-height: calc(90vh - 160px);">
-            <table style="width: 100%; border-collapse: collapse; min-width: 900px;">
-              <thead>
-                <tr style="background: var(--fondo-gris); border-bottom: 2px solid var(--borde);">
-                  <th style="padding: 8px; text-align: center; font-size: 0.8rem; color: var(--azul-corporativo);">Oficina</th>
-                  <th style="padding: 8px; text-align: left; font-size: 0.8rem; color: var(--azul-corporativo);">Estado</th>
-                  <th style="padding: 8px; text-align: left; font-size: 0.8rem; color: var(--azul-corporativo);">Inicio</th>
-                  <th style="padding: 8px; text-align: left; font-size: 0.8rem; color: var(--azul-corporativo);">Término</th>
-                  <th style="padding: 8px; text-align: right; font-size: 0.8rem; color: var(--azul-corporativo);">Alq. Oficina (USD)</th>
-                  <th style="padding: 8px; text-align: right; font-size: 0.8rem; color: var(--azul-corporativo);">Alq. Estac. (USD)</th>
-                  <th style="padding: 8px; text-align: center; font-size: 0.8rem; color: var(--azul-corporativo);">Parq. Simple</th>
-                  <th style="padding: 8px; text-align: center; font-size: 0.8rem; color: var(--azul-corporativo);">Parq. Doble</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rowsHtml}
-              </tbody>
-            </table>
+          <div class="ocupacion-modal__body">
+            ${accordionHtml}
           </div>
 
-          <div style="padding: 12px var(--spacing-md); border-top: 1px solid var(--borde); display: flex; justify-content: flex-end; gap: 8px;">
-            <button id="btn-cancelar-datos-oficina" style="
-              padding: 10px 20px; border: 2px solid var(--borde); background: white;
-              border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--gris-medio);
-            ">Cancelar</button>
-            <button id="btn-guardar-datos-oficina" style="
-              padding: 10px 20px; background: #059669; color: white; border: none;
-              border-radius: 8px; cursor: pointer; font-weight: 600;
-            ">Guardar Datos</button>
+          <div class="ocupacion-modal__footer">
+            <button class="ocupacion-btn ocupacion-btn--cancelar" id="btn-cancelar-datos-oficina">Cancelar</button>
+            <button class="ocupacion-btn ocupacion-btn--guardar" id="btn-guardar-datos-oficina">
+              <i class="fas fa-save"></i> Guardar
+            </button>
           </div>
         </div>
       </div>
     `;
 
     document.body.insertAdjacentHTML('beforeend', html);
+    const modalEl = document.getElementById('modal-datos-oficina');
 
-    // Masivo: copiar primera fila a las demás
+    // ===== ACCORDION: Toggle expandir/colapsar =====
+    modalEl.querySelectorAll('.ocupacion-item__cabecera').forEach(cabecera => {
+      cabecera.addEventListener('click', () => {
+        const item = cabecera.closest('.ocupacion-item');
+        const estaAbierto = item.getAttribute('aria-expanded') === 'true';
+        item.setAttribute('aria-expanded', !estaAbierto);
+      });
+    });
+
+    // ===== ESTADO: Cambiar via radio buttons =====
+    const actualizarEstado = (numOfi, nuevoEstado) => {
+      const item = modalEl.querySelector(`.ocupacion-item[data-oficina="${numOfi}"]`);
+      if (!item) return;
+      item.dataset.estado = nuevoEstado;
+
+      // Actualizar badge
+      const badge = item.querySelector(`[data-badge="${numOfi}"]`);
+      if (badge) {
+        badge.className = `ocupacion-badge ocupacion-badge--${nuevoEstado}`;
+        badge.textContent = { libre: 'Libre', ocupada: 'Ocupada', reservada: 'Reservada' }[nuevoEstado];
+      }
+
+      // Habilitar/deshabilitar secciones
+      const esLibre = nuevoEstado === 'libre';
+      const secOcupante = item.querySelector(`.ocupacion-seccion-ocupante-${numOfi}`);
+      const secContrato = item.querySelector(`.ocupacion-seccion-contrato-${numOfi}`);
+      if (secOcupante) secOcupante.classList.toggle('ocupacion-seccion--disabled', esLibre);
+      if (secContrato) secContrato.classList.toggle('ocupacion-seccion--disabled', esLibre);
+    };
+
+    modalEl.querySelectorAll('.ocupacion-estado-radio').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const numOfi = radio.name.replace('estado-', '');
+        actualizarEstado(numOfi, radio.value);
+      });
+    });
+
+    // ===== DNI: Buscar ocupante =====
+    const buscarOcupantePorDni = async (numOfi) => {
+      const inputDni = document.querySelector(`.ocupacion-dni[data-oficina="${numOfi}"]`);
+      const inputNombre = document.querySelector(`.ocupacion-nombre[data-oficina="${numOfi}"]`);
+      const inputEmpresa = document.querySelector(`.ocupacion-empresa[data-oficina="${numOfi}"]`);
+      const feedback = document.querySelector(`[data-feedback="${numOfi}"]`);
+      const btnBuscar = document.querySelector(`.ocupacion-dni-buscar[data-oficina="${numOfi}"]`);
+      const dni = inputDni?.value?.trim();
+
+      if (!dni || dni.length < 8) {
+        if (feedback) feedback.innerHTML = '<span style="color: #d97706;">Mínimo 8 caracteres</span>';
+        return;
+      }
+
+      // Loading state
+      if (btnBuscar) btnBuscar.classList.add('buscando');
+      if (feedback) feedback.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
+
+      try {
+        const token = authService.getToken();
+        const response = await fetch(`${API_CONFIG.BASE_URL}/ocupantes/${dni}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const ocupante = await response.json();
+          if (inputNombre) { inputNombre.value = ocupante.nombre || ''; inputNombre.readOnly = true; }
+          if (inputEmpresa) { inputEmpresa.value = ocupante.empresa || ''; inputEmpresa.readOnly = true; }
+          if (inputDni) inputDni.dataset.ocupanteId = ocupante.ocupante_id;
+          if (inputDni) inputDni.classList.add('ocupacion-campo__input--found');
+          inputDni?.classList.remove('ocupacion-campo__input--not-found');
+          if (feedback) {
+            feedback.className = 'ocupacion-dni-feedback ocupacion-dni-feedback--found';
+            feedback.innerHTML = `<i class="fas fa-check-circle"></i> ${ocupante.nombre}`;
+          }
+        } else if (response.status === 404) {
+          if (inputNombre) { inputNombre.value = ''; inputNombre.readOnly = false; inputNombre.focus(); }
+          if (inputEmpresa) { inputEmpresa.value = ''; inputEmpresa.readOnly = false; }
+          if (inputDni) inputDni.dataset.ocupanteId = '';
+          if (inputDni) inputDni.classList.add('ocupacion-campo__input--not-found');
+          inputDni?.classList.remove('ocupacion-campo__input--found');
+          if (feedback) {
+            feedback.className = 'ocupacion-dni-feedback ocupacion-dni-feedback--not-found';
+            feedback.innerHTML = '<i class="fas fa-info-circle"></i> No registrado. Escribe el nombre manualmente.';
+          }
+        }
+      } catch (error) {
+        console.error('Error buscando ocupante:', error);
+        if (feedback) feedback.innerHTML = '<span style="color: #dc3545;">Error de conexión</span>';
+      } finally {
+        if (btnBuscar) btnBuscar.classList.remove('buscando');
+      }
+    };
+
+    // Listeners DNI
+    modalEl.querySelectorAll('.ocupacion-dni-buscar').forEach(btn => {
+      btn.addEventListener('click', () => buscarOcupantePorDni(btn.dataset.oficina));
+    });
+    modalEl.querySelectorAll('.ocupacion-dni').forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          buscarOcupantePorDni(input.dataset.oficina);
+        }
+      });
+    });
+
+    // ===== MASIVO: Copiar primera oficina a todas =====
     if (esMasivo) {
       document.getElementById('aplicarMasivoOcupacion')?.addEventListener('change', (e) => {
         if (!e.target.checked) return;
-        const primeraFila = document.querySelector('#modal-datos-oficina tbody tr');
-        if (!primeraFila) return;
+        const primerItem = document.querySelector('.ocupacion-item');
+        if (!primerItem) return;
+        const numPrimera = primerItem.dataset.oficina;
 
         const valoresBase = {
-          estado: primeraFila.querySelector('.ocupacion-estado').value,
-          fechaInicio: primeraFila.querySelector('.ocupacion-fecha-inicio').value,
-          fechaFin: primeraFila.querySelector('.ocupacion-fecha-fin').value,
-          precioOfi: primeraFila.querySelector('.ocupacion-precio-ofi').value,
-          precioEst: primeraFila.querySelector('.ocupacion-precio-est').value,
-          parqueoSimple: primeraFila.querySelector('.ocupacion-parqueo-simple').value,
-          parqueoDoble: primeraFila.querySelector('.ocupacion-parqueo-doble').value
+          estado: modalEl.querySelector(`input[name="estado-${numPrimera}"]:checked`)?.value || 'libre',
+          dni: primerItem.querySelector('.ocupacion-dni')?.value || '',
+          ocupanteId: primerItem.querySelector('.ocupacion-dni')?.dataset?.ocupanteId || '',
+          nombre: primerItem.querySelector('.ocupacion-nombre')?.value || '',
+          readonlyNombre: primerItem.querySelector('.ocupacion-nombre')?.readOnly || false,
+          empresa: primerItem.querySelector('.ocupacion-empresa')?.value || '',
+          readonlyEmpresa: primerItem.querySelector('.ocupacion-empresa')?.readOnly || false,
+          fechaInicio: primerItem.querySelector('.ocupacion-fecha-inicio')?.value || '',
+          fechaFin: primerItem.querySelector('.ocupacion-fecha-fin')?.value || '',
+          precioOfi: primerItem.querySelector('.ocupacion-precio-ofi')?.value || '',
+          precioEst: primerItem.querySelector('.ocupacion-precio-est')?.value || '',
+          parqueoSimple: primerItem.querySelector('.ocupacion-parqueo-simple')?.value || '0',
+          parqueoDoble: primerItem.querySelector('.ocupacion-parqueo-doble')?.value || '0'
         };
 
-        document.querySelectorAll('#modal-datos-oficina tbody tr').forEach(row => {
-          row.querySelector('.ocupacion-estado').value = valoresBase.estado;
-          row.querySelector('.ocupacion-fecha-inicio').value = valoresBase.fechaInicio;
-          row.querySelector('.ocupacion-fecha-fin').value = valoresBase.fechaFin;
-          row.querySelector('.ocupacion-precio-ofi').value = valoresBase.precioOfi;
-          row.querySelector('.ocupacion-precio-est').value = valoresBase.precioEst;
-          row.querySelector('.ocupacion-parqueo-simple').value = valoresBase.parqueoSimple;
-          row.querySelector('.ocupacion-parqueo-doble').value = valoresBase.parqueoDoble;
+        document.querySelectorAll('.ocupacion-item').forEach(item => {
+          const numOfi = item.dataset.oficina;
+          // Estado
+          const radioEstado = item.querySelector(`input[name="estado-${numOfi}"][value="${valoresBase.estado}"]`);
+          if (radioEstado) { radioEstado.checked = true; actualizarEstado(numOfi, valoresBase.estado); }
+          // Ocupante
+          const dniInput = item.querySelector('.ocupacion-dni');
+          if (dniInput) { dniInput.value = valoresBase.dni; dniInput.dataset.ocupanteId = valoresBase.ocupanteId; }
+          const nombreInput = item.querySelector('.ocupacion-nombre');
+          if (nombreInput) { nombreInput.value = valoresBase.nombre; nombreInput.readOnly = valoresBase.readonlyNombre; }
+          const empresaInput = item.querySelector('.ocupacion-empresa');
+          if (empresaInput) { empresaInput.value = valoresBase.empresa; empresaInput.readOnly = valoresBase.readonlyEmpresa; }
+          // Contrato
+          const fInicioInput = item.querySelector('.ocupacion-fecha-inicio');
+          if (fInicioInput) fInicioInput.value = valoresBase.fechaInicio;
+          const fFinInput = item.querySelector('.ocupacion-fecha-fin');
+          if (fFinInput) fFinInput.value = valoresBase.fechaFin;
+          const pOfiInput = item.querySelector('.ocupacion-precio-ofi');
+          if (pOfiInput) pOfiInput.value = valoresBase.precioOfi;
+          const pEstInput = item.querySelector('.ocupacion-precio-est');
+          if (pEstInput) pEstInput.value = valoresBase.precioEst;
+          const pSimpleInput = item.querySelector('.ocupacion-parqueo-simple');
+          if (pSimpleInput) pSimpleInput.value = valoresBase.parqueoSimple;
+          const pDobleInput = item.querySelector('.ocupacion-parqueo-doble');
+          if (pDobleInput) pDobleInput.value = valoresBase.parqueoDoble;
         });
         showNotification('Datos copiados a todas las oficinas', 'info');
       });
     }
 
-    // Cerrar modal
+    // ===== CERRAR =====
     const cerrarModal = () => {
       document.getElementById('modal-datos-oficina')?.remove();
     };
-    document.getElementById('btn-cerrar-datos-oficina').addEventListener('click', cerrarModal);
-    document.getElementById('btn-cancelar-datos-oficina').addEventListener('click', cerrarModal);
+    document.getElementById('btn-cerrar-datos-oficina')?.addEventListener('click', cerrarModal);
+    document.getElementById('btn-cancelar-datos-oficina')?.addEventListener('click', cerrarModal);
 
-    // Guardar datos
-    document.getElementById('btn-guardar-datos-oficina').addEventListener('click', () => {
+    // ===== GUARDAR =====
+    document.getElementById('btn-guardar-datos-oficina')?.addEventListener('click', async () => {
       if (!this.formData.datosOcupacion) {
         this.formData.datosOcupacion = [];
       }
 
-      let guardados = 0;
-      document.querySelectorAll('#modal-datos-oficina tbody tr').forEach(row => {
-        const numOficina = row.dataset.oficina;
+      const datosRecolectados = [];
+      modalEl.querySelectorAll('.ocupacion-item').forEach(item => {
+        const numOficina = parseInt(item.dataset.oficina);
+        const dniInput = item.querySelector('.ocupacion-dni');
+        const estadoRadio = item.querySelector(`input[name="estado-${numOficina}"]:checked`);
+
         const datos = {
           numero_oficina: numOficina,
-          estado_ocupacion: row.querySelector('.ocupacion-estado').value,
-          fecha_inicio: row.querySelector('.ocupacion-fecha-inicio').value || null,
-          fecha_fin: row.querySelector('.ocupacion-fecha-fin').value || null,
-          precio_oficina: parseFloat(row.querySelector('.ocupacion-precio-ofi').value) || null,
-          precio_estacionamiento: parseFloat(row.querySelector('.ocupacion-precio-est').value) || null,
-          parqueos_simples: parseInt(row.querySelector('.ocupacion-parqueo-simple').value) || 0,
-          parqueos_dobles: parseInt(row.querySelector('.ocupacion-parqueo-doble').value) || 0
+          estado_ocupacion: estadoRadio?.value || 'libre',
+          ocupante_dni: dniInput?.value?.trim() || null,
+          ocupante_nombre: item.querySelector('.ocupacion-nombre')?.value?.trim() || null,
+          ocupante_empresa: item.querySelector('.ocupacion-empresa')?.value?.trim() || null,
+          ocupante_id: dniInput?.dataset?.ocupanteId ? parseInt(dniInput.dataset.ocupanteId) : null,
+          fecha_inicio: item.querySelector('.ocupacion-fecha-inicio')?.value || null,
+          fecha_fin: item.querySelector('.ocupacion-fecha-fin')?.value || null,
+          precio_oficina: parseFloat(item.querySelector('.ocupacion-precio-ofi')?.value) || null,
+          precio_estacionamiento: parseFloat(item.querySelector('.ocupacion-precio-est')?.value) || null,
+          parqueos_simples: parseInt(item.querySelector('.ocupacion-parqueo-simple')?.value) || 0,
+          parqueos_dobles: parseInt(item.querySelector('.ocupacion-parqueo-doble')?.value) || 0
         };
 
         // Upsert en formData.datosOcupacion
@@ -5779,10 +6053,10 @@ class PropertyForm {
         } else {
           this.formData.datosOcupacion.push(datos);
         }
-        guardados++;
+        datosRecolectados.push(datos);
       });
 
-      // Deseleccionar oficinas
+      // Deseleccionar oficinas y actualizar barras de ocupación en la torre
       document.querySelectorAll('.oficina-seleccionable.selected').forEach(oficina => {
         oficina.classList.remove('selected');
         const esNueva = oficina.classList.contains('oficina-nueva');
@@ -5797,8 +6071,84 @@ class PropertyForm {
         oficina.style.transform = 'scale(1)';
       });
 
-      showNotification(`Datos de ocupación guardados para ${guardados} oficina(s)`, 'success');
-      cerrarModal();
+      // Actualizar clases de estado de ocupación (barras) en la torre
+      this.formData.datosOcupacion.forEach(dato => {
+        const cajita = document.querySelector(`.oficina-seleccionable[data-oficina-id="${dato.numero_oficina}"]`);
+        if (!cajita) return;
+        cajita.classList.remove('oficina-ocupada', 'oficina-reservada');
+        if (dato.estado_ocupacion === 'ocupada') cajita.classList.add('oficina-ocupada');
+        else if (dato.estado_ocupacion === 'reservada') cajita.classList.add('oficina-reservada');
+      });
+
+      // ===== PERSISTIR EN BACKEND =====
+      // Solo para oficinas existentes (con registro_cab_id en la torre)
+      const oficinasParaApi = datosRecolectados.filter(dato => {
+        const cajita = document.querySelector(`.oficina-seleccionable[data-oficina-id="${dato.numero_oficina}"]`);
+        const registroCabId = cajita?.dataset?.registroCabId;
+        return registroCabId && registroCabId !== '';
+      });
+
+      if (oficinasParaApi.length > 0) {
+        const btnGuardar = document.getElementById('btn-guardar-datos-oficina');
+        if (btnGuardar) {
+          btnGuardar.disabled = true;
+          btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        }
+
+        try {
+          const token = authService.getToken();
+          const resultados = await Promise.allSettled(
+            oficinasParaApi.map(dato => {
+              const cajita = document.querySelector(`.oficina-seleccionable[data-oficina-id="${dato.numero_oficina}"]`);
+              const registroCabId = cajita.dataset.registroCabId;
+
+              const body = {
+                tipo_transaccion: 'alquiler',
+                estado_ocupacion: dato.estado_ocupacion,
+                inquilino_nombre: dato.ocupante_nombre,
+                inquilino_ruc: dato.ocupante_dni,
+                inquilino_contacto: dato.ocupante_empresa,
+                ocupante_id: dato.ocupante_id || null,
+                fecha_inicio: dato.fecha_inicio || null,
+                fecha_fin: dato.fecha_fin || null,
+                precio_oficina: dato.precio_oficina || null,
+                precio_estacionamiento: dato.precio_estacionamiento || null,
+                moneda: 'USD'
+              };
+
+              return fetch(`${API_CONFIG.BASE_URL}/propiedades/${registroCabId}/transacciones`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(body)
+              }).then(res => {
+                if (!res.ok) return res.json().then(err => Promise.reject(err));
+                return res.json();
+              });
+            })
+          );
+
+          const exitosos = resultados.filter(r => r.status === 'fulfilled').length;
+          const fallidos = resultados.filter(r => r.status === 'rejected').length;
+
+          if (fallidos > 0) {
+            console.error('Transacciones fallidas:', resultados.filter(r => r.status === 'rejected'));
+            showNotification(`${exitosos} guardadas, ${fallidos} con error`, 'warning');
+          } else {
+            showNotification(`Ocupación guardada para ${exitosos} oficina(s)`, 'success');
+          }
+        } catch (error) {
+          console.error('Error guardando transacciones:', error);
+          showNotification('Error al guardar en servidor. Datos locales conservados.', 'error');
+        } finally {
+          cerrarModal();
+        }
+      } else {
+        showNotification(`Datos de ocupación guardados localmente para ${datosRecolectados.length} oficina(s)`, 'info');
+        cerrarModal();
+      }
     });
   }
 

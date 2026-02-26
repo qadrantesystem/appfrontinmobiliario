@@ -1,0 +1,618 @@
+/* ============================================
+   MODAL OCUPACIÓN - Diseño Accordion
+   Datos de ocupación por oficina seleccionada
+   ============================================ */
+
+/* Overlay */
+.ocupacion-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: ocupacion-fadeIn 0.2s ease;
+}
+
+@keyframes ocupacion-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Container */
+.ocupacion-modal {
+  background: white;
+  border-radius: var(--radius-lg);
+  width: 95%;
+  max-width: 720px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: ocupacion-slideUp 0.25s ease;
+}
+
+@keyframes ocupacion-slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Header */
+.ocupacion-modal__header {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white;
+  padding: 14px var(--spacing-lg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ocupacion-modal__titulo {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ocupacion-modal__cerrar {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+
+.ocupacion-modal__cerrar:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Masivo Bar */
+.ocupacion-masivo-bar {
+  padding: 10px var(--spacing-lg);
+  background: #ecfdf5;
+  border-bottom: 1px solid #d1fae5;
+  flex-shrink: 0;
+}
+
+.ocupacion-masivo-bar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #065f46;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.ocupacion-masivo-bar input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #059669;
+}
+
+/* Body - Scrollable */
+.ocupacion-modal__body {
+  padding: var(--spacing-md) var(--spacing-lg);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ============ ACCORDION ITEM ============ */
+.ocupacion-item {
+  border: 2px solid var(--borde);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  overflow: hidden;
+}
+
+.ocupacion-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Border-left color by estado */
+.ocupacion-item[data-estado="libre"] {
+  border-left: 4px solid #10b981;
+}
+
+.ocupacion-item[data-estado="ocupada"] {
+  border-left: 4px solid #f59e0b;
+}
+
+.ocupacion-item[data-estado="reservada"] {
+  border-left: 4px solid #6366f1;
+}
+
+/* Accordion Header */
+.ocupacion-item__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #fafafa;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition-fast);
+}
+
+.ocupacion-item__cabecera:hover {
+  background: #f0f0f0;
+}
+
+.ocupacion-item__numero {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--azul-corporativo);
+  min-width: 50px;
+}
+
+.ocupacion-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ocupacion-badge--libre {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.ocupacion-badge--ocupada {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.ocupacion-badge--reservada {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.ocupacion-item__resumen {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+  color: var(--gris-medio);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ocupacion-item__chevron {
+  font-size: 0.85rem;
+  color: var(--gris-medio);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.ocupacion-item[aria-expanded="true"] .ocupacion-item__chevron {
+  transform: rotate(180deg);
+}
+
+/* Accordion Body with grid-template-rows animation */
+.ocupacion-item__cuerpo-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ocupacion-item[aria-expanded="true"] .ocupacion-item__cuerpo-wrapper {
+  grid-template-rows: 1fr;
+}
+
+.ocupacion-item__cuerpo {
+  overflow: hidden;
+}
+
+.ocupacion-item__cuerpo-inner {
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--borde);
+}
+
+/* Estado Radio Group */
+.ocupacion-estado-grupo {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.ocupacion-estado-radio {
+  display: none;
+}
+
+.ocupacion-estado-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border: 2px solid var(--borde);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--gris-medio);
+}
+
+.ocupacion-estado-radio:checked + .ocupacion-estado-label {
+  font-weight: 600;
+}
+
+.ocupacion-estado-radio[value="libre"]:checked + .ocupacion-estado-label {
+  border-color: #10b981;
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.ocupacion-estado-radio[value="ocupada"]:checked + .ocupacion-estado-label {
+  border-color: #f59e0b;
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.ocupacion-estado-radio[value="reservada"]:checked + .ocupacion-estado-label {
+  border-color: #6366f1;
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+/* Secciones: Ocupante + Contrato */
+.ocupacion-secciones {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .ocupacion-secciones {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.ocupacion-seccion {
+  background: #fafafa;
+  border-radius: var(--radius-md);
+  padding: 12px;
+  border: 1px solid #eee;
+}
+
+.ocupacion-seccion__titulo {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--azul-corporativo);
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Campos del formulario */
+.ocupacion-campo {
+  margin-bottom: 8px;
+}
+
+.ocupacion-campo:last-child {
+  margin-bottom: 0;
+}
+
+.ocupacion-campo__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--gris-medio);
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ocupacion-campo__input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid var(--borde);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: var(--font-principal);
+  transition: border-color var(--transition-fast);
+  box-sizing: border-box;
+  background: white;
+}
+
+.ocupacion-campo__input:focus {
+  border-color: var(--azul-claro);
+  outline: none;
+}
+
+.ocupacion-campo__input[readonly] {
+  background: #f3f4f6;
+  color: var(--gris-oscuro);
+}
+
+.ocupacion-campo__input--found {
+  border-color: #10b981 !important;
+}
+
+.ocupacion-campo__input--not-found {
+  border-color: #f59e0b !important;
+}
+
+/* DNI Wrapper */
+.ocupacion-dni-wrapper {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.ocupacion-dni-wrapper .ocupacion-campo__input {
+  flex: 1;
+}
+
+.ocupacion-dni-buscar {
+  width: 36px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: var(--azul-corporativo);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ocupacion-dni-buscar:hover {
+  background: var(--azul-medio);
+}
+
+.ocupacion-dni-buscar.buscando {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* DNI Feedback */
+.ocupacion-dni-feedback {
+  font-size: 0.72rem;
+  margin-top: 3px;
+  min-height: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ocupacion-dni-feedback--found {
+  color: #059669;
+}
+
+.ocupacion-dni-feedback--not-found {
+  color: #d97706;
+}
+
+/* Campos deshabilitados cuando estado es libre */
+.ocupacion-seccion--disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Grid de parqueos */
+.ocupacion-parqueos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Footer */
+.ocupacion-modal__footer {
+  padding: 12px var(--spacing-lg);
+  border-top: 1px solid var(--borde);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ocupacion-btn {
+  padding: 10px 22px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: var(--font-principal);
+  transition: all var(--transition-fast);
+}
+
+.ocupacion-btn--cancelar {
+  background: white;
+  border: 2px solid var(--borde);
+  color: var(--gris-medio);
+}
+
+.ocupacion-btn--cancelar:hover {
+  border-color: var(--gris-medio);
+}
+
+.ocupacion-btn--guardar {
+  background: #059669;
+  border: none;
+  color: white;
+}
+
+.ocupacion-btn--guardar:hover {
+  background: #047857;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 640px) {
+  .ocupacion-modal {
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .ocupacion-modal__header {
+    border-radius: 0;
+  }
+
+  .ocupacion-estado-grupo {
+    flex-wrap: wrap;
+  }
+
+  .ocupacion-item__cabecera {
+    padding: 10px 12px;
+  }
+
+  .ocupacion-item__cuerpo-inner {
+    padding: 0 12px 12px;
+  }
+
+  .ocupacion-parqueos-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   TORRE - Indicador de estado de ocupación
+   Barra inferior 4px en cada cajita de oficina
+   LIBRE = sin barra | OCUPADA = naranja | RESERVADA = violeta
+   ============================================ */
+
+.oficina-seleccionable {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Barra inferior (invisible por defecto = LIBRE) */
+.oficina-seleccionable::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+/* OCUPADA */
+.oficina-ocupada::after {
+  background: #f59e0b;
+}
+
+/* RESERVADA */
+.oficina-reservada::after {
+  background: #6366f1;
+}
+
+/* ============================================
+   LEYENDA COMPLETA DE TORRE
+   2 secciones: Tipo (color fondo) + Ocupación (barra)
+   ============================================ */
+.leyenda-torre-completa {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.leyenda-torre-seccion {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.leyenda-torre-seccion__titulo {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--azul-corporativo);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.leyenda-torre-separador {
+  width: 1px;
+  height: 24px;
+  background: #cbd5e1;
+  flex-shrink: 0;
+}
+
+.leyenda-torre-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+/* Cuadros de color para tipo */
+.leyenda-torre-cuadro {
+  width: 16px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Barras de color para ocupación */
+.leyenda-torre-barra {
+  width: 20px;
+  height: 4px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.leyenda-torre-barra--libre {
+  background: transparent;
+  border: 1px dashed #cbd5e1;
+}
+
+.leyenda-torre-barra--ocupada {
+  background: #f59e0b;
+}
+
+.leyenda-torre-barra--reservada {
+  background: #6366f1;
+}
+
+@media (max-width: 640px) {
+  .leyenda-torre-completa {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .leyenda-torre-separador {
+    width: 100%;
+    height: 1px;
+  }
+}
