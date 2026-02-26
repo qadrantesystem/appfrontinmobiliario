@@ -800,11 +800,20 @@ class PropertyForm {
     const pisos = Array.isArray(result) ? result : (result.data || []);
 
     if (pisos.length > 0) {
-      this.formData.pisos = pisos.map(p => ({
-        numero_piso: p.numero_piso,
-        tipo_uso: p.tipo_uso,
-        area_comercializable: parseFloat(p.area_comercializable) || 0
-      }));
+      this.formData.pisos = pisos.map(p => {
+        const pisoData = {
+          numero_piso: p.numero_piso,
+          tipo_uso: p.tipo_uso,
+          area_comercializable: parseFloat(p.area_comercializable) || 0
+        };
+        // Recuperar detalle de unidades para pisos mixtos
+        if (p.unidades_config) {
+          try {
+            pisoData.unidades = JSON.parse(p.unidades_config);
+          } catch (e) { /* JSON inválido, ignorar */ }
+        }
+        return pisoData;
+      });
     }
   }
 
@@ -2509,8 +2518,11 @@ class PropertyForm {
     });
 
     // 🆕 BOTON PISOS (Paso 4)
-    document.getElementById('btn-pisos')?.addEventListener('click', () => {
-      this.mostrarConfigPisos();
+    document.getElementById('btn-pisos')?.addEventListener('click', async () => {
+      const guardado = await this.mostrarConfigPisos();
+      if (guardado) {
+        this.rerenderTorre();
+      }
     });
 
     // 🆕 BOTON DATOS OFICINA/OCUPACION (Paso 4)
@@ -3034,9 +3046,23 @@ class PropertyForm {
         if (!esEdificioCompleto) {
           console.log('⏭️ Saltando Paso 4 - No es edificio completo (ID:', tipoInmuebleId, ')');
           this.currentStep = 5; // Saltar al paso 5 (Precio)
+        } else {
+          // Auto-mostrar modal de pisos SOLO si cambió la config o es nuevo
+          const cantidadPisos = parseInt(this.getCaracteristicaValor(110)) || 0;
+          const cantidadSotanos = parseInt(this.getCaracteristicaValor(121)) || 0;
+          const pisosGuardados = this.formData.pisos || [];
+          const pisosPositivos = pisosGuardados.filter(p => p.numero_piso > 0).length;
+          const sotanosGuardados = pisosGuardados.filter(p => p.numero_piso < 0).length;
+          const huboCambio = pisosGuardados.length === 0 ||
+            cantidadPisos !== pisosPositivos ||
+            cantidadSotanos !== sotanosGuardados;
+
+          if (cantidadPisos > 0 && huboCambio) {
+            await this.mostrarConfigPisos();
+          }
         }
       }
-      
+
       this.render();
       
       // ✅ Re-llenar campos después de renderizar
@@ -4079,6 +4105,17 @@ class PropertyForm {
 
       // Renderizar pisos (de arriba hacia abajo) con oficinas REALES + NUEVAS
       for (let piso = totalPisos; piso >= 1; piso--) {
+        // Determinar prefijo segun tipo de uso del piso (con detalle por unidad si es mixto)
+        const pisoConfigEdit = (this.formData.pisos || []).find(p => p.numero_piso === piso);
+        const tipoUsoPisoEdit = pisoConfigEdit?.tipo_uso || 'oficinas';
+        const obtenerPrefijoEdit = (numOficina) => {
+          if (tipoUsoPisoEdit === 'mixto' && pisoConfigEdit?.unidades) {
+            const unidad = pisoConfigEdit.unidades.find(u => u.numero === numOficina);
+            return unidad?.tipo === 'comercial' ? 'Local' : 'Oficina';
+          }
+          return tipoUsoPisoEdit === 'comercial' ? 'Local' : 'Oficina';
+        };
+
         const oficinasExistentes = oficinasPorPisoReal[piso] || [];
         const cantidadExistentes = oficinasExistentes.length;
 
@@ -4171,8 +4208,10 @@ class PropertyForm {
           // 🗑️ Verificar si está marcada para eliminar (por bajar el input)
           const paraEliminar = this.estaParaEliminar(oficina.registro_cab_id);
 
-          const displayName = oficina.nombre || `Oficina ${numeroOficina}`;
-          const shortName = displayName.replace('Oficina ', 'Of. ');
+          // Siempre usar prefijo dinamico (no confiar en oficina.nombre de BD que es snapshot estatico)
+          const prefijoActual = obtenerPrefijoEdit(numeroOficina);
+          const displayName = `${prefijoActual} ${numeroOficina}`;
+          const shortName = prefijoActual === 'Local' ? `Lc. ${numeroOficina}` : `Of. ${numeroOficina}`;
 
           // ✅ Verificar si tiene equipamiento (características con valor "Sí" o "true")
           const tieneEquipamiento = oficina.caracteristicas?.some(c => {
@@ -4239,10 +4278,9 @@ class PropertyForm {
         });
 
         // 2️⃣ Renderizar oficinas NUEVAS (a crear)
-        // Nombre estándar: "Oficina {pisoNumero}" (ej: Oficina 501, Oficina 502)
         for (let i = 1; i <= oficinasNuevas; i++) {
           const nuevoNumero = (piso * 100) + cantidadExistentes + i;
-          const nombreOficina = `Oficina ${nuevoNumero}`;
+          const nombreOficina = `${obtenerPrefijoEdit(nuevoNumero)} ${nuevoNumero}`;
 
           html += `
             <div
@@ -4270,7 +4308,7 @@ class PropertyForm {
                 cursor: pointer;
                 transition: all 0.2s;
               "
-              title="Nueva oficina ${nombreOficina} - Click para seleccionar"
+              title="${nombreOficina} (nueva) - Click para seleccionar"
             >
               +${nuevoNumero}
             </div>
@@ -4340,6 +4378,17 @@ class PropertyForm {
             <div id="oficinas-contenedor-piso-${piso}" style="display: flex; gap: 4px; flex: 1;">
         `;
 
+        // Determinar prefijo segun tipo de uso del piso (con detalle por unidad si es mixto)
+        const pisoConfigNew = (this.formData.pisos || []).find(p => p.numero_piso === piso);
+        const tipoUsoPisoNew = pisoConfigNew?.tipo_uso || 'oficinas';
+        const obtenerPrefijoNew = (numOficina) => {
+          if (tipoUsoPisoNew === 'mixto' && pisoConfigNew?.unidades) {
+            const unidad = pisoConfigNew.unidades.find(u => u.numero === numOficina);
+            return unidad?.tipo === 'comercial' ? 'Local' : 'Oficina';
+          }
+          return tipoUsoPisoNew === 'comercial' ? 'Local' : 'Oficina';
+        };
+
         for (let ofi = 1; ofi <= oficinasEnEstePiso; ofi++) {
           const oficinaNum = (piso * 100) + ofi; // Fórmula consecutiva por piso: piso 9 = 901, 902, 903
 
@@ -4377,8 +4426,8 @@ class PropertyForm {
                 ${estaSeleccionada ? 'transform: scale(1.05);' : ''}
               "
               title="${estaSeleccionada
-                ? `Oficina ${oficinaNum} - ${oficinaExistente?.area || 50}m² - Estado: ${oficinaExistente?.estado || 'borrador'}`
-                : `Seleccionar Oficina ${oficinaNum}`
+                ? `${obtenerPrefijoNew(oficinaNum)} ${oficinaNum} - ${oficinaExistente?.area || 50}m² - Estado: ${oficinaExistente?.estado || 'borrador'}`
+                : `Seleccionar ${obtenerPrefijoNew(oficinaNum)} ${oficinaNum}`
               }"
             >
               ${oficinaNum}
@@ -5272,11 +5321,13 @@ class PropertyForm {
    * Configurar pisos del edificio: tipo de uso y metraje comercializable por piso
    */
   mostrarConfigPisos() {
+    return new Promise((resolve) => {
     const cantidadPisos = parseInt(this.getCaracteristicaValor(110)) || 0;
     const cantidadSotanos = parseInt(this.getCaracteristicaValor(121)) || 0;
 
     if (!cantidadPisos) {
       showNotification('Completa "Cantidad de Pisos" en el Paso 3 antes de configurar pisos', 'warning');
+      resolve(false);
       return;
     }
 
@@ -5400,38 +5451,124 @@ class PropertyForm {
 
     document.body.insertAdjacentHTML('beforeend', html);
 
+    // Evento cambio tipo de uso - mostrar/ocultar acordeon mixto
+    const oficinasPorPisoVal = parseInt(this.getCaracteristicaValor(120)) || 3;
+    document.querySelectorAll('.piso-tipo-uso').forEach(select => {
+      select.addEventListener('change', (e) => {
+        const numPiso = parseInt(e.target.dataset.piso);
+        const acordeonExistente = document.getElementById(`acordeon-mixto-${numPiso}`);
+        if (e.target.value === 'mixto') {
+          if (!acordeonExistente) {
+            this.mostrarAcordeonMixto(numPiso, oficinasPorPisoVal);
+          }
+        } else {
+          acordeonExistente?.remove();
+        }
+      });
+      // Si ya es mixto al cargar, mostrar acordeon
+      if (select.value === 'mixto') {
+        this.mostrarAcordeonMixto(parseInt(select.dataset.piso), oficinasPorPisoVal);
+      }
+    });
+
     // Cerrar modal
-    const cerrarModal = () => {
+    const cerrarModal = (guardado) => {
       document.getElementById('modal-pisos')?.remove();
+      resolve(guardado);
     };
 
-    document.getElementById('btn-cerrar-pisos').addEventListener('click', cerrarModal);
-    document.getElementById('btn-cancelar-pisos').addEventListener('click', cerrarModal);
+    document.getElementById('btn-cerrar-pisos').addEventListener('click', () => cerrarModal(false));
+    document.getElementById('btn-cancelar-pisos').addEventListener('click', () => cerrarModal(false));
 
     // Guardar datos
     document.getElementById('btn-guardar-pisos').addEventListener('click', () => {
       this.formData.pisos = this.recopilarDatosPisos();
       showNotification('Configuracion de pisos guardada', 'success');
-      cerrarModal();
+      cerrarModal(true);
     });
+    }); // fin Promise
   }
 
   /**
-   * Recopilar datos de la tabla de pisos
+   * Recopilar datos de la tabla de pisos (incluye unidades para pisos mixtos)
    */
   recopilarDatosPisos() {
     const pisos = [];
-    document.querySelectorAll('#modal-pisos tbody tr').forEach(row => {
+    document.querySelectorAll('#modal-pisos tbody tr[data-piso]').forEach(row => {
+      // Saltar filas de acordeon (no tienen select de tipo_uso)
+      const selectTipo = row.querySelector('.piso-tipo-uso');
+      if (!selectTipo) return;
+
       const numeroPiso = parseInt(row.dataset.piso);
-      const tipoUso = row.querySelector('.piso-tipo-uso').value;
-      const metraje = parseFloat(row.querySelector('.piso-metraje').value) || 0;
-      pisos.push({
+      const tipoUso = selectTipo.value;
+      const metraje = parseFloat(row.querySelector('.piso-metraje')?.value) || 0;
+
+      const pisoData = {
         numero_piso: numeroPiso,
         tipo_uso: tipoUso,
         area_comercializable: metraje
-      });
+      };
+
+      // Recopilar detalle por unidad si es mixto
+      if (tipoUso === 'mixto') {
+        const unidades = [];
+        document.querySelectorAll(`.unidad-tipo[data-piso="${numeroPiso}"]`).forEach(select => {
+          unidades.push({
+            numero: parseInt(select.dataset.unidad),
+            tipo: select.value
+          });
+        });
+        if (unidades.length > 0) pisoData.unidades = unidades;
+      }
+
+      pisos.push(pisoData);
     });
     return pisos;
+  }
+
+  /**
+   * Mostrar acordeon de detalle por unidad para pisos mixtos
+   */
+  mostrarAcordeonMixto(piso, oficinas) {
+    const pisoRow = document.querySelector(`#modal-pisos tr[data-piso="${piso}"]`);
+    if (!pisoRow) return;
+
+    // Recuperar config guardada de unidades
+    const pisoGuardado = (this.formData.pisos || []).find(p => p.numero_piso === piso);
+    const unidadesGuardadas = pisoGuardado?.unidades || [];
+
+    let unidadesHtml = '';
+    for (let i = 1; i <= oficinas; i++) {
+      const numUnidad = (piso * 100) + i;
+      const unidadGuardada = unidadesGuardadas.find(u => u.numero === numUnidad);
+      const tipoUnidad = unidadGuardada?.tipo || 'oficina';
+
+      unidadesHtml += `
+        <div style="display: flex; align-items: center; gap: 8px; padding: 4px 0;">
+          <span style="min-width: 55px; font-size: 0.82rem; font-weight: 600; color: var(--azul-corporativo);">
+            ${numUnidad}
+          </span>
+          <select class="unidad-tipo" data-piso="${piso}" data-unidad="${numUnidad}"
+            style="flex: 1; padding: 6px 8px; border: 1px solid var(--borde); border-radius: 4px; font-size: 0.82rem; background: white;">
+            <option value="oficina" ${tipoUnidad === 'oficina' ? 'selected' : ''}>Oficina</option>
+            <option value="comercial" ${tipoUnidad === 'comercial' ? 'selected' : ''}>Local Comercial</option>
+          </select>
+        </div>
+      `;
+    }
+
+    const acordeonRow = document.createElement('tr');
+    acordeonRow.id = `acordeon-mixto-${piso}`;
+    acordeonRow.innerHTML = `
+      <td colspan="4" style="padding: 8px 12px 12px 24px; background: #f0f0ff; border-left: 3px solid #6366f1;">
+        <div style="font-size: 0.8rem; font-weight: 600; color: #6366f1; margin-bottom: 6px;">
+          <i class="fas fa-list"></i> Detalle por unidad - Piso ${piso}
+        </div>
+        ${unidadesHtml}
+      </td>
+    `;
+
+    pisoRow.after(acordeonRow);
   }
 
   /**
@@ -5885,6 +6022,7 @@ class PropertyForm {
     const pisosConfig = (this.formData.pisos || []).map(p => ({
       numero_piso: p.numero_piso,
       tipo_uso: p.tipo_uso,
+      unidades_config: p.unidades ? JSON.stringify(p.unidades) : null,
       area_comercializable: p.area_comercializable || 0
     }));
 
