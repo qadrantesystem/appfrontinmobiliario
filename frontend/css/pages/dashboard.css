@@ -1358,11 +1358,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 10px 14px;
+  padding: 0 14px;
   border: 2px solid var(--borde);
   border-radius: 10px;
   background: #fff;
   cursor: pointer;
+  font-size: 0.9rem;
+  overflow: hidden;
 }
 
 .multi-select__button:focus {
@@ -1538,47 +1540,58 @@
 
 .filters-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--spacing-sm);
-  align-items: center;
+  align-items: stretch;
 }
 
 .filter-item {
-  flex: 1;
-  min-width: 180px;
+  flex: 1 1 0;
+  min-width: 0;
+  position: relative;
 }
 
 .filter-item--metraje {
-  flex: 0 0 120px;
-  min-width: 100px;
+  flex: 0 0 110px;
+}
+
+/* Altura uniforme para todos los controles */
+.filter-item .multi-select__button,
+.filter-select,
+.filter-input-metraje {
+  height: 40px;
+  box-sizing: border-box;
 }
 
 .filter-select {
-  padding: 8px 12px;
+  padding: 0 12px;
   width: 100%;
-  border: 1px solid var(--borde);
-  border-radius: 6px;
+  border: 2px solid var(--borde);
+  border-radius: 10px;
   font-size: 0.9rem;
   background: white;
+  color: var(--gris-medio);
 }
 
 .filter-select:focus {
-  border-color: var(--azul-corporativo);
+  border-color: var(--azul-medio);
   outline: none;
+  box-shadow: 0 0 0 3px rgba(26, 77, 122, 0.1);
 }
 
 .filter-input-metraje {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--borde);
-  border-radius: 6px;
+  padding: 0 12px;
+  border: 2px solid var(--borde);
+  border-radius: 10px;
   font-size: 0.9rem;
   text-align: center;
 }
 
 .filter-input-metraje:focus {
-  border-color: var(--azul-corporativo);
+  border-color: var(--azul-medio);
   outline: none;
+  box-shadow: 0 0 0 3px rgba(26, 77, 122, 0.1);
 }
 
 .filter-input-metraje::placeholder {
@@ -1587,6 +1600,19 @@
 }
 
 @media (max-width: 768px) {
+  .filters-row {
+    flex-wrap: wrap;
+  }
+  .filter-item {
+    flex: 1 1 calc(50% - var(--spacing-sm));
+    min-width: calc(50% - var(--spacing-sm));
+  }
+  .filter-item--metraje {
+    flex: 1 1 calc(50% - var(--spacing-sm));
+  }
+}
+
+@media (max-width: 480px) {
   .filters-row {
     flex-direction: column;
   }
