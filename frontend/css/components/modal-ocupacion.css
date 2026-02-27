@@ -423,6 +423,34 @@
   gap: 8px;
 }
 
+/* Tipo Persona Toggle */
+.ocupacion-tipo-persona-grupo {
+  display: flex;
+  gap: 6px;
+}
+
+.ocupacion-tipo-persona-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 2px solid var(--borde);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--gris-medio);
+  font-weight: 400;
+  background: white;
+}
+
+.ocupacion-tipo-persona-label--active {
+  border-color: var(--azul-corporativo);
+  background: #eef2ff;
+  color: var(--azul-corporativo);
+  font-weight: 600;
+}
+
 /* Footer */
 .ocupacion-modal__footer {
   padding: 12px var(--spacing-lg);

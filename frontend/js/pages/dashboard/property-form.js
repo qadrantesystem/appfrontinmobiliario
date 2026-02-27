@@ -460,13 +460,14 @@ class PropertyForm {
           ocupante_empresa: tx.inquilino_contacto || null,
           ocupante_telefono: tx.inquilino_telefono || null,
           ocupante_email: tx.inquilino_email || null,
+          ocupante_tipo_persona: tx.tipo_persona || 'natural',
           ocupante_id: tx.ocupante_id || null,
           fecha_inicio: tx.fecha_inicio || null,
           fecha_fin: tx.fecha_fin || null,
           precio_oficina: tx.precio_oficina ? parseFloat(tx.precio_oficina) : null,
           precio_estacionamiento: tx.precio_estacionamiento ? parseFloat(tx.precio_estacionamiento) : null,
-          parqueos_simples: 0,
-          parqueos_dobles: 0
+          parqueos_simples: tx.parqueos_simples || 0,
+          parqueos_dobles: tx.parqueos_dobles || 0
         });
       });
     } catch (error) {
@@ -5673,6 +5674,7 @@ class PropertyForm {
         ocupante_empresa: datosGuardados?.ocupante_empresa || '',
         ocupante_telefono: datosGuardados?.ocupante_telefono || '',
         ocupante_email: datosGuardados?.ocupante_email || '',
+        ocupante_tipo_persona: datosGuardados?.ocupante_tipo_persona || 'natural',
         ocupante_id: datosGuardados?.ocupante_id || null
       };
     });
@@ -5739,6 +5741,21 @@ class PropertyForm {
                       <i class="fas fa-user"></i> Ocupante
                     </h4>
 
+                    <!-- Tipo Persona -->
+                    <div class="ocupacion-campo">
+                      <label class="ocupacion-campo__label">Tipo de persona</label>
+                      <div class="ocupacion-tipo-persona-grupo">
+                        <input type="radio" name="tipo-persona-${ofi.numero}" id="tipo-persona-natural-${ofi.numero}" value="natural" ${ofi.ocupante_tipo_persona !== 'juridica' ? 'checked' : ''} style="display:none;">
+                        <label for="tipo-persona-natural-${ofi.numero}" class="ocupacion-tipo-persona-label ${ofi.ocupante_tipo_persona !== 'juridica' ? 'ocupacion-tipo-persona-label--active' : ''}">
+                          <i class="fas fa-user"></i> Natural
+                        </label>
+                        <input type="radio" name="tipo-persona-${ofi.numero}" id="tipo-persona-juridica-${ofi.numero}" value="juridica" ${ofi.ocupante_tipo_persona === 'juridica' ? 'checked' : ''} style="display:none;">
+                        <label for="tipo-persona-juridica-${ofi.numero}" class="ocupacion-tipo-persona-label ${ofi.ocupante_tipo_persona === 'juridica' ? 'ocupacion-tipo-persona-label--active' : ''}">
+                          <i class="fas fa-building"></i> Jurídica
+                        </label>
+                      </div>
+                    </div>
+
                     <div class="ocupacion-campo">
                       <label class="ocupacion-campo__label">DNI / RUC</label>
                       <div class="ocupacion-dni-wrapper">
@@ -5759,8 +5776,8 @@ class PropertyForm {
                         ${ofi.ocupante_id ? 'readonly' : ''}>
                     </div>
 
-                    <div class="ocupacion-campo">
-                      <label class="ocupacion-campo__label">Empresa</label>
+                    <div class="ocupacion-campo ocupacion-campo-empresa-${ofi.numero}" style="${ofi.ocupante_tipo_persona === 'juridica' ? '' : 'display:none;'}">
+                      <label class="ocupacion-campo__label">Empresa / Razón Social</label>
                       <input type="text" class="ocupacion-campo__input ocupacion-empresa" data-oficina="${ofi.numero}"
                         value="${ofi.ocupante_empresa}" placeholder="Nombre de la empresa"
                         ${ofi.ocupante_id ? 'readonly' : ''}>
@@ -5908,6 +5925,24 @@ class PropertyForm {
       });
     });
 
+    // ===== TIPO PERSONA: Toggle empresa visible =====
+    modalEl.querySelectorAll('input[name^="tipo-persona-"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const numOfi = radio.name.replace('tipo-persona-', '');
+        const esJuridica = radio.value === 'juridica';
+        // Toggle campo empresa
+        const campoEmpresa = modalEl.querySelector(`.ocupacion-campo-empresa-${numOfi}`);
+        if (campoEmpresa) campoEmpresa.style.display = esJuridica ? '' : 'none';
+        // Toggle active class en labels
+        const labels = modalEl.querySelectorAll(`label[for^="tipo-persona-"][for$="-${numOfi}"]`);
+        labels.forEach(lbl => {
+          const inputId = lbl.getAttribute('for');
+          const isChecked = modalEl.querySelector(`#${inputId}`)?.checked;
+          lbl.classList.toggle('ocupacion-tipo-persona-label--active', isChecked);
+        });
+      });
+    });
+
     // ===== DNI: Buscar ocupante =====
     const buscarOcupantePorDni = async (numOfi) => {
       const inputDni = document.querySelector(`.ocupacion-dni[data-oficina="${numOfi}"]`);
@@ -6001,6 +6036,7 @@ class PropertyForm {
           readonlyTelefono: primerItem.querySelector('.ocupacion-telefono')?.readOnly || false,
           email: primerItem.querySelector('.ocupacion-email')?.value || '',
           readonlyEmail: primerItem.querySelector('.ocupacion-email')?.readOnly || false,
+          tipoPersona: modalEl.querySelector(`input[name="tipo-persona-${numPrimera}"]:checked`)?.value || 'natural',
           fechaInicio: primerItem.querySelector('.ocupacion-fecha-inicio')?.value || '',
           fechaFin: primerItem.querySelector('.ocupacion-fecha-fin')?.value || '',
           precioOfi: primerItem.querySelector('.ocupacion-precio-ofi')?.value || '',
@@ -6025,6 +6061,9 @@ class PropertyForm {
           if (telefonoInput) { telefonoInput.value = valoresBase.telefono; telefonoInput.readOnly = valoresBase.readonlyTelefono; }
           const emailInput = item.querySelector('.ocupacion-email');
           if (emailInput) { emailInput.value = valoresBase.email; emailInput.readOnly = valoresBase.readonlyEmail; }
+          // Tipo persona
+          const tipoPersonaRadio = item.querySelector(`input[name="tipo-persona-${numOfi}"][value="${valoresBase.tipoPersona}"]`);
+          if (tipoPersonaRadio) { tipoPersonaRadio.checked = true; tipoPersonaRadio.dispatchEvent(new Event('change')); }
           // Contrato
           const fInicioInput = item.querySelector('.ocupacion-fecha-inicio');
           if (fInicioInput) fInicioInput.value = valoresBase.fechaInicio;
@@ -6070,6 +6109,7 @@ class PropertyForm {
           ocupante_empresa: item.querySelector('.ocupacion-empresa')?.value?.trim() || null,
           ocupante_telefono: item.querySelector('.ocupacion-telefono')?.value?.trim() || null,
           ocupante_email: item.querySelector('.ocupacion-email')?.value?.trim() || null,
+          ocupante_tipo_persona: item.querySelector(`input[name="tipo-persona-${numOficina}"]:checked`)?.value || 'natural',
           ocupante_id: dniInput?.dataset?.ocupanteId ? parseInt(dniInput.dataset.ocupanteId) : null,
           fecha_inicio: item.querySelector('.ocupacion-fecha-inicio')?.value || null,
           fecha_fin: item.querySelector('.ocupacion-fecha-fin')?.value || null,
@@ -6148,6 +6188,9 @@ class PropertyForm {
                 fecha_fin: dato.fecha_fin || null,
                 precio_oficina: dato.precio_oficina || null,
                 precio_estacionamiento: dato.precio_estacionamiento || null,
+                parqueos_simples: dato.parqueos_simples || 0,
+                parqueos_dobles: dato.parqueos_dobles || 0,
+                tipo_persona: dato.ocupante_tipo_persona || 'natural',
                 moneda: 'USD'
               };
 
