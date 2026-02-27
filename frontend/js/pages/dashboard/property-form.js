@@ -448,10 +448,9 @@ class PropertyForm {
       if (!transacciones || transacciones.length === 0) return;
 
       transacciones.forEach(tx => {
-        // Encontrar la oficina para extraer numero_oficina del nombre
+        // Encontrar la oficina para obtener su numero_oficina
         const oficina = oficinas.find(o => o.registro_cab_id === tx.registro_cab_id);
-        const match = (oficina?.nombre_inmueble || '').match(/(\d+)/);
-        const numOficina = match ? parseInt(match[1]) : tx.registro_cab_id;
+        const numOficina = oficina?.numero_oficina || tx.registro_cab_id;
 
         this.formData.datosOcupacion.push({
           numero_oficina: numOficina,
