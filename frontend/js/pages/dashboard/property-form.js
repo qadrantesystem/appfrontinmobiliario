@@ -1625,11 +1625,11 @@ class PropertyForm {
             </div>
 
             <small style="display: block; margin-top: 12px; color: #e65100;">
-              💡 Al seleccionar edificio se heredan: distrito, dirección y coordenadas.
+              💡 Pase el mouse sobre el combo para ver datos del edificio.
             </small>
           </div>
-          <!-- Contenedor para mostrar info del edificio seleccionado -->
-          <div id="edificio-caracteristicas-container" style="margin-top: var(--spacing-md);"></div>
+          <!-- Contenedor reservado (tooltip ahora reemplaza al cuadro verde) -->
+          <div id="edificio-caracteristicas-container"></div>
         </div>
         
         <!-- ✅ Nombre del Inmueble con label dinámico -->

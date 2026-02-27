@@ -107,6 +107,9 @@ class SelectorEdificio {
       this.caracteristicas = null;
       this.hideCaracteristicas();
 
+      // Limpiar tooltip
+      this.actualizarTooltipEdificio();
+
       // 🆕 Notificar al callback que se deseleccionó
       if (this.onEdificioChange) {
         this.onEdificioChange(null);
@@ -133,35 +136,86 @@ class SelectorEdificio {
       });
     }
 
-    // Mostrar info del edificio con datos heredados
-    if (this.caracteristicasContainer && this.edificioSeleccionado) {
-      this.caracteristicasContainer.innerHTML = `
-        <div class="edificio-info-card" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4CAF50; border-radius: 12px; padding: 16px; margin-top: 12px;">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <span style="font-size: 2rem;">🏢</span>
-            <div>
-              <div style="font-weight: 700; font-size: 1.1rem; color: #2e7d32;">
-                ${this.edificioSeleccionado.nombre_inmueble}
-              </div>
-              <div style="font-size: 0.85rem; color: #388e3c;">
-                📍 ${this.edificioSeleccionado.direccion || 'Sin dirección'}
-              </div>
-            </div>
-          </div>
-          <div style="background: white; border-radius: 8px; padding: 12px; font-size: 0.85rem;">
-            <div style="display: flex; align-items: center; gap: 8px; color: #4CAF50; font-weight: 600; margin-bottom: 8px;">
-              <span>✅</span>
-              <span>Datos que se heredarán automáticamente:</span>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; color: #555;">
-              <div>📍 <strong>Distrito:</strong> ${this.edificioSeleccionado.distrito_nombre || this.edificioSeleccionado.distrito || 'N/A'}</div>
-              <div>🗺️ <strong>Dirección:</strong> ${this.edificioSeleccionado.direccion || 'N/A'}</div>
-              ${this.edificioSeleccionado.latitud ? `<div>📌 <strong>Coordenadas:</strong> ${parseFloat(this.edificioSeleccionado.latitud).toFixed(4)}, ${parseFloat(this.edificioSeleccionado.longitud).toFixed(4)}</div>` : ''}
-            </div>
-          </div>
-        </div>
-      `;
+    // Mostrar tooltip con info del edificio en el combo
+    this.actualizarTooltipEdificio();
+
+    // Limpiar el container de características (ya no se muestra cuadro verde)
+    if (this.caracteristicasContainer) {
+      this.caracteristicasContainer.innerHTML = '';
     }
+  }
+
+  /**
+   * 💬 Actualizar tooltip del combo con info del edificio seleccionado
+   */
+  actualizarTooltipEdificio() {
+    if (!this.selectElement) return;
+
+    // Remover tooltip anterior si existe
+    const tooltipAnterior = this.selectElement.parentElement.querySelector('.edificio-tooltip');
+    if (tooltipAnterior) tooltipAnterior.remove();
+
+    if (!this.edificioSeleccionado) {
+      this.selectElement.title = '';
+      return;
+    }
+
+    const ed = this.edificioSeleccionado;
+    const distrito = ed.distrito_nombre || ed.distrito || 'N/A';
+    const direccion = ed.direccion || 'N/A';
+    const coordenadas = ed.latitud ? `${parseFloat(ed.latitud).toFixed(4)}, ${parseFloat(ed.longitud).toFixed(4)}` : '';
+
+    // Title nativo como fallback
+    this.selectElement.title = `${ed.nombre_inmueble}\nDistrito: ${distrito}\nDirección: ${direccion}`;
+
+    // Crear tooltip visual personalizado
+    const tooltipEl = document.createElement('div');
+    tooltipEl.className = 'edificio-tooltip';
+    tooltipEl.innerHTML = `
+      <div class="edificio-tooltip__header">
+        <span class="edificio-tooltip__icon">🏢</span>
+        <span class="edificio-tooltip__nombre">${ed.nombre_inmueble}</span>
+      </div>
+      <div class="edificio-tooltip__body">
+        <div class="edificio-tooltip__row">
+          <span class="edificio-tooltip__label">Distrito:</span>
+          <span class="edificio-tooltip__value">${distrito}</span>
+        </div>
+        <div class="edificio-tooltip__row">
+          <span class="edificio-tooltip__label">Dirección:</span>
+          <span class="edificio-tooltip__value">${direccion}</span>
+        </div>
+        ${coordenadas ? `
+        <div class="edificio-tooltip__row">
+          <span class="edificio-tooltip__label">Coordenadas:</span>
+          <span class="edificio-tooltip__value">${coordenadas}</span>
+        </div>` : ''}
+      </div>
+    `;
+
+    // Insertar tooltip en el wrapper del select
+    const wrapper = this.selectElement.parentElement;
+    wrapper.style.position = 'relative';
+    wrapper.appendChild(tooltipEl);
+
+    // Mostrar/ocultar con hover
+    const showTooltip = () => { tooltipEl.classList.add('visible'); };
+    const hideTooltip = () => { tooltipEl.classList.remove('visible'); };
+
+    // Remover listeners anteriores
+    if (this._tooltipShowHandler) {
+      this.selectElement.removeEventListener('mouseenter', this._tooltipShowHandler);
+      this.selectElement.removeEventListener('mouseleave', this._tooltipHideHandler);
+    }
+
+    this._tooltipShowHandler = showTooltip;
+    this._tooltipHideHandler = hideTooltip;
+
+    this.selectElement.addEventListener('mouseenter', showTooltip);
+    this.selectElement.addEventListener('mouseleave', hideTooltip);
+
+    // También ocultar cuando se abre el combo
+    this.selectElement.addEventListener('focus', hideTooltip);
   }
 
   /**
