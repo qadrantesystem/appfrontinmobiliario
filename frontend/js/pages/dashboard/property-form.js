@@ -5721,22 +5721,32 @@ class PropertyForm {
             <div class="ocupacion-item__cuerpo">
               <div class="ocupacion-item__cuerpo-inner">
 
-                <!-- Estado (Radio Buttons) -->
-                <div class="ocupacion-estado-grupo">
-                  <input type="radio" class="ocupacion-estado-radio" name="estado-${ofi.numero}" id="estado-libre-${ofi.numero}" value="libre" ${ofi.estado_ocupacion === 'libre' ? 'checked' : ''}>
-                  <label for="estado-libre-${ofi.numero}" class="ocupacion-estado-label">
-                    <i class="fas fa-door-open"></i> Libre
-                  </label>
+                <!-- Estado (Radio Buttons) + Acciones -->
+                <div class="ocupacion-estado-row">
+                  <div class="ocupacion-estado-grupo">
+                    <input type="radio" class="ocupacion-estado-radio" name="estado-${ofi.numero}" id="estado-libre-${ofi.numero}" value="libre" ${ofi.estado_ocupacion === 'libre' ? 'checked' : ''}>
+                    <label for="estado-libre-${ofi.numero}" class="ocupacion-estado-label">
+                      <i class="fas fa-door-open"></i> Libre
+                    </label>
 
-                  <input type="radio" class="ocupacion-estado-radio" name="estado-${ofi.numero}" id="estado-ocupada-${ofi.numero}" value="ocupada" ${ofi.estado_ocupacion === 'ocupada' ? 'checked' : ''}>
-                  <label for="estado-ocupada-${ofi.numero}" class="ocupacion-estado-label">
-                    <i class="fas fa-user-check"></i> Ocupada
-                  </label>
+                    <input type="radio" class="ocupacion-estado-radio" name="estado-${ofi.numero}" id="estado-ocupada-${ofi.numero}" value="ocupada" ${ofi.estado_ocupacion === 'ocupada' ? 'checked' : ''}>
+                    <label for="estado-ocupada-${ofi.numero}" class="ocupacion-estado-label">
+                      <i class="fas fa-user-check"></i> Ocupada
+                    </label>
 
-                  <input type="radio" class="ocupacion-estado-radio" name="estado-${ofi.numero}" id="estado-reservada-${ofi.numero}" value="reservada" ${ofi.estado_ocupacion === 'reservada' ? 'checked' : ''}>
-                  <label for="estado-reservada-${ofi.numero}" class="ocupacion-estado-label">
-                    <i class="fas fa-clock"></i> Reservada
-                  </label>
+                    <input type="radio" class="ocupacion-estado-radio" name="estado-${ofi.numero}" id="estado-reservada-${ofi.numero}" value="reservada" ${ofi.estado_ocupacion === 'reservada' ? 'checked' : ''}>
+                    <label for="estado-reservada-${ofi.numero}" class="ocupacion-estado-label">
+                      <i class="fas fa-clock"></i> Reservada
+                    </label>
+                  </div>
+                  <div class="ocupacion-acciones-inline">
+                    <button type="button" class="ocupacion-btn-nuevo" data-oficina="${ofi.numero}" data-registro-cab-id="${ofi.registro_cab_id || ''}" title="Nuevo ocupante">
+                      <i class="fas fa-plus-circle"></i> Nuevo
+                    </button>
+                    <button type="button" class="ocupacion-btn-historial" data-oficina="${ofi.numero}" data-registro-cab-id="${ofi.registro_cab_id || ''}" title="Ver historial">
+                      <i class="fas fa-history"></i> Historial
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Secciones: Ocupante + Contrato -->
@@ -5849,16 +5859,6 @@ class PropertyForm {
                     </div>
                   </div>
 
-                </div>
-
-                <!-- Acciones: Nuevo Ocupante + Historial -->
-                <div class="ocupacion-acciones">
-                  <button type="button" class="ocupacion-btn-nuevo" data-oficina="${ofi.numero}" data-registro-cab-id="${ofi.registro_cab_id || ''}">
-                    <i class="fas fa-plus-circle"></i> Nuevo Ocupante
-                  </button>
-                  <button type="button" class="ocupacion-btn-historial" data-oficina="${ofi.numero}" data-registro-cab-id="${ofi.registro_cab_id || ''}">
-                    <i class="fas fa-history"></i> Historial
-                  </button>
                 </div>
 
                 <!-- Historial Container (oculto por defecto) -->

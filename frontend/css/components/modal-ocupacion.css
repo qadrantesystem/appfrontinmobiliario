@@ -451,30 +451,34 @@
   font-weight: 600;
 }
 
-/* Acciones (Nuevo + Historial) */
-.ocupacion-acciones {
+/* Estado + Acciones en una fila */
+.ocupacion-estado-row {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed var(--borde);
+  flex-wrap: wrap;
+}
+
+.ocupacion-acciones-inline {
+  display: flex;
+  gap: 6px;
 }
 
 .ocupacion-btn-nuevo,
 .ocupacion-btn-historial {
-  flex: 1;
-  padding: 8px 12px;
-  border: 2px solid var(--borde);
-  border-radius: 8px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--borde);
+  border-radius: 20px;
   background: white;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 4px;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .ocupacion-btn-nuevo {
