@@ -900,7 +900,13 @@ class BusquedasTab {
     const iconMap = {
       'Generales del Edificio': 'fa-building',
       'Soporte del Edificio': 'fa-wrench',
+      'Áreas Comunes del Edificio': 'fa-swimming-pool',
+      'Ascensores': 'fa-elevator',
       'De la Oficina': 'fa-toolbox',
+      'Equipamiento de Oficina': 'fa-cogs',
+      'Vista de la Oficina': 'fa-eye',
+      'Información de Áreas': 'fa-ruler-combined',
+      'Valorización Edificio': 'fa-dollar-sign',
       'Soporte Urbano': 'fa-map-marker-alt',
       'CARACTERISTICAS_CASA': 'fa-home',
       'CARACTERISTICAS_DEPTO': 'fa-building',

@@ -2481,8 +2481,14 @@ class ResultadosPage {
     const nombres = {
       'COMPLEMENTARIOS': '📦 Complementarios',
       'GENERALES_EDIFICIO': '🏢 Generales del Edificio',
-      'SOPORTE_EDIFICIO': '⚡ Soporte del Edificio',
-      'DE_LA_OFICINA': '🏙️ De la Oficina',
+      'SOPORTE_EDIFICIO': '🛡️ Soporte del Edificio',
+      'AREAS_COMUNES': '🏊 Áreas Comunes del Edificio',
+      'ASCENSORES': '🛗 Ascensores',
+      'DE_LA_OFICINA': '📋 De la Oficina',
+      'EQUIPAMIENTO': '⚙️ Equipamiento de Oficina',
+      'VISTA_OFICINA': '👁️ Vista de la Oficina',
+      'INFO_AREAS': '📐 Información de Áreas',
+      'VALORIZACION': '💰 Valorización Edificio',
       'SOPORTE_URBANO': '📍 Soporte Urbano'
     };
     return nombres[categoria] || categoria;

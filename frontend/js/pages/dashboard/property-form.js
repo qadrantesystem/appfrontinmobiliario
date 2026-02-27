@@ -2196,21 +2196,26 @@ class PropertyForm {
   }
 
   getGrupoIcon(grupoNombre) {
-    // Normalizar nombre para buscar ícono
     const nombre = grupoNombre.toLowerCase();
-    
+
+    if (nombre.includes('areas comunes') || nombre.includes('áreas comunes')) return '🏊';
+    if (nombre.includes('ascensor')) return '🛗';
+    if (nombre.includes('equipamiento')) return '⚙️';
+    if (nombre.includes('vista')) return '👁️';
+    if (nombre.includes('informacion de area') || nombre.includes('información de área')) return '📐';
+    if (nombre.includes('valorizacion') || nombre.includes('valorización')) return '💰';
+    if (nombre.includes('soporte urbano') || nombre.includes('cercania') || nombre.includes('cercanía')) return '📍';
+    if (nombre.includes('soporte')) return '🛡️';
     if (nombre.includes('seguridad')) return '🔒';
     if (nombre.includes('servicio')) return '⚡';
-    if (nombre.includes('área') || nombre.includes('comun')) return '🏊';
     if (nombre.includes('acabado')) return '✨';
-    if (nombre.includes('ubicación') || nombre.includes('ubicacion')) return '📍';
-    if (nombre.includes('exterior') || nombre.includes('jardin')) return '🌳';
     if (nombre.includes('cocina')) return '🍳';
     if (nombre.includes('baño') || nombre.includes('bano')) return '🚿';
     if (nombre.includes('parqueo') || nombre.includes('estacionamiento')) return '🚗';
-    if (nombre.includes('edificio')) return '🏢';
+    if (nombre.includes('edificio') || nombre.includes('generales')) return '🏢';
+    if (nombre.includes('oficina')) return '📋';
     if (nombre.includes('amenidad') || nombre.includes('recreacion')) return '🎯';
-    
+
     return '📋';
   }
 

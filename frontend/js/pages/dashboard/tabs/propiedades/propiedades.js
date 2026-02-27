@@ -789,7 +789,13 @@ class PropiedadesTab {
         const ordenCategorias = [
           'Generales del Edificio',
           'Soporte del Edificio',
+          'Áreas Comunes del Edificio',
+          'Ascensores',
           'De la Oficina',
+          'Equipamiento de Oficina',
+          'Vista de la Oficina',
+          'Información de Áreas',
+          'Valorización Edificio',
           'Soporte Urbano'
         ];
         
