@@ -286,11 +286,10 @@ class SelectorEdificio {
 
     // Mapa de iconos por categoría
     const iconos = {
-      'Edificio - Estructura': '🏢',
-      'Áreas Comunes del Edificio': '🏛️',
-      'Ascensores': '📋',
-      'Soporte del Edificio': '🏢',
-      'Cercanía Estratégica': '📍'
+      'Generales del Edificio': '🏢',
+      'Soporte del Edificio': '🛡️',
+      'De la Oficina': '📋',
+      'Soporte Urbano': '📍'
     };
 
     for (const [categoria, caracteristicas] of Object.entries(this.caracteristicas)) {

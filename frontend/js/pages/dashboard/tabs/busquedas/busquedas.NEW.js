@@ -898,12 +898,10 @@ class BusquedasTab {
 
     // Mapa de iconos por categoría (igual que resultados.js)
     const iconMap = {
-      'Áreas Comunes del Edificio': 'fa-building',
-      'Ascensores': 'fa-elevator',
-      'Implementación Detalle': 'fa-toolbox',
+      'Generales del Edificio': 'fa-building',
       'Soporte del Edificio': 'fa-wrench',
-      'Cercanía Estratégica': 'fa-map-marker-alt',
-      'Vista Oficina': 'fa-eye',
+      'De la Oficina': 'fa-toolbox',
+      'Soporte Urbano': 'fa-map-marker-alt',
       'CARACTERISTICAS_CASA': 'fa-home',
       'CARACTERISTICAS_DEPTO': 'fa-building',
       'CARACTERISTICAS_TERRENO': 'fa-map',

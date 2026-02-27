@@ -2480,12 +2480,10 @@ class ResultadosPage {
   formatCategoria(categoria) {
     const nombres = {
       'COMPLEMENTARIOS': '📦 Complementarios',
-      'AREAS_COMUNES_EDIFICIO': '🏢 Áreas Comunes del Edificio',
-      'ASCENSORES': '🛗 Ascensores',
-      'IMPLEMENTACION_DETALLE': '🔧 Implementación / Detalle',
+      'GENERALES_EDIFICIO': '🏢 Generales del Edificio',
       'SOPORTE_EDIFICIO': '⚡ Soporte del Edificio',
-      'CERCANIA_ESTRATEGICA': '📍 Cercanía Estratégica',
-      'VISTA_OFICINA': '🏙️ Vista de la Oficina'
+      'DE_LA_OFICINA': '🏙️ De la Oficina',
+      'SOPORTE_URBANO': '📍 Soporte Urbano'
     };
     return nombres[categoria] || categoria;
   }

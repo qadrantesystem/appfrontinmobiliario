@@ -787,13 +787,10 @@ class PropiedadesTab {
         
         // Orden de categorías según formulario multipaso
         const ordenCategorias = [
-          'Áreas Comunes del Edificio',
-          'Ascensores',
-          'Implementación Detalle',
+          'Generales del Edificio',
           'Soporte del Edificio',
-          'Cercanía Estratégica',
-          'Vista de la Oficina',
-          'Equipamiento de Oficina'
+          'De la Oficina',
+          'Soporte Urbano'
         ];
         
         // Ordenar categorías
