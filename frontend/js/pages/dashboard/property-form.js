@@ -459,6 +459,8 @@ class PropertyForm {
           ocupante_dni: tx.inquilino_ruc || null,
           ocupante_nombre: tx.inquilino_nombre || null,
           ocupante_empresa: tx.inquilino_contacto || null,
+          ocupante_telefono: tx.inquilino_telefono || null,
+          ocupante_email: tx.inquilino_email || null,
           ocupante_id: tx.ocupante_id || null,
           fecha_inicio: tx.fecha_inicio || null,
           fecha_fin: tx.fecha_fin || null,
@@ -5670,6 +5672,8 @@ class PropertyForm {
         ocupante_dni: datosGuardados?.ocupante_dni || '',
         ocupante_nombre: datosGuardados?.ocupante_nombre || '',
         ocupante_empresa: datosGuardados?.ocupante_empresa || '',
+        ocupante_telefono: datosGuardados?.ocupante_telefono || '',
+        ocupante_email: datosGuardados?.ocupante_email || '',
         ocupante_id: datosGuardados?.ocupante_id || null
       };
     });
@@ -5760,6 +5764,20 @@ class PropertyForm {
                       <label class="ocupacion-campo__label">Empresa</label>
                       <input type="text" class="ocupacion-campo__input ocupacion-empresa" data-oficina="${ofi.numero}"
                         value="${ofi.ocupante_empresa}" placeholder="Nombre de la empresa"
+                        ${ofi.ocupante_id ? 'readonly' : ''}>
+                    </div>
+
+                    <div class="ocupacion-campo">
+                      <label class="ocupacion-campo__label">Teléfono</label>
+                      <input type="tel" class="ocupacion-campo__input ocupacion-telefono" data-oficina="${ofi.numero}"
+                        value="${ofi.ocupante_telefono}" placeholder="Ej: 999 888 777"
+                        ${ofi.ocupante_id ? 'readonly' : ''}>
+                    </div>
+
+                    <div class="ocupacion-campo">
+                      <label class="ocupacion-campo__label">Email</label>
+                      <input type="email" class="ocupacion-campo__input ocupacion-email" data-oficina="${ofi.numero}"
+                        value="${ofi.ocupante_email}" placeholder="correo@empresa.com"
                         ${ofi.ocupante_id ? 'readonly' : ''}>
                     </div>
                   </div>
@@ -5896,6 +5914,8 @@ class PropertyForm {
       const inputDni = document.querySelector(`.ocupacion-dni[data-oficina="${numOfi}"]`);
       const inputNombre = document.querySelector(`.ocupacion-nombre[data-oficina="${numOfi}"]`);
       const inputEmpresa = document.querySelector(`.ocupacion-empresa[data-oficina="${numOfi}"]`);
+      const inputTelefono = document.querySelector(`.ocupacion-telefono[data-oficina="${numOfi}"]`);
+      const inputEmail = document.querySelector(`.ocupacion-email[data-oficina="${numOfi}"]`);
       const feedback = document.querySelector(`[data-feedback="${numOfi}"]`);
       const btnBuscar = document.querySelector(`.ocupacion-dni-buscar[data-oficina="${numOfi}"]`);
       const dni = inputDni?.value?.trim();
@@ -5919,6 +5939,8 @@ class PropertyForm {
           const ocupante = await response.json();
           if (inputNombre) { inputNombre.value = ocupante.nombre || ''; inputNombre.readOnly = true; }
           if (inputEmpresa) { inputEmpresa.value = ocupante.empresa || ''; inputEmpresa.readOnly = true; }
+          if (inputTelefono) { inputTelefono.value = ocupante.telefono || ''; inputTelefono.readOnly = true; }
+          if (inputEmail) { inputEmail.value = ocupante.email || ''; inputEmail.readOnly = true; }
           if (inputDni) inputDni.dataset.ocupanteId = ocupante.ocupante_id;
           if (inputDni) inputDni.classList.add('ocupacion-campo__input--found');
           inputDni?.classList.remove('ocupacion-campo__input--not-found');
@@ -5929,6 +5951,8 @@ class PropertyForm {
         } else if (response.status === 404) {
           if (inputNombre) { inputNombre.value = ''; inputNombre.readOnly = false; inputNombre.focus(); }
           if (inputEmpresa) { inputEmpresa.value = ''; inputEmpresa.readOnly = false; }
+          if (inputTelefono) { inputTelefono.value = ''; inputTelefono.readOnly = false; }
+          if (inputEmail) { inputEmail.value = ''; inputEmail.readOnly = false; }
           if (inputDni) inputDni.dataset.ocupanteId = '';
           if (inputDni) inputDni.classList.add('ocupacion-campo__input--not-found');
           inputDni?.classList.remove('ocupacion-campo__input--found');
@@ -5974,6 +5998,10 @@ class PropertyForm {
           readonlyNombre: primerItem.querySelector('.ocupacion-nombre')?.readOnly || false,
           empresa: primerItem.querySelector('.ocupacion-empresa')?.value || '',
           readonlyEmpresa: primerItem.querySelector('.ocupacion-empresa')?.readOnly || false,
+          telefono: primerItem.querySelector('.ocupacion-telefono')?.value || '',
+          readonlyTelefono: primerItem.querySelector('.ocupacion-telefono')?.readOnly || false,
+          email: primerItem.querySelector('.ocupacion-email')?.value || '',
+          readonlyEmail: primerItem.querySelector('.ocupacion-email')?.readOnly || false,
           fechaInicio: primerItem.querySelector('.ocupacion-fecha-inicio')?.value || '',
           fechaFin: primerItem.querySelector('.ocupacion-fecha-fin')?.value || '',
           precioOfi: primerItem.querySelector('.ocupacion-precio-ofi')?.value || '',
@@ -5994,6 +6022,10 @@ class PropertyForm {
           if (nombreInput) { nombreInput.value = valoresBase.nombre; nombreInput.readOnly = valoresBase.readonlyNombre; }
           const empresaInput = item.querySelector('.ocupacion-empresa');
           if (empresaInput) { empresaInput.value = valoresBase.empresa; empresaInput.readOnly = valoresBase.readonlyEmpresa; }
+          const telefonoInput = item.querySelector('.ocupacion-telefono');
+          if (telefonoInput) { telefonoInput.value = valoresBase.telefono; telefonoInput.readOnly = valoresBase.readonlyTelefono; }
+          const emailInput = item.querySelector('.ocupacion-email');
+          if (emailInput) { emailInput.value = valoresBase.email; emailInput.readOnly = valoresBase.readonlyEmail; }
           // Contrato
           const fInicioInput = item.querySelector('.ocupacion-fecha-inicio');
           if (fInicioInput) fInicioInput.value = valoresBase.fechaInicio;
@@ -6037,6 +6069,8 @@ class PropertyForm {
           ocupante_dni: dniInput?.value?.trim() || null,
           ocupante_nombre: item.querySelector('.ocupacion-nombre')?.value?.trim() || null,
           ocupante_empresa: item.querySelector('.ocupacion-empresa')?.value?.trim() || null,
+          ocupante_telefono: item.querySelector('.ocupacion-telefono')?.value?.trim() || null,
+          ocupante_email: item.querySelector('.ocupacion-email')?.value?.trim() || null,
           ocupante_id: dniInput?.dataset?.ocupanteId ? parseInt(dniInput.dataset.ocupanteId) : null,
           fecha_inicio: item.querySelector('.ocupacion-fecha-inicio')?.value || null,
           fecha_fin: item.querySelector('.ocupacion-fecha-fin')?.value || null,
@@ -6108,6 +6142,8 @@ class PropertyForm {
                 inquilino_nombre: dato.ocupante_nombre,
                 inquilino_ruc: dato.ocupante_dni,
                 inquilino_contacto: dato.ocupante_empresa,
+                inquilino_telefono: dato.ocupante_telefono,
+                inquilino_email: dato.ocupante_email,
                 ocupante_id: dato.ocupante_id || null,
                 fecha_inicio: dato.fecha_inicio || null,
                 fecha_fin: dato.fecha_fin || null,
