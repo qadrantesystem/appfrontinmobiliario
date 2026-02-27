@@ -5661,8 +5661,14 @@ class PropertyForm {
       const datosGuardados = (this.formData.datosOcupacion || []).find(
         d => d.numero_oficina == numOficina
       );
+      // Obtener registro_cab_id desde oficinas existentes o desde el DOM
+      const ofExistente = (this.formData.oficinasExistentes || []).find(o => o.numero_oficina == numOficina);
+      const cajitaDom = document.querySelector(`.oficina-seleccionable[data-oficina-id="${numOficina}"]`);
+      const registroCabId = ofExistente?.registro_cab_id || cajitaDom?.dataset?.registroCabId || '';
+
       return {
         numero: numOficina,
+        registro_cab_id: registroCabId,
         estado_ocupacion: datosGuardados?.estado_ocupacion || 'libre',
         fecha_inicio: datosGuardados?.fecha_inicio || '',
         fecha_fin: datosGuardados?.fecha_fin || '',
@@ -5844,6 +5850,25 @@ class PropertyForm {
                   </div>
 
                 </div>
+
+                <!-- Acciones: Nuevo Ocupante + Historial -->
+                <div class="ocupacion-acciones">
+                  <button type="button" class="ocupacion-btn-nuevo" data-oficina="${ofi.numero}" data-registro-cab-id="${ofi.registro_cab_id || ''}">
+                    <i class="fas fa-plus-circle"></i> Nuevo Ocupante
+                  </button>
+                  <button type="button" class="ocupacion-btn-historial" data-oficina="${ofi.numero}" data-registro-cab-id="${ofi.registro_cab_id || ''}">
+                    <i class="fas fa-history"></i> Historial
+                  </button>
+                </div>
+
+                <!-- Historial Container (oculto por defecto) -->
+                <div class="ocupacion-historial" id="historial-${ofi.numero}" style="display:none;">
+                  <h4 class="ocupacion-seccion__titulo"><i class="fas fa-history"></i> Historial de Ocupantes</h4>
+                  <div class="ocupacion-historial__lista" id="historial-lista-${ofi.numero}">
+                    <!-- Se llena dinamicamente -->
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -6013,6 +6038,148 @@ class PropertyForm {
         if (e.key === 'Enter') {
           e.preventDefault();
           buscarOcupantePorDni(input.dataset.oficina);
+        }
+      });
+    });
+
+    // ===== NUEVO OCUPANTE: Limpiar formulario =====
+    modalEl.querySelectorAll('.ocupacion-btn-nuevo').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const numOfi = btn.dataset.oficina;
+        const item = modalEl.querySelector(`.ocupacion-item[data-oficina="${numOfi}"]`);
+        if (!item) return;
+
+        // Limpiar inputs de ocupante
+        const dniInput = item.querySelector('.ocupacion-dni');
+        if (dniInput) {
+          dniInput.value = '';
+          dniInput.dataset.ocupanteId = '';
+          dniInput.classList.remove('ocupacion-campo__input--found', 'ocupacion-campo__input--not-found');
+        }
+        const nombreInput = item.querySelector('.ocupacion-nombre');
+        if (nombreInput) { nombreInput.value = ''; nombreInput.readOnly = false; }
+        const empresaInput = item.querySelector('.ocupacion-empresa');
+        if (empresaInput) { empresaInput.value = ''; empresaInput.readOnly = false; }
+        const telefonoInput = item.querySelector('.ocupacion-telefono');
+        if (telefonoInput) { telefonoInput.value = ''; telefonoInput.readOnly = false; }
+        const emailInput = item.querySelector('.ocupacion-email');
+        if (emailInput) { emailInput.value = ''; emailInput.readOnly = false; }
+
+        // Limpiar contrato
+        const fechaInicio = item.querySelector('.ocupacion-fecha-inicio');
+        if (fechaInicio) fechaInicio.value = '';
+        const fechaFin = item.querySelector('.ocupacion-fecha-fin');
+        if (fechaFin) fechaFin.value = '';
+        const precioOfi = item.querySelector('.ocupacion-precio-ofi');
+        if (precioOfi) precioOfi.value = '';
+        const precioEst = item.querySelector('.ocupacion-precio-est');
+        if (precioEst) precioEst.value = '';
+        const parqueoSimple = item.querySelector('.ocupacion-parqueo-simple');
+        if (parqueoSimple) parqueoSimple.value = '0';
+        const parqueoDoble = item.querySelector('.ocupacion-parqueo-doble');
+        if (parqueoDoble) parqueoDoble.value = '0';
+
+        // Limpiar feedback DNI
+        const feedback = item.querySelector(`[data-feedback="${numOfi}"]`);
+        if (feedback) {
+          feedback.className = 'ocupacion-dni-feedback';
+          feedback.innerHTML = '';
+        }
+
+        // Resetear tipo persona a natural
+        const radioNatural = item.querySelector(`input[name="tipo-persona-${numOfi}"][value="natural"]`);
+        if (radioNatural) {
+          radioNatural.checked = true;
+          radioNatural.dispatchEvent(new Event('change'));
+        }
+
+        // Limpiar transaccion_id local para que el siguiente save haga POST (nueva transaccion)
+        const datoForm = this.formData.datosOcupacion?.find(d => d.numero_oficina == numOfi);
+        if (datoForm) {
+          datoForm.transaccion_id = null;
+          datoForm.ocupante_id = null;
+        }
+
+        // Focus en DNI
+        if (dniInput) dniInput.focus();
+
+        showNotification('Formulario limpio para nuevo ocupante', 'info');
+      });
+    });
+
+    // ===== HISTORIAL: Cargar transacciones pasadas =====
+    modalEl.querySelectorAll('.ocupacion-btn-historial').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const numOfi = btn.dataset.oficina;
+        const registroCabId = btn.dataset.registroCabId;
+        const contenedor = document.getElementById(`historial-${numOfi}`);
+        const lista = document.getElementById(`historial-lista-${numOfi}`);
+
+        if (!registroCabId) {
+          showNotification('Esta oficina aun no esta guardada', 'warning');
+          return;
+        }
+
+        // Toggle visibilidad
+        if (contenedor.style.display !== 'none') {
+          contenedor.style.display = 'none';
+          return;
+        }
+
+        // Cargar historial
+        lista.innerHTML = '<div style="text-align:center; padding:12px;"><i class="fas fa-spinner fa-spin"></i> Cargando historial...</div>';
+        contenedor.style.display = 'block';
+
+        try {
+          const token = authService.getToken();
+          const res = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${registroCabId}/transacciones`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (!res.ok) throw new Error('Error cargando historial');
+          const transacciones = await res.json();
+
+          if (!transacciones || transacciones.length === 0) {
+            lista.innerHTML = '<p style="text-align:center; color:var(--gris-medio); padding:12px;">Sin historial de transacciones</p>';
+            return;
+          }
+
+          lista.innerHTML = transacciones.map((tx, idx) => {
+            const vigente = tx.es_vigente;
+            const badge = vigente
+              ? '<span style="background:#10b981; color:white; padding:2px 8px; border-radius:10px; font-size:0.75rem;">Vigente</span>'
+              : '<span style="background:var(--gris-medio); color:white; padding:2px 8px; border-radius:10px; font-size:0.75rem;">Finalizado</span>';
+            const fechaIni = tx.fecha_inicio || '\u2014';
+            const fechaFin = tx.fecha_fin || '\u2014';
+            const nombre = tx.inquilino_nombre || 'Sin nombre';
+
+            return `
+              <div class="historial-item ${vigente ? 'historial-item--vigente' : ''}" data-historial-idx="${idx}">
+                <div class="historial-item__cabecera" onclick="this.parentElement.classList.toggle('historial-item--abierto')">
+                  <span class="historial-item__fechas">${fechaIni} \u2192 ${fechaFin}</span>
+                  <span class="historial-item__nombre">${nombre}</span>
+                  ${badge}
+                  <i class="fas fa-chevron-down historial-item__chevron"></i>
+                </div>
+                <div class="historial-item__detalle">
+                  <div class="historial-detalle-grid">
+                    <div><strong>DNI/RUC:</strong> ${tx.inquilino_ruc || '\u2014'}</div>
+                    <div><strong>Empresa:</strong> ${tx.inquilino_contacto || '\u2014'}</div>
+                    <div><strong>Telefono:</strong> ${tx.inquilino_telefono || '\u2014'}</div>
+                    <div><strong>Email:</strong> ${tx.inquilino_email || '\u2014'}</div>
+                    <div><strong>Precio Oficina:</strong> ${tx.precio_oficina ? '$' + tx.precio_oficina : '\u2014'}</div>
+                    <div><strong>Precio Estac.:</strong> ${tx.precio_estacionamiento ? '$' + tx.precio_estacionamiento : '\u2014'}</div>
+                    <div><strong>Parqueos:</strong> ${tx.parqueos_simples || 0} simples, ${tx.parqueos_dobles || 0} dobles</div>
+                    <div><strong>Estado:</strong> ${tx.estado_ocupacion || '\u2014'}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+        } catch (error) {
+          console.error('Error cargando historial:', error);
+          lista.innerHTML = '<p style="text-align:center; color:var(--error); padding:12px;">Error al cargar historial</p>';
         }
       });
     });
