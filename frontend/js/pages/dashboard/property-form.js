@@ -707,7 +707,7 @@ class PropertyForm {
       // Extraer configuración del edificio de las características
       const pisos = this.formData.caracteristicas.find(c => c.caracteristica_id === 110)?.valor || 0;
       const oficinasPorPiso = this.formData.caracteristicas.find(c => c.caracteristica_id === 120)?.valor || 0;
-      const sotanos = this.formData.caracteristicas.find(c => c.caracteristica_id === 121)?.valor || 0;
+      const sotanos = this.formData.caracteristicas.find(c => c.caracteristica_id === 111)?.valor || 0;
       
       // Mapear oficinas a formato interno
       const oficinasConfig = oficinas.map(ofi => ({
@@ -1359,11 +1359,11 @@ class PropertyForm {
         // Mostrar valores específicos que buscamos
         const pisos = this.formData.caracteristicas?.find(c => c.caracteristica_id == 110);
         const oficinas = this.formData.caracteristicas?.find(c => c.caracteristica_id == 120);
-        const sotanos = this.formData.caracteristicas?.find(c => c.caracteristica_id == 121);
+        const sotanos = this.formData.caracteristicas?.find(c => c.caracteristica_id == 111);
         
         console.log('  🏢 PisOS (ID 110):', pisos?.valor || 'NO ENCONTRADO');
         console.log('  🏢 Oficinas por Piso (ID 120):', oficinas?.valor || 'NO ENCONTRADO');
-        console.log('  🏢 Sótanos (ID 121):', sotanos?.valor || 'NO ENCONTRADO');
+        console.log('  🏢 Sótanos (ID 111):', sotanos?.valor || 'NO ENCONTRADO');
         
         this.formData.caracteristicas?.forEach(carac => {
           const input = document.querySelector(`[data-carac-id="${carac.caracteristica_id}"]`);
@@ -1821,7 +1821,7 @@ class PropertyForm {
     // Obtener valores de características
     const cantidadPisos = this.getCaracteristicaValor(110) || 0; // ID 110: Cantidad Pisos Edificio
     const oficinasPorPiso = this.getCaracteristicaValor(120) || 0; // ID 120: Cantidad Oficinas por Piso
-    const cantidadSotanos = this.getCaracteristicaValor(121) || 0; // ID 121: Cantidad de Sótanos
+    const cantidadSotanos = this.getCaracteristicaValor(111) || 0; // ID 111: Cantidad de Sótanos
 
     const totalOficinas = parseInt(cantidadPisos) * parseInt(oficinasPorPiso);
 
@@ -2833,7 +2833,7 @@ class PropertyForm {
         // Datos del edificio (ya recopilados en step 3)
         const pisos = parseInt(this.formData.caracteristicas.find(c => c.caracteristica_id === 110)?.valor || 0);
         const oficinasPorPiso = parseInt(this.formData.caracteristicas.find(c => c.caracteristica_id === 120)?.valor || 0);
-        const sotanos = parseInt(this.formData.caracteristicas.find(c => c.caracteristica_id === 121)?.valor || 0);
+        const sotanos = parseInt(this.formData.caracteristicas.find(c => c.caracteristica_id === 111)?.valor || 0);
 
         console.log(`📊 Generando oficinas: ${pisos} pisos × ${oficinasPorPiso} oficinas/piso`);
 
@@ -3088,7 +3088,7 @@ class PropertyForm {
         } else {
           // Auto-mostrar modal de pisos SOLO si cambió la config o es nuevo
           const cantidadPisos = parseInt(this.getCaracteristicaValor(110)) || 0;
-          const cantidadSotanos = parseInt(this.getCaracteristicaValor(121)) || 0;
+          const cantidadSotanos = parseInt(this.getCaracteristicaValor(111)) || 0;
           const pisosGuardados = this.formData.pisos || [];
           const pisosPositivos = pisosGuardados.filter(p => p.numero_piso > 0).length;
           const sotanosGuardados = pisosGuardados.filter(p => p.numero_piso < 0).length;
@@ -3981,7 +3981,7 @@ class PropertyForm {
   rerenderTorre() {
     const pisos = this.formData.caracteristicas.find(c => c.caracteristica_id === 110)?.valor || 0;
     const oficinasPorPiso = this.formData.caracteristicas.find(c => c.caracteristica_id === 120)?.valor || 0;
-    const sotanos = this.formData.caracteristicas.find(c => c.caracteristica_id === 121)?.valor || 0;
+    const sotanos = this.formData.caracteristicas.find(c => c.caracteristica_id === 111)?.valor || 0;
 
     const torreContainer = document.getElementById('torreContainer');
     if (torreContainer) {
@@ -5406,7 +5406,7 @@ class PropertyForm {
   mostrarConfigPisos() {
     return new Promise((resolve) => {
     const cantidadPisos = parseInt(this.getCaracteristicaValor(110)) || 0;
-    const cantidadSotanos = parseInt(this.getCaracteristicaValor(121)) || 0;
+    const cantidadSotanos = parseInt(this.getCaracteristicaValor(111)) || 0;
 
     if (!cantidadPisos) {
       showNotification('Completa "Cantidad de Pisos" en el Paso 3 antes de configurar pisos', 'warning');
