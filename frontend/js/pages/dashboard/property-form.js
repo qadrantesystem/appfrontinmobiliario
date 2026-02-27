@@ -4447,6 +4447,10 @@ class PropertyForm {
           if (datosOcupNew?.estado_ocupacion === 'ocupada') claseEstadoNew = 'oficina-ocupada';
           else if (datosOcupNew?.estado_ocupacion === 'reservada') claseEstadoNew = 'oficina-reservada';
 
+          const prefijoNew = obtenerPrefijoNew(oficinaNum);
+          const displayNameNew = prefijoNew === 'Local' ? `Lc. ${oficinaNum}` : `Of. ${oficinaNum}`;
+          const nombreCompletoNew = `${prefijoNew} ${oficinaNum}`;
+
           html += `
             <div
               class="oficina-seleccionable ${estaSeleccionada ? 'selected' : ''} ${claseEstadoNew}"
@@ -4454,6 +4458,7 @@ class PropertyForm {
               data-piso="${piso}"
               data-metraje="${oficinaExistente?.area || 50}"
               data-registro-cab-id="${oficinaExistente?.registro_cab_id || ''}"
+              data-nombre="${nombreCompletoNew}"
               style="
                 flex: 1;
                 height: 45px;
@@ -4468,18 +4473,18 @@ class PropertyForm {
                 justify-content: center;
                 color: white;
                 font-weight: 600;
-                font-size: 0.9rem;
+                font-size: 0.75rem;
                 box-shadow: 0 2px 6px rgba(44, 82, 130, 0.3);
                 cursor: pointer;
                 transition: all 0.2s;
                 ${estaSeleccionada ? 'transform: scale(1.05);' : ''}
               "
               title="${estaSeleccionada
-                ? `${obtenerPrefijoNew(oficinaNum)} ${oficinaNum} - ${oficinaExistente?.area || 50}m² - Estado: ${oficinaExistente?.estado || 'borrador'}`
-                : `Seleccionar ${obtenerPrefijoNew(oficinaNum)} ${oficinaNum}`
+                ? `${prefijoNew} ${oficinaNum} - ${oficinaExistente?.area || 50}m² - Estado: ${oficinaExistente?.estado || 'borrador'}`
+                : `Seleccionar ${prefijoNew} ${oficinaNum}`
               }"
             >
-              ${oficinaNum}
+              ${displayNameNew}
             </div>
           `;
         }
