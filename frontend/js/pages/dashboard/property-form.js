@@ -6204,12 +6204,36 @@ class PropertyForm {
               }).then(res => {
                 if (!res.ok) return res.json().then(err => Promise.reject(err));
                 return res.json();
-              });
+              }).then(respuesta => ({
+                ...respuesta,
+                _numero_oficina: dato.numero_oficina
+              }));
             })
           );
 
           const exitosos = resultados.filter(r => r.status === 'fulfilled').length;
           const fallidos = resultados.filter(r => r.status === 'rejected').length;
+
+          // Actualizar ocupante_id local con el valor auto-creado por el backend
+          resultados.forEach(resultado => {
+            if (resultado.status === 'fulfilled' && resultado.value?.ocupante_id) {
+              const numOficina = resultado.value._numero_oficina;
+              const ocupanteIdNuevo = resultado.value.ocupante_id;
+
+              // Actualizar en datosRecolectados
+              const datoLocal = datosRecolectados.find(d => d.numero_oficina === numOficina);
+              if (datoLocal) datoLocal.ocupante_id = ocupanteIdNuevo;
+
+              // Actualizar en formData.datosOcupacion
+              const datoForm = this.formData.datosOcupacion.find(d => d.numero_oficina == numOficina);
+              if (datoForm) datoForm.ocupante_id = ocupanteIdNuevo;
+
+              // Actualizar el data-ocupante-id en el input DNI del DOM (para futuras ediciones)
+              const itemModal = document.querySelector(`.ocupacion-item[data-oficina="${numOficina}"]`);
+              const dniInputLocal = itemModal?.querySelector('.ocupacion-dni');
+              if (dniInputLocal) dniInputLocal.dataset.ocupanteId = ocupanteIdNuevo;
+            }
+          });
 
           if (fallidos > 0) {
             console.error('Transacciones fallidas:', resultados.filter(r => r.status === 'rejected'));
