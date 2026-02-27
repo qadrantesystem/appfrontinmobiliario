@@ -5,21 +5,17 @@
   class DashboardFilters {
     constructor(dashboard) {
       this.dashboard = dashboard;
-      this.activeTab = null; // ✅ Referencia al tab activo (PropiedadesTab)
+      this.activeTab = null;
       this.selectedTipos = [];
       this.selectedDistritos = [];
       this.selectedTransaccion = '';
       this.searchPropietario = '';
-      this.areaMin = null;
-      this.areaMax = null;
+      this.areaTarget = null;
+      this.areaMargen = 15;
     }
 
-    /**
-     * ✅ NUEVO: Setear el tab activo que usará los filtros
-     */
     setActiveTab(tab) {
       this.activeTab = tab;
-      console.log('✅ Filters - Tab activo configurado:', tab.constructor.name);
     }
 
     render() {
@@ -27,23 +23,25 @@
       const showTransaccion = [1, 2, 3].includes(this.dashboard.currentUser?.perfil_id);
 
       return `
-        <div class="filters-container" style="background: white; padding: var(--spacing-md); border-radius: 8px; border: 1px solid var(--borde); margin-bottom: var(--spacing-md);">
-          <!-- Título Filtros -->
-          <div class="filters-title" style="color: var(--azul-corporativo); font-weight: 600; font-size: 0.95rem; margin-bottom: var(--spacing-sm); display: flex; align-items: center; gap: 0.5rem;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-            Filtros:
+        <div class="filters-container">
+          <div class="filters-header">
+            <div class="filters-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              Filtros
+            </div>
+            <button id="btnClearAllFilters" class="filters-btn-limpiar">
+              <i class="fas fa-times-circle"></i> Limpiar
+            </button>
           </div>
 
-          <!-- Grid de Filtros -->
-          <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-sm); align-items: start;">
-            
+          <div class="filters-row">
             <!-- Tipo Inmueble -->
-            <div>
+            <div class="filter-item">
               <div id="tipoMulti" class="multi-select">
-                <button type="button" class="multi-select__button" id="tipoToggle" style="padding: 8px 12px; width: 100%;">
+                <button type="button" class="multi-select__button" id="tipoToggle">
                   <span class="multi-select__placeholder" id="tipoPlaceholder">Tipo de Inmueble</span>
                   <span class="multi-select__tags" id="tipoTags"></span>
-                  <span class="multi-select__arrow">▾</span>
+                  <span class="multi-select__arrow">&#9662;</span>
                 </button>
                 <div class="multi-select__panel" id="tipoPanel" hidden>
                   <div class="multi-select__options" id="tipoOptions"></div>
@@ -55,12 +53,12 @@
             </div>
 
             <!-- Distrito -->
-            <div>
+            <div class="filter-item">
               <div id="distritoMulti" class="multi-select">
-                <button type="button" class="multi-select__button" id="distritoToggle" style="padding: 8px 12px; width: 100%;">
+                <button type="button" class="multi-select__button" id="distritoToggle">
                   <span class="multi-select__placeholder" id="distritoPlaceholder">Distrito</span>
                   <span class="multi-select__tags" id="distritoTags"></span>
-                  <span class="multi-select__arrow">▾</span>
+                  <span class="multi-select__arrow">&#9662;</span>
                 </button>
                 <div class="multi-select__panel" id="distritoPanel" hidden>
                   <div class="multi-select__search">
@@ -77,8 +75,8 @@
 
             ${showTransaccion ? `
             <!-- Venta / Alquiler -->
-            <div>
-              <select id="filterTransaccion" class="form-control" style="padding: 8px 12px; width: 100%; border: 1px solid var(--borde); border-radius: 6px; font-size: 0.9rem;">
+            <div class="filter-item">
+              <select id="filterTransaccion" class="filter-select">
                 <option value="">Venta/Alquiler</option>
                 <option value="venta">Venta</option>
                 <option value="alquiler">Alquiler</option>
@@ -86,52 +84,26 @@
             </div>
             ` : ''}
 
-            <!-- Área / Metraje -->
-            <div class="metraje-range-filter">
-              <span class="metraje-range-filter__label">Área (m²)</span>
-              <div class="metraje-range-filter__inputs">
-                <input type="number" id="filterAreaMin" placeholder="Min" min="0" step="1">
-                <span class="metraje-range-filter__sep">—</span>
-                <input type="number" id="filterAreaMax" placeholder="Max" min="0" step="1">
-              </div>
+            <!-- Metraje -->
+            <div class="filter-item filter-item--metraje">
+              <input type="number" id="filterMetraje" class="filter-input-metraje" placeholder="m² (&#177;15)" min="1" step="1">
             </div>
 
             ${isAdmin ? `
             <!-- Nombre Propietario (Solo Admin) -->
-            <div>
-              <input type="text" id="filterPropietario" class="form-control" placeholder="Nombre Propietario" style="padding: 8px 12px; width: 100%; border: 1px solid var(--borde); border-radius: 6px; font-size: 0.9rem;">
+            <div class="filter-item">
+              <input type="text" id="filterPropietario" class="filter-select" placeholder="Nombre Propietario">
             </div>
             ` : ''}
-
-            <!-- Botón Limpiar -->
-            <div>
-              <button id="btnClearAllFilters" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; width: 100%;">
-                Limpiar
-              </button>
-            </div>
           </div>
         </div>
-
-        <style>
-          /* 📱 Móvil: Filtros apilados verticalmente */
-          @media (max-width: 768px) {
-            .filters-grid {
-              grid-template-columns: 1fr !important;
-            }
-            .filters-title {
-              font-size: 1rem !important;
-              margin-bottom: var(--spacing-md) !important;
-            }
-          }
-        </style>
       `;
     }
 
     async setup() {
-      // Cargar desde API
       await this.loadOptions();
-      
-      // Filtro Transacción (Venta/Alquiler)
+
+      // Filtro Transaccion
       const filterTransaccion = document.getElementById('filterTransaccion');
       if (filterTransaccion) {
         filterTransaccion.addEventListener('change', (e) => {
@@ -140,18 +112,11 @@
         });
       }
 
-      // Filtro Área (Min/Max)
-      const filterAreaMin = document.getElementById('filterAreaMin');
-      const filterAreaMax = document.getElementById('filterAreaMax');
-      if (filterAreaMin) {
-        filterAreaMin.addEventListener('input', (e) => {
-          this.areaMin = e.target.value ? parseFloat(e.target.value) : null;
-          this.apply();
-        });
-      }
-      if (filterAreaMax) {
-        filterAreaMax.addEventListener('input', (e) => {
-          this.areaMax = e.target.value ? parseFloat(e.target.value) : null;
+      // Filtro Metraje (un solo campo, busca +-15)
+      const filterMetraje = document.getElementById('filterMetraje');
+      if (filterMetraje) {
+        filterMetraje.addEventListener('input', (e) => {
+          this.areaTarget = e.target.value ? parseFloat(e.target.value) : null;
           this.apply();
         });
       }
@@ -164,7 +129,7 @@
           this.apply();
         });
       }
-      
+
       // Limpiar todo
       const btnClear = document.getElementById('btnClearAllFilters');
       if (btnClear) {
@@ -174,63 +139,37 @@
 
     async loadOptions() {
       try {
-        console.log('🔄 Cargando opciones de filtros...');
         const token = this.dashboard.authService?.getToken() || authService.getToken();
-        
-        // Cargar tipos desde API (sin autenticación, es público)
+
         const tiposRes = await fetch(`${API_CONFIG.BASE_URL}/tipos-inmueble`);
-        
-        if (!tiposRes.ok) {
-          throw new Error(`Error ${tiposRes.status} al cargar tipos`);
-        }
-        
+        if (!tiposRes.ok) throw new Error(`Error ${tiposRes.status} al cargar tipos`);
+
         const tiposData = await tiposRes.json();
-        console.log('📊 Tipos recibidos:', tiposData);
-        
-        // ✅ Ordenar por campo 'orden' y extraer solo nombres
         let tiposArray = tiposData.data || tiposData || [];
-        console.log('📊 Tipos array antes de ordenar:', tiposArray.length);
-        
         tiposArray.sort((a, b) => (a.orden || 999) - (b.orden || 999));
         const tipos = tiposArray.length > 0 ? tiposArray.map(t => t.nombre) : this.getTiposFallback();
-        
-        console.log('✅ Tipos procesados:', tipos);
-        
-        // Cargar distritos desde API
+
         const distritosRes = await fetch(`${API_CONFIG.BASE_URL}/distritos`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const distritosData = await distritosRes.json();
         const distritos = distritosData.data?.map(d => d.nombre) || this.getDistritosFallback();
-        
-        // Setup multi-selects
+
         this.setupMultiSelect('tipo', tipos);
         this.setupMultiSelect('distrito', distritos);
       } catch (error) {
         console.error('Error cargando opciones:', error);
-        // Fallback con datos de BD
         this.setupMultiSelect('tipo', this.getTiposFallback());
         this.setupMultiSelect('distrito', this.getDistritosFallback());
       }
     }
 
     getTiposFallback() {
-      // ✅ Orden actualizado según BD
       return [
-        'Edificio de oficinas completo',
-        'Oficina en Edificio',
-        'Oficina Independiente',
-        'Edificio de departamentos completo',
-        'Departamento',
-        'Condominio',
-        'Casa',
-        'Local Comercial',
-        'Consultorio',
-        'Terreno',
-        'Almacén',
-        'Cochera',
-        'Depósito',
-        'Habitación'
+        'Edificio de oficinas completo', 'Oficina en Edificio', 'Oficina Independiente',
+        'Edificio de departamentos completo', 'Departamento', 'Condominio',
+        'Casa', 'Local Comercial', 'Consultorio', 'Terreno',
+        'Almacén', 'Cochera', 'Depósito', 'Habitación'
       ];
     }
 
@@ -249,7 +188,6 @@
 
       if (!toggle || !panel || !optionsEl) return;
 
-      // Renderizar opciones
       optionsEl.innerHTML = options.map(opt => `
         <label class="multi-select__option">
           <input type="checkbox" value="${opt}" data-type="${type}">
@@ -257,14 +195,12 @@
         </label>
       `).join('');
 
-      // Toggle panel
       toggle.addEventListener('click', () => {
         const isHidden = panel.hasAttribute('hidden');
         document.querySelectorAll('.multi-select__panel').forEach(p => p.setAttribute('hidden', ''));
         if (isHidden) panel.removeAttribute('hidden');
       });
 
-      // Checkboxes
       optionsEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
         cb.addEventListener('change', () => {
           if (type === 'tipo') {
@@ -277,7 +213,6 @@
         });
       });
 
-      // Clear button
       if (clearBtn) {
         clearBtn.addEventListener('click', () => {
           optionsEl.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
@@ -288,7 +223,6 @@
         });
       }
 
-      // Select all
       if (selectAllBtn) {
         selectAllBtn.addEventListener('click', () => {
           optionsEl.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
@@ -298,7 +232,6 @@
         });
       }
 
-      // Search (solo distrito)
       const searchInput = document.getElementById(`${type}Search`);
       if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -310,7 +243,6 @@
         });
       }
 
-      // Cerrar al hacer click fuera
       document.addEventListener('click', (e) => {
         if (!toggle.contains(e.target) && !panel.contains(e.target)) {
           panel.setAttribute('hidden', '');
@@ -320,7 +252,7 @@
 
     updateTags(type, tagsEl, placeholderEl) {
       const selected = type === 'tipo' ? this.selectedTipos : this.selectedDistritos;
-      
+
       if (selected.length === 0) {
         placeholderEl.style.display = 'inline';
         tagsEl.innerHTML = '';
@@ -334,15 +266,9 @@
     }
 
     apply() {
-      console.log('🔄 Aplicando filtros...');
-
-      // ✅ FIX: Usar activeTab (PropiedadesTab) en lugar de dashboard
       if (this.activeTab && typeof this.activeTab.renderPropertiesPage === 'function') {
-        this.dashboard.pagination.currentPage = 1; // Reset página
+        this.dashboard.pagination.currentPage = 1;
         this.activeTab.renderPropertiesPage();
-        console.log('✅ Filtros aplicados');
-      } else {
-        console.warn('⚠️ No hay tab activo para aplicar filtros');
       }
     }
 
@@ -351,42 +277,39 @@
       this.selectedDistritos = [];
       this.selectedTransaccion = '';
       this.searchPropietario = '';
-      
+      this.areaTarget = null;
+
       document.querySelectorAll('.multi-select__panel input[type="checkbox"]').forEach(cb => cb.checked = false);
       document.querySelectorAll('.multi-select__tags').forEach(el => el.innerHTML = '');
       document.querySelectorAll('.multi-select__placeholder').forEach(el => el.style.display = 'inline');
-      
+
       const filterTransaccion = document.getElementById('filterTransaccion');
       if (filterTransaccion) filterTransaccion.value = '';
-      
+
       const filterPropietario = document.getElementById('filterPropietario');
       if (filterPropietario) filterPropietario.value = '';
 
-      this.areaMin = null;
-      this.areaMax = null;
-      const filterAreaMin = document.getElementById('filterAreaMin');
-      const filterAreaMax = document.getElementById('filterAreaMax');
-      if (filterAreaMin) filterAreaMin.value = '';
-      if (filterAreaMax) filterAreaMax.value = '';
+      const filterMetraje = document.getElementById('filterMetraje');
+      if (filterMetraje) filterMetraje.value = '';
 
       this.apply();
     }
 
     getFiltered(properties) {
       let filtered = [...properties];
-      
+
       if (this.selectedTipos.length > 0) {
         filtered = filtered.filter(p => this.selectedTipos.includes(p.tipo_inmueble));
       }
-      
+
       if (this.selectedDistritos.length > 0) {
         filtered = filtered.filter(p => this.selectedDistritos.includes(p.distrito));
       }
-      
+
       if (this.selectedTransaccion) {
         filtered = filtered.filter(p => p.transaccion === this.selectedTransaccion);
       }
-      
+
       if (this.searchPropietario) {
         filtered = filtered.filter(p => {
           const propietario = (p.propietario_real_nombre || p.propietario_nombre || p.propietario || '').toLowerCase();
@@ -394,11 +317,13 @@
         });
       }
 
-      if (this.areaMin) {
-        filtered = filtered.filter(p => parseFloat(p.area) >= this.areaMin);
-      }
-      if (this.areaMax) {
-        filtered = filtered.filter(p => parseFloat(p.area) <= this.areaMax);
+      if (this.areaTarget) {
+        const min = this.areaTarget - this.areaMargen;
+        const max = this.areaTarget + this.areaMargen;
+        filtered = filtered.filter(p => {
+          const area = parseFloat(p.area);
+          return area >= min && area <= max;
+        });
       }
 
       return filtered;

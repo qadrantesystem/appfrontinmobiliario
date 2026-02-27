@@ -1491,48 +1491,109 @@
   z-index: 1001;
 }
 
-/* Filtro Metraje (Rango Min-Max) */
-.metraje-range-filter {
+/* Filtros Container */
+.filters-container {
+  background: white;
+  padding: var(--spacing-md);
+  border-radius: 10px;
+  border: 1px solid var(--borde);
+  margin-bottom: var(--spacing-md);
+}
+
+.filters-header {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+}
+
+.filters-title {
+  color: var(--azul-corporativo);
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filters-btn-limpiar {
+  padding: 6px 16px;
+  border: 2px solid var(--dorado);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--dorado);
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
   gap: 4px;
 }
 
-.metraje-range-filter__label {
-  font-size: 0.8rem;
-  color: var(--gris-medio);
-  font-weight: 500;
+.filters-btn-limpiar:hover {
+  background: var(--dorado);
+  color: white;
 }
 
-.metraje-range-filter__inputs {
+.filters-row {
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
   align-items: center;
-  gap: 6px;
 }
 
-.metraje-range-filter__inputs input {
-  width: 80px;
-  padding: 8px 10px;
+.filter-item {
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter-item--metraje {
+  flex: 0 0 120px;
+  min-width: 100px;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  width: 100%;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.filter-select:focus {
+  border-color: var(--azul-corporativo);
+  outline: none;
+}
+
+.filter-input-metraje {
+  width: 100%;
+  padding: 8px 12px;
   border: 1px solid var(--borde);
   border-radius: 6px;
   font-size: 0.9rem;
   text-align: center;
 }
 
-.metraje-range-filter__inputs input:focus {
+.filter-input-metraje:focus {
   border-color: var(--azul-corporativo);
   outline: none;
 }
 
-.metraje-range-filter__sep {
+.filter-input-metraje::placeholder {
+  font-size: 0.8rem;
   color: var(--gris-medio);
-  font-size: 0.85rem;
 }
 
 @media (max-width: 768px) {
-  .metraje-range-filter__inputs input {
-    flex: 1;
-    width: auto;
+  .filters-row {
+    flex-direction: column;
+  }
+  .filter-item,
+  .filter-item--metraje {
+    flex: 1 1 100%;
+    min-width: 100%;
   }
 }
 
