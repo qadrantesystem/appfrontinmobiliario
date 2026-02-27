@@ -10,6 +10,8 @@
       this.selectedDistritos = [];
       this.selectedTransaccion = '';
       this.searchPropietario = '';
+      this.areaMin = null;
+      this.areaMax = null;
     }
 
     /**
@@ -84,6 +86,16 @@
             </div>
             ` : ''}
 
+            <!-- Área / Metraje -->
+            <div class="metraje-range-filter">
+              <span class="metraje-range-filter__label">Área (m²)</span>
+              <div class="metraje-range-filter__inputs">
+                <input type="number" id="filterAreaMin" placeholder="Min" min="0" step="1">
+                <span class="metraje-range-filter__sep">—</span>
+                <input type="number" id="filterAreaMax" placeholder="Max" min="0" step="1">
+              </div>
+            </div>
+
             ${isAdmin ? `
             <!-- Nombre Propietario (Solo Admin) -->
             <div>
@@ -124,6 +136,22 @@
       if (filterTransaccion) {
         filterTransaccion.addEventListener('change', (e) => {
           this.selectedTransaccion = e.target.value;
+          this.apply();
+        });
+      }
+
+      // Filtro Área (Min/Max)
+      const filterAreaMin = document.getElementById('filterAreaMin');
+      const filterAreaMax = document.getElementById('filterAreaMax');
+      if (filterAreaMin) {
+        filterAreaMin.addEventListener('input', (e) => {
+          this.areaMin = e.target.value ? parseFloat(e.target.value) : null;
+          this.apply();
+        });
+      }
+      if (filterAreaMax) {
+        filterAreaMax.addEventListener('input', (e) => {
+          this.areaMax = e.target.value ? parseFloat(e.target.value) : null;
           this.apply();
         });
       }
@@ -333,7 +361,14 @@
       
       const filterPropietario = document.getElementById('filterPropietario');
       if (filterPropietario) filterPropietario.value = '';
-      
+
+      this.areaMin = null;
+      this.areaMax = null;
+      const filterAreaMin = document.getElementById('filterAreaMin');
+      const filterAreaMax = document.getElementById('filterAreaMax');
+      if (filterAreaMin) filterAreaMin.value = '';
+      if (filterAreaMax) filterAreaMax.value = '';
+
       this.apply();
     }
 
@@ -358,7 +393,14 @@
           return propietario.includes(this.searchPropietario);
         });
       }
-      
+
+      if (this.areaMin) {
+        filtered = filtered.filter(p => parseFloat(p.area) >= this.areaMin);
+      }
+      if (this.areaMax) {
+        filtered = filtered.filter(p => parseFloat(p.area) <= this.areaMax);
+      }
+
       return filtered;
     }
   }

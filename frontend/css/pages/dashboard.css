@@ -1491,6 +1491,51 @@
   z-index: 1001;
 }
 
+/* Filtro Metraje (Rango Min-Max) */
+.metraje-range-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metraje-range-filter__label {
+  font-size: 0.8rem;
+  color: var(--gris-medio);
+  font-weight: 500;
+}
+
+.metraje-range-filter__inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metraje-range-filter__inputs input {
+  width: 80px;
+  padding: 8px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.metraje-range-filter__inputs input:focus {
+  border-color: var(--azul-corporativo);
+  outline: none;
+}
+
+.metraje-range-filter__sep {
+  color: var(--gris-medio);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .metraje-range-filter__inputs input {
+    flex: 1;
+    width: auto;
+  }
+}
+
 @media (max-width: 480px) {
   .tab-btn {
     padding: var(--spacing-xs) var(--spacing-sm);
