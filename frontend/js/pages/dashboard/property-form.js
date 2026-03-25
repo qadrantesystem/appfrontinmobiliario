@@ -2531,6 +2531,7 @@ class PropertyForm {
       // Extraer datos de las oficinas seleccionadas
       const oficinasData = Array.from(oficinasSeleccionadas).map(el => ({
         id: el.dataset.oficinaId,
+        nombre: el.dataset.nombre || `Of. ${el.dataset.oficinaId}`,
         registroCabId: el.dataset.registroCabId,
         metraje: el.dataset.metraje || '50',
         piso: el.dataset.piso,
@@ -4258,24 +4259,26 @@ class PropertyForm {
             return valor === 'Sí' || valor === 'true' || valor === '1' || valor === true;
           });
 
-          // Determinar color según estado
-          // Rojo = para eliminar, Dorado = tiene equipamiento, Azul = sin equipamiento
-          let bgColor, borderStyle, iconPrefix, extraClass;
+          // Determinar color según estado — fondo blanco + borde de color
+          let bgColor, borderStyle, iconPrefix, extraClass, textColor;
           if (paraEliminar) {
-            bgColor = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'; // Rojo
-            borderStyle = '2px dashed white';
+            bgColor = '#fff5f5';
+            borderStyle = '2px dashed #ef4444';
             iconPrefix = '🗑️ ';
             extraClass = 'para-eliminar';
+            textColor = '#ef4444';
           } else if (tieneEquipamiento) {
-            bgColor = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)'; // Dorado
-            borderStyle = '2px solid white';
+            bgColor = '#fffbf0';
+            borderStyle = '2px solid var(--dorado, #ff9700)';
             iconPrefix = '⭐ ';
             extraClass = 'equipada selected';
+            textColor = '#b45309';
           } else {
-            bgColor = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)'; // Azul
-            borderStyle = '2px solid white';
+            bgColor = 'white';
+            borderStyle = '2px solid var(--azul-corporativo, #0f4761)';
             iconPrefix = '';
             extraClass = '';
+            textColor = 'var(--azul-corporativo, #0f4761)';
           }
 
           // Clase de estado de ocupación (barra inferior)
@@ -4292,6 +4295,7 @@ class PropertyForm {
               data-metraje="${oficina.area || 50}"
               data-piso="${piso}"
               data-existente="true"
+              data-nombre="${shortName}"
               style="
                 min-width: 70px;
                 flex: 1;
@@ -4303,10 +4307,10 @@ class PropertyForm {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                color: white;
+                color: ${textColor};
                 font-weight: 600;
                 font-size: 0.75rem;
-                box-shadow: 0 2px 6px rgba(44, 82, 130, 0.3);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
                 cursor: pointer;
                 transition: all 0.2s;
                 ${paraEliminar ? 'opacity: 0.8; text-decoration: line-through;' : ''}
@@ -4458,26 +4462,23 @@ class PropertyForm {
               data-piso="${piso}"
               data-metraje="${oficinaExistente?.area || 50}"
               data-registro-cab-id="${oficinaExistente?.registro_cab_id || ''}"
-              data-nombre="${nombreCompletoNew}"
+              data-nombre="${displayNameNew}"
               style="
                 flex: 1;
                 height: 45px;
-                background: ${estaSeleccionada
-                  ? 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)'
-                  : 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)'
-                };
-                border: 2px solid white;
+                background: ${estaSeleccionada ? '#fffbf0' : 'white'};
+                border: 2px solid ${estaSeleccionada ? 'var(--dorado, #ff9700)' : 'var(--azul-corporativo, #0f4761)'};
                 border-radius: 6px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                color: white;
+                color: ${estaSeleccionada ? '#b45309' : 'var(--azul-corporativo, #0f4761)'};
                 font-weight: 600;
                 font-size: 0.75rem;
-                box-shadow: 0 2px 6px rgba(44, 82, 130, 0.3);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
                 cursor: pointer;
                 transition: all 0.2s;
-                ${estaSeleccionada ? 'transform: scale(1.05);' : ''}
+                ${estaSeleccionada ? 'transform: scale(1.02);' : ''}
               "
               title="${estaSeleccionada
                 ? `${prefijoNew} ${oficinaNum} - ${oficinaExistente?.area || 50}m² - Estado: ${oficinaExistente?.estado || 'borrador'}`
@@ -4549,16 +4550,16 @@ class PropertyForm {
         <div class="leyenda-torre-seccion">
           <span class="leyenda-torre-seccion__titulo">Tipo:</span>
           <span class="leyenda-torre-item">
-            <span class="leyenda-torre-cuadro" style="background: linear-gradient(135deg, var(--azul-corporativo), var(--azul-claro));"></span> Existente
+            <span class="leyenda-torre-cuadro" style="background: white; border: 2px solid var(--azul-corporativo);"></span> Existente
           </span>
           <span class="leyenda-torre-item">
-            <span class="leyenda-torre-cuadro" style="background: linear-gradient(135deg, var(--dorado), var(--dorado-hover));"></span> Equipada
+            <span class="leyenda-torre-cuadro" style="background: #fffbf0; border: 2px solid var(--dorado);"></span> Equipada
           </span>
           <span class="leyenda-torre-item">
-            <span class="leyenda-torre-cuadro" style="background: linear-gradient(135deg, #10b981, #059669); border: 1px dashed rgba(255,255,255,0.5);"></span> Nueva
+            <span class="leyenda-torre-cuadro" style="background: white; border: 2px dashed #10b981;"></span> Nueva
           </span>
           <span class="leyenda-torre-item">
-            <span class="leyenda-torre-cuadro" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: 1px dashed rgba(255,255,255,0.5);"></span> Eliminar
+            <span class="leyenda-torre-cuadro" style="background: #fff5f5; border: 2px dashed #ef4444;"></span> Eliminar
           </span>
         </div>
         <span class="leyenda-torre-separador"></span>
@@ -5273,7 +5274,7 @@ class PropertyForm {
                       font-weight: 600;
                     ">${ofi.esNueva ? '+' : ''}</span>
                     <span style="font-weight: 600; color: var(--azul-corporativo);">
-                      Oficina ${ofi.id}
+                      ${ofi.nombre || 'Of. ' + ofi.id}
                     </span>
                     <span style="font-size: 0.75rem; color: var(--gris-medio);">
                       (Piso ${ofi.piso})
@@ -5676,8 +5677,11 @@ class PropertyForm {
       const cajitaDom = document.querySelector(`.oficina-seleccionable[data-oficina-id="${numOficina}"]`);
       const registroCabId = ofExistente?.registro_cab_id || cajitaDom?.dataset?.registroCabId || '';
 
+      const nombreOficina = cajitaDom?.dataset?.nombre || `Of. ${numOficina}`;
+
       return {
         numero: numOficina,
+        nombre: nombreOficina,
         registro_cab_id: registroCabId,
         estado_ocupacion: datosGuardados?.estado_ocupacion || 'libre',
         fecha_inicio: datosGuardados?.fecha_inicio || '',
@@ -5721,7 +5725,7 @@ class PropertyForm {
       return `
         <div class="ocupacion-item" data-oficina="${ofi.numero}" data-estado="${ofi.estado_ocupacion}" aria-expanded="${abierto}">
           <div class="ocupacion-item__cabecera">
-            <span class="ocupacion-item__numero">Ofi. ${ofi.numero}</span>
+            <span class="ocupacion-item__numero">${ofi.nombre || 'Of. ' + ofi.numero}</span>
             <span class="${badgeClass(ofi.estado_ocupacion)}" data-badge="${ofi.numero}">${badgeTexto(ofi.estado_ocupacion)}</span>
             <span class="ocupacion-item__resumen" data-resumen="${ofi.numero}">${generarResumen(ofi)}</span>
             <i class="fas fa-chevron-down ocupacion-item__chevron"></i>
