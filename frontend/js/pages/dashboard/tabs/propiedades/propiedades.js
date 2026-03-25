@@ -793,21 +793,12 @@ class PropiedadesTab {
       modal.id = 'detailModal';
       modal.className = 'modal-overlay';
       
-      if (isMobile) {
-        modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 12px;';
-      } else {
-        modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 0;';
-      }
+      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 0;';
 
       // 4️⃣ Crear contenido del modal
       const modalContent = document.createElement('div');
       modalContent.className = 'modal-content';
-      
-      if (isMobile) {
-        modalContent.style.cssText = 'background: white; border-radius: 12px; width: 100%; height: 100%; max-height: calc(100vh - 24px); overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column; margin: 0; padding: 0;';
-      } else {
-        modalContent.style.cssText = 'background: white; border-radius: 0; width: 100vw; height: 100vh; overflow: hidden; box-shadow: none; display: flex; flex-direction: column; margin: 0; padding: 0;';
-      }
+      modalContent.style.cssText = 'background: white; border-radius: 0; width: 100vw; height: 100vh; overflow: hidden; box-shadow: none; display: flex; flex-direction: column; margin: 0; padding: 0;';
 
       // 5️⃣ Mapear implementación a texto legible
       const implementacionMap = {
@@ -1031,25 +1022,13 @@ class PropiedadesTab {
     // Detectar si es móvil
     const isMobile = window.innerWidth <= 768;
     
-    if (isMobile) {
-      // Móvil: con padding y border-radius
-      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 12px;';
-    } else {
-      // Desktop: full-screen
-      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;';
-    }
+    // Fullscreen para ambos — mapa necesita máximo espacio
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 0;';
 
     // 4️⃣ Crear contenido
     const modalContent = document.createElement('div');
     modalContent.className = 'modal-content';
-    
-    if (isMobile) {
-      // Móvil: compacto con border-radius
-      modalContent.style.cssText = 'background: white; border-radius: 12px; width: 100%; height: 100%; max-height: calc(100vh - 24px); overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column;';
-    } else {
-      // Desktop: full-screen sin bordes
-      modalContent.style.cssText = 'background: white; border-radius: 0; width: 100vw; height: 100vh; overflow: hidden; box-shadow: none; display: flex; flex-direction: column; margin: 0; padding: 0;';
-    }
+    modalContent.style.cssText = 'background: white; border-radius: 0; width: 100vw; height: 100vh; overflow: hidden; box-shadow: none; display: flex; flex-direction: column; margin: 0; padding: 0;';
 
     modalContent.innerHTML = `
       <!-- Header compacto con dirección Y coordenadas -->
@@ -1185,15 +1164,25 @@ class PropiedadesTab {
       }
 
       // 3️⃣ Crear modal
+      const isMobileBroker = window.innerWidth <= 768;
+
       const modal = document.createElement('div');
       modal.id = 'assignBrokerModal';
       modal.className = 'modal-overlay';
-      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;';
+      if (isMobileBroker) {
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: flex-end; justify-content: center; padding: 0;';
+      } else {
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;';
+      }
 
       // 4️⃣ Crear contenido del modal
       const modalContent = document.createElement('div');
       modalContent.className = 'modal-content';
-      modalContent.style.cssText = 'background: white; border-radius: 16px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.4);';
+      if (isMobileBroker) {
+        modalContent.style.cssText = 'background: white; border-radius: 16px 16px 0 0; width: 100%; max-height: 95vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.3);';
+      } else {
+        modalContent.style.cssText = 'background: white; border-radius: 16px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.4);';
+      }
 
       // Estados CRM
       const estadosCRM = [
@@ -1206,10 +1195,13 @@ class PropiedadesTab {
         { value: 'cerrado_perdido', label: 'Cerrado Perdido', color: 'var(--dorado-hover)' }
       ];
 
+      const padModal = isMobileBroker ? 'var(--spacing-md)' : 'var(--spacing-xl)';
+      const hSize = isMobileBroker ? '20' : '28';
+
       modalContent.innerHTML = `
-        <div style="padding: var(--spacing-xl); border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-medio) 100%); color: white; border-radius: 16px 16px 0 0;">
-          <h2 style="margin: 0; color: white; display: flex; align-items: center; gap: 10px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div style="padding: ${padModal}; border-bottom: 2px solid var(--borde); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-medio) 100%); color: white; border-radius: 16px 16px 0 0;">
+          <h2 style="margin: 0; color: white; display: flex; align-items: center; gap: 10px; font-size: ${isMobileBroker ? '1rem' : '1.25rem'};">
+            <svg xmlns="http://www.w3.org/2000/svg" width="${hSize}" height="${hSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
               <circle cx="9" cy="7" r="4"></circle>
               <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -1220,9 +1212,9 @@ class PropiedadesTab {
           <button class="btn-close-broker" style="background: rgba(255,255,255,0.2); border: none; font-size: 28px; cursor: pointer; color: white; width: 40px; height: 40px; border-radius: 50%; transition: var(--transition-fast); display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">&times;</button>
         </div>
 
-        <div style="padding: var(--spacing-xl);">
+        <div style="padding: ${padModal};">
           <!-- Título de propiedad -->
-          <div style="margin-bottom: var(--spacing-lg); padding: var(--spacing-md); background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; border-left: 4px solid var(--azul-corporativo);">
+          <div style="margin-bottom: var(--spacing-md); padding: var(--spacing-sm) var(--spacing-md); background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; border-left: 4px solid var(--azul-corporativo);">
             <small style="color: var(--gris-medio); display: block; margin-bottom: 4px;">Propiedad:</small>
             <strong style="color: var(--azul-corporativo); font-size: 1.1rem;">${property.titulo}</strong>
           </div>
