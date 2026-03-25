@@ -2609,10 +2609,13 @@ class PropertyForm {
         return;
       }
 
-      // Extraer los números de las oficinas seleccionadas
-      const numerosOficinas = Array.from(oficinasSeleccionadas).map(el => el.dataset.oficinaId);
+      // Extraer números y nombres de las oficinas seleccionadas
+      const oficinasEquipar = Array.from(oficinasSeleccionadas).map(el => ({
+        id: el.dataset.oficinaId,
+        nombre: el.dataset.nombre || `Of. ${el.dataset.oficinaId}`
+      }));
 
-      this.mostrarModalEquipamiento(numerosOficinas);
+      this.mostrarModalEquipamiento(oficinasEquipar);
     });
 
     // 🆕 BOTON PISOS (Paso 4)
@@ -4472,8 +4475,8 @@ class PropertyForm {
                 ${paraEliminar ? 'opacity: 0.8; text-decoration: line-through;' : ''}
               "
               title="${paraEliminar
-                ? '🗑️ MARCADA PARA ELIMINAR'
-                : `${displayName} - ${oficina.area || 50}m²${tieneEquipamiento ? ' · ⭐ EQUIPADA' : ''}${datosOcup ? ` · ${datosOcup.estado_ocupacion === 'ocupada' ? '🟠 OCUPADA' : datosOcup.estado_ocupacion === 'reservada' ? '🟣 RESERVADA' : '🟢 LIBRE'}` : ''}`}"
+                ? 'MARCADA PARA ELIMINAR'
+                : `${shortName} — ${oficina.area || 50}m2${tieneEquipamiento ? ' | Equipada' : ''}${datosOcup ? ` | ${datosOcup.estado_ocupacion === 'ocupada' ? 'Ocupada (' + (datosOcup.tipo_transaccion === 'venta' ? 'Venta' : 'Alquiler') + (datosOcup.precio_oficina ? ' S/' + datosOcup.precio_oficina : '') + ')' : datosOcup.estado_ocupacion === 'reservada' ? 'Reservada' : 'Libre'}` : ''}`}"
             >
               ${iconPrefix}${shortName}
             </div>
@@ -5077,21 +5080,30 @@ class PropertyForm {
       { id: 130, nombre: 'Rollers' }
     ];
 
+    // Compatibilidad: si viene array de objetos {id, nombre} o array de IDs
+    const oficinas = oficinasSeleccionadas.map(item => {
+      if (typeof item === 'object') return item;
+      return { id: item, nombre: `Of. ${item}` };
+    });
+
     // 🆕 Obtener datos de oficinas existentes con sus equipamientos
-    const oficinasConDatos = oficinasSeleccionadas.map(numOficina => {
+    const oficinasConDatos = oficinas.map(ofi => {
+      const numOficina = ofi.id;
       const oficinaExistente = this.formData.oficinasSeleccionadas?.find(
         o => o.numero_oficina == numOficina
       );
-      
+
       return {
         numero: numOficina,
+        nombre: ofi.nombre,
         registro_cab_id: oficinaExistente?.registro_cab_id || null,
         caracteristicas: oficinaExistente?.caracteristicas || []
       };
     });
     
-    // Usar las oficinas seleccionadas
-    const oficinas = oficinasSeleccionadas;
+    // IDs para checkboxes, nombres para headers
+    const oficinasIds = oficinas.map(o => o.id);
+    const oficinasNombres = oficinas.map(o => o.nombre);
 
     // Crear HTML del modal
     let html = `
@@ -5179,7 +5191,7 @@ class PropertyForm {
                   ">
                     EQUIPAMIENTO
                   </th>
-                  ${oficinas.map(ofi => `
+                  ${oficinasNombres.map(nombre => `
                     <th style="
                       padding: 8px 4px;
                       text-align: center;
@@ -5188,9 +5200,9 @@ class PropertyForm {
                       min-width: 50px;
                       background: linear-gradient(135deg, var(--azul-corporativo), var(--azul-claro));
                       color: white;
-                      font-size: 0.8rem;
+                      font-size: 0.75rem;
                     ">
-                      ${ofi}
+                      ${nombre}
                     </th>
                   `).join('')}
                 </tr>
@@ -5210,7 +5222,7 @@ class PropertyForm {
                     ">
                       ${equip.nombre}
                     </td>
-                    ${oficinas.map(ofi => {
+                    ${oficinasIds.map(ofi => {
                       // ✅ Verificar si esta oficina tiene este equipamiento
                       const oficinaData = oficinasConDatos.find(o => o.numero == ofi);
                       const tieneEquipamiento = oficinaData?.caracteristicas?.some(
@@ -5852,7 +5864,9 @@ class PropertyForm {
         ocupante_telefono: datosGuardados?.ocupante_telefono || '',
         ocupante_email: datosGuardados?.ocupante_email || '',
         ocupante_tipo_persona: datosGuardados?.ocupante_tipo_persona || 'natural',
-        ocupante_id: datosGuardados?.ocupante_id || null
+        ocupante_id: datosGuardados?.ocupante_id || null,
+        tipo_transaccion: datosGuardados?.tipo_transaccion || 'alquiler',
+        precio_venta: datosGuardados?.precio_venta || ''
       };
     });
 
@@ -5991,6 +6005,21 @@ class PropertyForm {
                       <i class="fas fa-file-contract"></i> Contrato
                     </h4>
 
+                    <!-- Radio: Tipo transaccion -->
+                    <div class="ocupacion-campo">
+                      <label class="ocupacion-campo__label">Tipo de transaccion</label>
+                      <div style="display: flex; gap: 8px;">
+                        <label style="flex:1; display:flex; align-items:center; gap:6px; padding:6px 10px; border:2px solid ${ofi.tipo_transaccion !== 'venta' ? 'var(--azul-corporativo)' : 'var(--borde)'}; border-radius:6px; cursor:pointer; font-size:0.82rem; font-weight:600; color:${ofi.tipo_transaccion !== 'venta' ? 'var(--azul-corporativo)' : 'var(--gris-medio)'}; background:${ofi.tipo_transaccion !== 'venta' ? 'rgba(15,71,97,0.06)' : 'white'};">
+                          <input type="radio" name="tipo-transaccion-${ofi.numero}" value="alquiler" ${ofi.tipo_transaccion !== 'venta' ? 'checked' : ''} style="margin:0;">
+                          Alquiler
+                        </label>
+                        <label style="flex:1; display:flex; align-items:center; gap:6px; padding:6px 10px; border:2px solid ${ofi.tipo_transaccion === 'venta' ? 'var(--azul-corporativo)' : 'var(--borde)'}; border-radius:6px; cursor:pointer; font-size:0.82rem; font-weight:600; color:${ofi.tipo_transaccion === 'venta' ? 'var(--azul-corporativo)' : 'var(--gris-medio)'}; background:${ofi.tipo_transaccion === 'venta' ? 'rgba(15,71,97,0.06)' : 'white'};">
+                          <input type="radio" name="tipo-transaccion-${ofi.numero}" value="venta" ${ofi.tipo_transaccion === 'venta' ? 'checked' : ''} style="margin:0;">
+                          Venta
+                        </label>
+                      </div>
+                    </div>
+
                     <div class="ocupacion-campo">
                       <label class="ocupacion-campo__label">Fecha inicio</label>
                       <input type="date" class="ocupacion-campo__input ocupacion-fecha-inicio" data-oficina="${ofi.numero}"
@@ -5998,21 +6027,32 @@ class PropertyForm {
                     </div>
 
                     <div class="ocupacion-campo">
-                      <label class="ocupacion-campo__label">Fecha término</label>
+                      <label class="ocupacion-campo__label">Fecha termino</label>
                       <input type="date" class="ocupacion-campo__input ocupacion-fecha-fin" data-oficina="${ofi.numero}"
                         value="${ofi.fecha_fin}">
                     </div>
 
-                    <div class="ocupacion-campo">
-                      <label class="ocupacion-campo__label">Alquiler oficina (S/)</label>
-                      <input type="number" class="ocupacion-campo__input ocupacion-precio-ofi" data-oficina="${ofi.numero}"
-                        value="${ofi.precio_oficina}" placeholder="0.00" step="0.01" min="0">
+                    <!-- Campos ALQUILER -->
+                    <div id="campos-alquiler-${ofi.numero}" style="${ofi.tipo_transaccion === 'venta' ? 'display:none;' : ''}">
+                      <div class="ocupacion-campo">
+                        <label class="ocupacion-campo__label">Alquiler oficina (S/)</label>
+                        <input type="number" class="ocupacion-campo__input ocupacion-precio-ofi" data-oficina="${ofi.numero}"
+                          value="${ofi.precio_oficina}" placeholder="0.00" step="0.01" min="0">
+                      </div>
+                      <div class="ocupacion-campo">
+                        <label class="ocupacion-campo__label">Alquiler estacionamiento (S/)</label>
+                        <input type="number" class="ocupacion-campo__input ocupacion-precio-est" data-oficina="${ofi.numero}"
+                          value="${ofi.precio_estacionamiento}" placeholder="0.00" step="0.01" min="0">
+                      </div>
                     </div>
 
-                    <div class="ocupacion-campo">
-                      <label class="ocupacion-campo__label">Alquiler estacionamiento (S/)</label>
-                      <input type="number" class="ocupacion-campo__input ocupacion-precio-est" data-oficina="${ofi.numero}"
-                        value="${ofi.precio_estacionamiento}" placeholder="0.00" step="0.01" min="0">
+                    <!-- Campos VENTA -->
+                    <div id="campos-venta-${ofi.numero}" style="${ofi.tipo_transaccion !== 'venta' ? 'display:none;' : ''}">
+                      <div class="ocupacion-campo">
+                        <label class="ocupacion-campo__label">Precio de venta (S/)</label>
+                        <input type="number" class="ocupacion-campo__input ocupacion-precio-venta" data-oficina="${ofi.numero}"
+                          value="${ofi.precio_venta}" placeholder="0.00" step="0.01" min="0">
+                      </div>
                     </div>
 
                     <div class="ocupacion-parqueos-grid">
@@ -6136,6 +6176,31 @@ class PropertyForm {
           const isChecked = modalEl.querySelector(`#${inputId}`)?.checked;
           lbl.classList.toggle('ocupacion-tipo-persona-label--active', isChecked);
         });
+      });
+    });
+
+    // ===== Tipo transaccion: toggle alquiler/venta =====
+    modalEl.querySelectorAll('input[name^="tipo-transaccion-"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const numOfi = radio.name.replace('tipo-transaccion-', '');
+        const esVenta = radio.value === 'venta';
+        const camposAlquiler = document.getElementById(`campos-alquiler-${numOfi}`);
+        const camposVenta = document.getElementById(`campos-venta-${numOfi}`);
+        if (camposAlquiler) camposAlquiler.style.display = esVenta ? 'none' : '';
+        if (camposVenta) camposVenta.style.display = esVenta ? '' : 'none';
+        // Actualizar estilos de los labels
+        const container = radio.closest('.ocupacion-campo');
+        if (container) {
+          container.querySelectorAll('label[style]').forEach(lbl => {
+            const inp = lbl.querySelector('input[type="radio"]');
+            if (inp) {
+              const activo = inp.checked;
+              lbl.style.borderColor = activo ? 'var(--azul-corporativo)' : 'var(--borde)';
+              lbl.style.color = activo ? 'var(--azul-corporativo)' : 'var(--gris-medio)';
+              lbl.style.background = activo ? 'rgba(15,71,97,0.06)' : 'white';
+            }
+          });
+        }
       });
     });
 
@@ -6458,7 +6523,9 @@ class PropertyForm {
           precio_oficina: parseFloat(item.querySelector('.ocupacion-precio-ofi')?.value) || null,
           precio_estacionamiento: parseFloat(item.querySelector('.ocupacion-precio-est')?.value) || null,
           parqueos_simples: parseInt(item.querySelector('.ocupacion-parqueo-simple')?.value) || 0,
-          parqueos_dobles: parseInt(item.querySelector('.ocupacion-parqueo-doble')?.value) || 0
+          parqueos_dobles: parseInt(item.querySelector('.ocupacion-parqueo-doble')?.value) || 0,
+          tipo_transaccion: item.querySelector(`input[name="tipo-transaccion-${numOficina}"]:checked`)?.value || 'alquiler',
+          precio_venta: parseFloat(item.querySelector('.ocupacion-precio-venta')?.value) || null
         };
 
         // Upsert en formData.datosOcupacion
@@ -6518,7 +6585,7 @@ class PropertyForm {
               const registroCabId = cajita.dataset.registroCabId;
 
               const body = {
-                tipo_transaccion: 'alquiler',
+                tipo_transaccion: dato.tipo_transaccion || 'alquiler',
                 estado_ocupacion: dato.estado_ocupacion,
                 inquilino_nombre: dato.ocupante_nombre,
                 inquilino_ruc: dato.ocupante_dni,
@@ -6533,6 +6600,7 @@ class PropertyForm {
                 parqueos_simples: dato.parqueos_simples || 0,
                 parqueos_dobles: dato.parqueos_dobles || 0,
                 tipo_persona: dato.ocupante_tipo_persona || 'natural',
+                precio_venta: dato.precio_venta || null,
                 moneda: 'USD'
               };
 
