@@ -3161,9 +3161,34 @@ class PropertyForm {
 
     this.collectStepData();
 
+    // Auto-geocoding silencioso: si hay dirección pero no coordenadas, intentar obtenerlas
+    if (this.currentStep === 2 && this.formData.direccion && !this.formData.latitud) {
+      try {
+        const distrito = document.getElementById('distrito_id');
+        const distritoTexto = distrito?.options[distrito.selectedIndex]?.text || '';
+        const queries = [
+          `${this.formData.direccion}, ${distritoTexto}, Lima, Peru`,
+          `${this.formData.direccion}, Lima, Peru`
+        ];
+        for (const query of queries) {
+          const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=pe`;
+          const res = await fetch(url, { headers: { 'User-Agent': 'QadranteInmobiliaria/1.0' } });
+          const data = await res.json();
+          if (data?.length > 0) {
+            this.formData.latitud = parseFloat(data[0].lat);
+            this.formData.longitud = parseFloat(data[0].lon);
+            console.log('📍 Auto-geocoding exitoso:', this.formData.latitud, this.formData.longitud);
+            break;
+          }
+        }
+      } catch (e) {
+        console.warn('⚠️ Auto-geocoding falló:', e);
+      }
+    }
+
     if (this.currentStep < this.totalSteps) {
       this.currentStep++;
-      
+
       // ✅ SALTAR PASO 4 si NO es edificio completo (IDs 12 o 13)
       if (this.currentStep === 4) {
         const tipoInmuebleId = parseInt(this.formData.tipo_inmueble_id);
