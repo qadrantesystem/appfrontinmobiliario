@@ -462,6 +462,7 @@ class PropertyForm {
           numero_oficina: numOficina,
           transaccion_id: tx.transaccion_id || null,
           estado_ocupacion: tx.estado_ocupacion || 'libre',
+          tipo_transaccion: tx.tipo_transaccion || 'alquiler',
           ocupante_dni: tx.inquilino_ruc || null,
           ocupante_nombre: tx.inquilino_nombre || null,
           ocupante_empresa: tx.inquilino_contacto || null,
@@ -4490,8 +4491,11 @@ class PropertyForm {
           // Clase de estado de ocupación (barra inferior)
           const datosOcup = (this.formData.datosOcupacion || []).find(d => d.numero_oficina == numeroOficina);
           let claseEstadoOcup = '';
-          if (datosOcup?.estado_ocupacion === 'ocupada') claseEstadoOcup = 'oficina-ocupada';
-          else if (datosOcup?.estado_ocupacion === 'reservada') claseEstadoOcup = 'oficina-reservada';
+          if (datosOcup?.estado_ocupacion === 'ocupada') {
+            claseEstadoOcup = datosOcup.tipo_transaccion === 'venta' ? 'oficina-ocupada-venta' : 'oficina-ocupada';
+          } else if (datosOcup?.estado_ocupacion === 'reservada') {
+            claseEstadoOcup = 'oficina-reservada';
+          }
 
           html += `
             <div
@@ -6596,9 +6600,9 @@ class PropertyForm {
         if (esNueva) {
           oficina.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
         } else if (esEquipada) {
-          oficina.style.background = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)';
+          oficina.style.background = '#fffbf0';
         } else {
-          oficina.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
+          oficina.style.background = 'white';
         }
         oficina.style.transform = 'scale(1)';
       });
