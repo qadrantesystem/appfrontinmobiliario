@@ -35,7 +35,12 @@ class PropertyForm {
       imagen_principal: null,
       imagenes_galeria: [],
       caracteristicas: [],
-      pisos: []
+      pisos: [],
+      propietario_tipo_persona: 'natural',
+      propietario_tipo_documento: 'DNI',
+      propietario_razon_social: '',
+      propietario_ruc: '',
+      propietario_representante_legal: ''
     };
 
     // 🆕 Componentes reutilizables
@@ -1540,20 +1545,50 @@ class PropertyForm {
 
   
   renderStep1() {
+    const esJuridica = this.formData.propietario_tipo_persona === 'juridica';
     return `
       <h3 style="margin-bottom: var(--spacing-md); color: var(--azul-corporativo); font-size: 1.3rem; font-weight: 600;">
-        Información del Propietario
+        Informacion del Propietario
       </h3>
       <div style="display: grid; gap: var(--spacing-md);">
-        <!-- 🎯 Layout compacto: DNI + Nombre + Celular en una fila -->
-        <div id="propietarioBasicosContainer" class="propietario-grid">
-          ${this.renderInput('propietario_dni', 'DNI / RUC', 'text', true, '12345678', { maxlength: 11, pattern: '[0-9]{8,11}', title: 'DNI (8 dígitos) o RUC (11 dígitos)' })}
-          ${this.renderInput('propietario_nombre', 'Nombre Completo', 'text', true, 'Juan Pérez García')}
-          ${this.renderInput('propietario_telefono', 'Teléfono', 'tel', true, '+51 999 888 777')}
+
+        <!-- Toggle Persona Natural / Juridica -->
+        <div style="display: flex; gap: 10px; margin-bottom: 4px;">
+          <div class="tipo-persona-card ${!esJuridica ? 'active' : ''}" data-tipo-persona="natural"
+            style="flex:1; padding: 10px 16px; border: 2px solid ${!esJuridica ? 'var(--azul-corporativo)' : 'var(--borde)'}; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s; background: ${!esJuridica ? 'rgba(15,71,97,0.06)' : 'white'};">
+            <div style="font-weight: 600; font-size: 0.85rem; color: ${!esJuridica ? 'var(--azul-corporativo)' : 'var(--gris-medio)'};">Persona Natural</div>
+          </div>
+          <div class="tipo-persona-card ${esJuridica ? 'active' : ''}" data-tipo-persona="juridica"
+            style="flex:1; padding: 10px 16px; border: 2px solid ${esJuridica ? 'var(--azul-corporativo)' : 'var(--borde)'}; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s; background: ${esJuridica ? 'rgba(15,71,97,0.06)' : 'white'};">
+            <div style="font-weight: 600; font-size: 0.85rem; color: ${esJuridica ? 'var(--azul-corporativo)' : 'var(--gris-medio)'};">Persona Juridica</div>
+          </div>
         </div>
-        ${this.renderInput('propietario_email', 'Email', 'email', false, 'juan.perez@email.com')}
-        <!-- Campo oculto para propietario_id (si existe) -->
+
+        <!-- Campos Persona Natural -->
+        <div id="seccionNatural" style="display: ${!esJuridica ? 'grid' : 'none'}; gap: var(--spacing-md);">
+          <div class="propietario-grid">
+            ${this.renderInput('propietario_dni', 'DNI', 'text', true, '12345678', { maxlength: 8, pattern: '[0-9]{8}', title: 'DNI (8 digitos)' })}
+            ${this.renderInput('propietario_nombre', 'Nombre Completo', 'text', true, 'Juan Perez Garcia')}
+            ${this.renderInput('propietario_telefono', 'Telefono', 'tel', true, '+51 999 888 777')}
+          </div>
+          ${this.renderInput('propietario_email', 'Email', 'email', false, 'juan.perez@email.com')}
+        </div>
+
+        <!-- Campos Persona Juridica -->
+        <div id="seccionJuridica" style="display: ${esJuridica ? 'grid' : 'none'}; gap: var(--spacing-md);">
+          <div class="propietario-grid">
+            ${this.renderInput('propietario_ruc', 'RUC', 'text', true, '20123456789', { maxlength: 11, pattern: '[0-9]{11}', title: 'RUC (11 digitos)' })}
+            ${this.renderInput('propietario_razon_social', 'Razon Social', 'text', true, 'Empresa SAC')}
+            ${this.renderInput('propietario_representante_legal', 'Representante Legal', 'text', true, 'Juan Perez')}
+          </div>
+          <div class="propietario-grid">
+            ${this.renderInput('propietario_telefono_j', 'Telefono', 'tel', true, '+51 999 888 777')}
+            ${this.renderInput('propietario_email_j', 'Email', 'email', false, 'empresa@email.com')}
+          </div>
+        </div>
+
         <input type="hidden" id="propietario_id_hidden" value="">
+        <input type="hidden" id="propietario_tipo_persona" value="${this.formData.propietario_tipo_persona || 'natural'}">
       </div>
     `;
   }
@@ -2370,6 +2405,28 @@ class PropertyForm {
       });
     });
 
+    // ✅ Toggle Persona Natural / Juridica
+    document.querySelectorAll('.tipo-persona-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const tipo = card.dataset.tipoPersona;
+        this.formData.propietario_tipo_persona = tipo;
+        const hidden = document.getElementById('propietario_tipo_persona');
+        if (hidden) hidden.value = tipo;
+
+        document.querySelectorAll('.tipo-persona-card').forEach(c => {
+          const isActive = c.dataset.tipoPersona === tipo;
+          c.style.borderColor = isActive ? 'var(--azul-corporativo)' : 'var(--borde)';
+          c.style.background = isActive ? 'rgba(15,71,97,0.06)' : 'white';
+          c.querySelector('div').style.color = isActive ? 'var(--azul-corporativo)' : 'var(--gris-medio)';
+        });
+
+        const secNatural = document.getElementById('seccionNatural');
+        const secJuridica = document.getElementById('seccionJuridica');
+        if (secNatural) secNatural.style.display = tipo === 'natural' ? 'grid' : 'none';
+        if (secJuridica) secJuridica.style.display = tipo === 'juridica' ? 'grid' : 'none';
+      });
+    });
+
     // ✅ Tipo inmueble change (cargar características + mostrar selector edificio si es oficina)
     document.getElementById('tipo_inmueble_id')?.addEventListener('change', async (e) => {
       const tipoId = e.target.value;
@@ -2741,10 +2798,27 @@ class PropertyForm {
   collectStepData() {
     // Recopilar datos del paso actual
     if (this.currentStep === 1) {
-      this.formData.propietario_real_nombre = document.getElementById('propietario_nombre')?.value || '';
-      this.formData.propietario_real_dni = document.getElementById('propietario_dni')?.value || '';
-      this.formData.propietario_real_telefono = document.getElementById('propietario_telefono')?.value || '';
-      this.formData.propietario_real_email = document.getElementById('propietario_email')?.value || '';
+      const tipoPersona = this.formData.propietario_tipo_persona || 'natural';
+
+      if (tipoPersona === 'juridica') {
+        this.formData.propietario_real_dni = document.getElementById('propietario_ruc')?.value || '';
+        this.formData.propietario_real_nombre = document.getElementById('propietario_razon_social')?.value || '';
+        this.formData.propietario_real_telefono = document.getElementById('propietario_telefono_j')?.value || '';
+        this.formData.propietario_real_email = document.getElementById('propietario_email_j')?.value || '';
+        this.formData.propietario_razon_social = document.getElementById('propietario_razon_social')?.value || '';
+        this.formData.propietario_ruc = document.getElementById('propietario_ruc')?.value || '';
+        this.formData.propietario_representante_legal = document.getElementById('propietario_representante_legal')?.value || '';
+        this.formData.propietario_tipo_documento = 'RUC';
+      } else {
+        this.formData.propietario_real_nombre = document.getElementById('propietario_nombre')?.value || '';
+        this.formData.propietario_real_dni = document.getElementById('propietario_dni')?.value || '';
+        this.formData.propietario_real_telefono = document.getElementById('propietario_telefono')?.value || '';
+        this.formData.propietario_real_email = document.getElementById('propietario_email')?.value || '';
+        this.formData.propietario_tipo_documento = 'DNI';
+        this.formData.propietario_razon_social = '';
+        this.formData.propietario_ruc = '';
+        this.formData.propietario_representante_legal = '';
+      }
 
       // Guardar propietario_id desde multiples fuentes (antes de que el DOM se destruya)
       if (!this.formData.propietario_id) {
@@ -2929,23 +3003,47 @@ class PropertyForm {
     // Validación por paso
     if (this.currentStep === 1) {
       // Paso 1: Propietario
-      const dni = document.getElementById('propietario_dni')?.value;
-      const nombre = document.getElementById('propietario_nombre')?.value;
-      const telefono = document.getElementById('propietario_telefono')?.value?.replace(/\D/g, '');
-      
-      if (!dni || (dni.length !== 8 && dni.length !== 11)) {
-        showNotification('⚠️ El DNI/RUC debe tener 8 u 11 dígitos', 'warning');
-        return false;
-      }
-      
-      if (!nombre || nombre.trim() === '') {
-        showNotification('⚠️ El nombre del propietario es requerido', 'warning');
-        return false;
-      }
-      
-      if (!telefono || telefono.trim() === '' || telefono.length < 9) {
-        showNotification('⚠️ El teléfono es requerido (9 dígitos)', 'warning');
-        return false;
+      const tipoPersona = this.formData.propietario_tipo_persona || 'natural';
+
+      if (tipoPersona === 'juridica') {
+        const ruc = document.getElementById('propietario_ruc')?.value;
+        const razonSocial = document.getElementById('propietario_razon_social')?.value;
+        const representante = document.getElementById('propietario_representante_legal')?.value;
+        const telefono = document.getElementById('propietario_telefono_j')?.value?.replace(/\D/g, '');
+
+        if (!ruc || ruc.length !== 11) {
+          showNotification('El RUC debe tener 11 digitos', 'warning');
+          return false;
+        }
+        if (!razonSocial || razonSocial.trim() === '') {
+          showNotification('La razon social es requerida', 'warning');
+          return false;
+        }
+        if (!representante || representante.trim() === '') {
+          showNotification('El representante legal es requerido', 'warning');
+          return false;
+        }
+        if (!telefono || telefono.length < 9) {
+          showNotification('El telefono es requerido (9 digitos)', 'warning');
+          return false;
+        }
+      } else {
+        const dni = document.getElementById('propietario_dni')?.value;
+        const nombre = document.getElementById('propietario_nombre')?.value;
+        const telefono = document.getElementById('propietario_telefono')?.value?.replace(/\D/g, '');
+
+        if (!dni || dni.length !== 8) {
+          showNotification('El DNI debe tener 8 digitos', 'warning');
+          return false;
+        }
+        if (!nombre || nombre.trim() === '') {
+          showNotification('El nombre del propietario es requerido', 'warning');
+          return false;
+        }
+        if (!telefono || telefono.length < 9) {
+          showNotification('El telefono es requerido (9 digitos)', 'warning');
+          return false;
+        }
       }
     }
     
@@ -3169,8 +3267,13 @@ class PropertyForm {
             console.log('🆕 Creando nuevo propietario...');
             
             const propietarioPayload = {
+              tipo_persona: this.formData.propietario_tipo_persona || 'natural',
+              tipo_documento: this.formData.propietario_tipo_documento || 'DNI',
               dni: dni,
               nombre: this.formData.propietario_real_nombre || this.formData.propietario_nombre || '',
+              razon_social: this.formData.propietario_razon_social || null,
+              ruc: this.formData.propietario_ruc || null,
+              representante_legal: this.formData.propietario_representante_legal || null,
               telefono: this.formData.propietario_real_telefono || this.formData.propietario_telefono || '',
               email: this.formData.propietario_real_email || this.formData.propietario_email || null
             };
