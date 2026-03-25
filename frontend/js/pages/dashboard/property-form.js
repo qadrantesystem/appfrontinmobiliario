@@ -108,7 +108,8 @@ class PropertyForm {
       
       this.tiposInmuebles = tiposData.data || tiposData || [];
       this.distritos = distritosData.data || distritosData || [];
-      
+      this.distritos.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
+
       // Respetar orden del backend (campo "orden" en tipo_inmueble_mae)
       
       console.log('✅ Catálogos cargados correctamente:', {

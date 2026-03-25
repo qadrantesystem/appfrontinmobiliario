@@ -111,6 +111,7 @@ class BusquedasForm {
 
       // El API puede devolver array directo o {data: []}
       this.allDistritos = Array.isArray(data) ? data : (data.data || []);
+      this.allDistritos.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
       console.log(`✅ ${this.allDistritos.length} distritos cargados`);
       console.log('📦 Estructura de distrito[0]:', this.allDistritos[0]);
       this.renderDistritoOptions();
