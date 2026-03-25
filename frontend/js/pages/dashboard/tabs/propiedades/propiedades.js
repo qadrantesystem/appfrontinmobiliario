@@ -82,6 +82,8 @@ class PropiedadesTab {
             </button>
           </div>
 
+          ${this.allProperties.length > 0 ? this._renderLegend() : ''}
+
           ${this.app.filters.render()}
         </div>
 
@@ -95,12 +97,13 @@ class PropiedadesTab {
             <p>Comienza registrando tu primera propiedad.</p>
           </div>
         ` : `
+          <div id="paginadorContainerTop" class="paginacion-top"></div>
+
           <div id="propertiesGrid" class="properties-grid">
             <!-- Se renderiza con paginación -->
           </div>
 
-          <!-- Paginador -->
-          <div id="paginadorContainer"></div>
+          <div id="paginadorContainerBottom" class="paginacion-bottom"></div>
         `}
       `;
 
@@ -109,6 +112,83 @@ class PropiedadesTab {
       console.error('❌ Error cargando propiedades:', error);
       throw error;
     }
+  }
+
+  /**
+   * Leyenda dinamica: agrupa por tipo_inmueble real + estados
+   */
+  _renderLegend() {
+    const stats = this._calcStats(this.allProperties);
+    const coloresTipo = ['#0f4761', '#ff9700', '#17a2b8', '#28a745', '#6a9ec4', '#e88700', '#dc3545', '#4f78a1', '#ffc107', '#6c757d', '#218838', '#f39c12'];
+
+    const tiposBadges = stats.tipos.map((t, i) => `
+      <div class="legend-chip" data-tipo="${t.nombre}">
+        <span class="legend-dot" style="background:${coloresTipo[i % coloresTipo.length]};"></span>
+        <span class="legend-val" id="legend_tipo_${i}">${t.count}</span>
+        <span class="legend-lbl">${t.nombre}</span>
+      </div>
+    `).join('');
+
+    const estadosBadges = stats.estados.map(e => `
+      <div class="legend-chip">
+        <span class="legend-dot" style="background:${e.color};"></span>
+        <span class="legend-val" id="legend_est_${e.key}">${e.count}</span>
+        <span class="legend-lbl">${e.label}</span>
+      </div>
+    `).join('');
+
+    return `
+      <div id="propiedadesLegend" class="prop-legend">
+        <div class="prop-legend-group">
+          <span class="prop-legend-title">Por tipo</span>
+          ${tiposBadges}
+        </div>
+        <div class="prop-legend-sep"></div>
+        <div class="prop-legend-group">
+          <span class="prop-legend-title">Estado</span>
+          ${estadosBadges}
+        </div>
+      </div>
+    `;
+  }
+
+  _calcStats(props) {
+    const tipoMap = {};
+    props.forEach(p => {
+      const nombre = p.tipo_inmueble || 'Sin tipo';
+      tipoMap[nombre] = (tipoMap[nombre] || 0) + 1;
+    });
+    const tipos = Object.entries(tipoMap)
+      .map(([nombre, count]) => ({ nombre, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const estadoDef = [
+      { key: 'publicado', label: 'Publicados', color: '#0f4761' },
+      { key: 'borrador', label: 'Borradores', color: '#ff9700' },
+      { key: 'pausado', label: 'Pausados', color: '#6a9ec4' },
+      { key: 'vendido', label: 'Vendidos', color: '#28a745' },
+      { key: 'cerrado', label: 'Cerrados', color: '#6c757d' }
+    ];
+    const estados = estadoDef
+      .map(e => ({ ...e, count: props.filter(p => p.estado === e.key).length }))
+      .filter(e => e.count > 0);
+
+    return { tipos, estados };
+  }
+
+  /**
+   * Actualizar leyenda cuando se filtra
+   */
+  _updateLegend(filtered) {
+    const stats = this._calcStats(filtered);
+    stats.tipos.forEach((t, i) => {
+      const el = document.getElementById(`legend_tipo_${i}`);
+      if (el) el.textContent = t.count;
+    });
+    stats.estados.forEach(e => {
+      const el = document.getElementById(`legend_est_${e.key}`);
+      if (el) el.textContent = e.count;
+    });
   }
 
   /**
@@ -154,6 +234,9 @@ class PropiedadesTab {
       propCountElement.textContent = filtered.length;
     }
 
+    // ✅ ACTUALIZAR LEYENDA con datos filtrados
+    this._updateLegend(filtered);
+
     const container = document.getElementById('propertiesGrid');
     if (!container) {
       console.error('❌ No se encontró #propertiesGrid');
@@ -162,8 +245,10 @@ class PropiedadesTab {
 
     if (pageData.items.length === 0) {
       container.innerHTML = '<div class="empty-state"><p>No se encontraron propiedades con los filtros aplicados.</p></div>';
-      const paginadorContainer = document.getElementById('paginadorContainer');
-      if (paginadorContainer) paginadorContainer.innerHTML = '';
+      const topC = document.getElementById('paginadorContainerTop');
+      const botC = document.getElementById('paginadorContainerBottom');
+      if (topC) topC.innerHTML = '';
+      if (botC) botC.innerHTML = '';
       return;
     }
 
@@ -174,16 +259,28 @@ class PropiedadesTab {
       this.setupPropertyListeners();
     }, 50);
 
-    // Renderizar paginador
-    const paginadorContainer = document.getElementById('paginadorContainer');
-    if (paginadorContainer) {
-      const paginadorHTML = this.app.pagination.render(filtered.length);
-      paginadorContainer.innerHTML = paginadorHTML;
-      this.app.pagination.setupListeners();
-    }
+    // Renderizar paginador arriba y abajo
+    const paginadorHTML = this.app.pagination.render(filtered.length);
+    const topContainer = document.getElementById('paginadorContainerTop');
+    const bottomContainer = document.getElementById('paginadorContainerBottom');
+    if (topContainer) topContainer.innerHTML = paginadorHTML;
+    if (bottomContainer) bottomContainer.innerHTML = paginadorHTML.replace('id="paginador"', 'id="paginadorBottom"');
+    this.app.pagination.setupListeners();
+    this._setupBottomPaginationListeners();
 
     // Setup carousel
     this.app.carousel.setup();
+  }
+
+  _setupBottomPaginationListeners() {
+    const pag = document.getElementById('paginadorBottom');
+    if (!pag) return;
+    pag.addEventListener('click', (e) => {
+      const btn = e.target.closest('.pag-btn');
+      if (!btn || btn.disabled) return;
+      const page = parseInt(btn.dataset.page);
+      if (page && page > 0) this.app.pagination.goToPage(page);
+    });
   }
 
   /**
@@ -228,124 +325,114 @@ class PropiedadesTab {
         'cerrado_perdido': { bg: 'white', border: 'var(--dorado-hover)', color: 'var(--dorado-hover)', text: '❌ Perdido' }
       }[prop.estado_crm] || { bg: 'transparent', border: 'transparent', color: 'var(--gris-medio)', text: '', noBorder: true };
 
+      const tipoLabel = prop.tipo_inmueble || '';
+      const hasImages = imagenes[0] !== 'https://via.placeholder.com/400x300?text=Sin+Imagen';
+
       return `
         <div class="property-card" data-property-id="${prop.registro_cab_id}">
-          <div class="property-number">${pageData.startIndex + index + 1}</div>
 
-          <!-- ❤️ Botón de Favorito -->
-          <button class="favorite-btn-beautiful ${prop.es_favorito ? 'is-favorite' : ''}"
-                  data-favorite-property="${prop.registro_cab_id}"
-                  title="${prop.es_favorito ? 'Quitar de favoritos' : 'Agregar a favoritos'}">
-            <svg class="heart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-          </button>
-
-          <!-- Badge de Estado -->
-          <div class="property-badge" style="position: absolute; top: 50px; left: 10px; background: ${estadoBadge.color}; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; z-index: 20;">
-            ${estadoBadge.text}
-          </div>
-
-          <!-- Carousel de imágenes -->
+          <!-- Imagen con badge de estado y contador fotos -->
           <div class="property-image-carousel">
-            <div class="carousel-images" data-current="0">
-              ${imagenes.map((img, i) => `
-                <img src="${img}" alt="${prop.titulo} - imagen ${i+1}"
-                     class="carousel-image property-image ${i === 0 ? 'active' : ''}" data-index="${i}"
-                     onerror="this.style.display='none'">
-              `).join('')}
-            </div>
-            ${imagenes.length > 1 ? `
-              <button class="carousel-prev" data-property-id="${prop.registro_cab_id}">‹</button>
-              <button class="carousel-next" data-property-id="${prop.registro_cab_id}">›</button>
-              <div class="carousel-indicators">
-                ${imagenes.map((_, i) => `
-                  <span class="indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
+            <div class="property-badge" style="background:${estadoBadge.color};">${estadoBadge.text}</div>
+            ${hasImages ? `
+              <div class="carousel-images" data-current="0">
+                ${imagenes.map((img, i) => `
+                  <img src="${img}" alt="${prop.titulo} - ${i+1}"
+                       class="carousel-image property-image ${i === 0 ? 'active' : ''}" data-index="${i}"
+                       onerror="this.style.display='none'">
                 `).join('')}
               </div>
-            ` : ''}
+              ${imagenes.length > 1 ? `
+                <button class="carousel-prev" data-property-id="${prop.registro_cab_id}">&#8249;</button>
+                <button class="carousel-next" data-property-id="${prop.registro_cab_id}">&#8250;</button>
+                <div class="photo-counter"><span class="photo-counter-current">1</span>/${imagenes.length}</div>
+              ` : ''}
+            ` : `
+              <div class="property-image-placeholder">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"/>
+                </svg>
+                <span>Sin imagen</span>
+              </div>
+            `}
+
+            <!-- Favorito sobre imagen -->
+            <button class="favorite-btn-beautiful ${prop.es_favorito ? 'is-favorite' : ''}"
+                    data-favorite-property="${prop.registro_cab_id}"
+                    title="${prop.es_favorito ? 'Quitar de favoritos' : 'Agregar a favoritos'}">
+              <svg class="heart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </button>
           </div>
 
           <div class="property-info">
-            <h3 class="property-title">${prop.titulo || 'Sin título'}</h3>
-            <div class="property-location">📍 ${prop.direccion || 'Ubicación no disponible'}</div>
-            <div class="property-price">${precio}</div>
-            <div class="property-features">
-              <span class="feature">📐 ${prop.area || 0} m²</span>
-              ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
-                ${prop.habitaciones ? `<span class="feature">🛏️ ${prop.habitaciones} hab.</span>` : ''}
-                ${prop.banos ? `<span class="feature">🛁 ${prop.banos} baños</span>` : ''}
-                ${prop.estacionamientos ? `<span class="feature">🚗 ${prop.estacionamientos} estac.</span>` : ''}
-              ` : ''}
-              ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
-            </div>
-            <div class="property-stats" style="display: flex; gap: 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--gris-medio); align-items: center; flex-wrap: wrap;">
-              <span>👁️ ${prop.vistas || 0} vistas</span>
-              <span>📞 ${prop.contactos || 0} contactos</span>
-
-              <!-- Badge de Estado CRM -->
-              ${estadoCRMBadge.noBorder ? `
-                <span style="color: ${estadoCRMBadge.color}; font-size: 0.75rem; font-weight: 500;">
-                  ${estadoCRMBadge.text}
-                </span>
-              ` : `
-                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: ${estadoCRMBadge.bg}; color: ${estadoCRMBadge.color}; border: 2px solid ${estadoCRMBadge.border}; border-radius: 6px; font-size: 0.7rem; font-weight: 600;">
-                  ${estadoCRMBadge.text}
-                </span>
-              `}
+            <!-- Fila 1: titulo + tipo -->
+            <div class="prop-row-title">
+              <h3 class="property-title">${prop.titulo || 'Sin titulo'}</h3>
+              ${tipoLabel ? `<span class="prop-tipo-badge">${tipoLabel}</span>` : ''}
             </div>
 
-            <!-- Información de Contacto -->
-            ${(prop.telefono || prop.email || prop.propietario_real_telefono || prop.propietario_real_email) ? `
-              <div class="property-contact" style="background: white; border-left: 3px solid var(--azul-corporativo); border-radius: 6px; padding: 6px 8px; margin: 0.4rem 0;">
-                <div style="font-size: 0.7rem; color: var(--gris-medio); margin-bottom: 3px; font-weight: 600;">👤 Contacto</div>
+            <!-- Fila 2: ubicacion -->
+            <div class="property-location">${prop.direccion || 'Ubicacion no disponible'}</div>
 
-                <div style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
-                  ${this.app.currentUser?.perfil_id === 4 && (prop.propietario_real_nombre || prop.propietario_nombre) ? `
-                    <span style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: var(--azul-corporativo); border: 2px solid var(--azul-corporativo); border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
-                      👤 ${prop.propietario_real_nombre || prop.propietario_nombre}
-                    </span>
-                  ` : ''}
-                  ${(prop.telefono || prop.propietario_real_telefono) ? `
-                    <a href="tel:${prop.telefono || prop.propietario_real_telefono}" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: var(--azul-corporativo); border: 2px solid var(--azul-corporativo); border-radius: 4px; text-decoration: none; font-size: 0.7rem; font-weight: 600; transition: all 0.2s;">
-                      📱 ${prop.telefono || prop.propietario_real_telefono}
-                    </a>
-                  ` : ''}
-                  ${(prop.email || prop.propietario_real_email) ? `
-                    <a href="mailto:${prop.email || prop.propietario_real_email}" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: var(--azul-corporativo); border: 2px solid var(--azul-corporativo); border-radius: 4px; text-decoration: none; font-size: 0.7rem; font-weight: 600; transition: all 0.2s;">
-                      📧 ${prop.email || prop.propietario_real_email}
-                    </a>
-                  ` : ''}
-                </div>
+            <!-- Fila 3: precio + features -->
+            <div class="prop-row-price">
+              <span class="property-price">${precio}</span>
+              <div class="property-features">
+                <span class="feature">${prop.area || 0} m2</span>
+                ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
+                  ${prop.habitaciones ? `<span class="feature">${prop.habitaciones} hab.</span>` : ''}
+                  ${prop.banos ? `<span class="feature">${prop.banos} ban.</span>` : ''}
+                  ${prop.estacionamientos ? `<span class="feature">${prop.estacionamientos} est.</span>` : ''}
+                ` : ''}
+                ${prop.antiguedad ? `<span class="feature">${prop.antiguedad} a.</span>` : ''}
+              </div>
+            </div>
+
+            <!-- Fila 4: stats + CRM -->
+            <div class="prop-row-stats">
+              <span>${prop.vistas || 0} vistas</span>
+              <span>${prop.contactos || 0} contactos</span>
+              ${estadoCRMBadge.text ? `<span class="prop-crm-chip" style="color:${estadoCRMBadge.color};">${estadoCRMBadge.text}</span>` : ''}
+            </div>
+
+            <!-- Fila 5: Contacto compacto -->
+            ${(prop.telefono || prop.email || prop.propietario_real_telefono || prop.propietario_real_email || prop.propietario_real_nombre || prop.propietario_nombre) ? `
+              <div class="prop-contact-row">
+                ${this.app.currentUser?.perfil_id === 4 && (prop.propietario_real_nombre || prop.propietario_nombre) ? `
+                  <span class="prop-contact-chip"><i class="fas fa-user"></i> ${prop.propietario_real_nombre || prop.propietario_nombre}</span>
+                ` : ''}
+                ${(prop.telefono || prop.propietario_real_telefono) ? `
+                  <a href="tel:${prop.telefono || prop.propietario_real_telefono}" class="prop-contact-chip prop-contact-link">
+                    <i class="fas fa-phone"></i> ${prop.telefono || prop.propietario_real_telefono}
+                  </a>
+                ` : ''}
+                ${(prop.email || prop.propietario_real_email) ? `
+                  <a href="mailto:${prop.email || prop.propietario_real_email}" class="prop-contact-chip prop-contact-link">
+                    <i class="fas fa-envelope"></i> ${prop.email || prop.propietario_real_email}
+                  </a>
+                ` : ''}
               </div>
             ` : ''}
 
-            <p class="property-description">${(prop.descripcion || '').substring(0, 120)}...</p>
-
-            <div class="admin-actions-simple" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 0.5rem;">
+            <!-- Acciones -->
+            <div class="admin-actions-simple">
               <button class="btn-admin" data-view-property="${prop.registro_cab_id}">Detalle</button>
               ${prop.latitud && prop.longitud ? `
                 <button class="btn-admin" data-map-property="${prop.registro_cab_id}" data-lat="${prop.latitud}" data-lng="${prop.longitud}">Mapa</button>
               ` : `
-                <button class="btn-admin" disabled title="Sin coordenadas de ubicación">Mapa</button>
+                <button class="btn-admin" disabled title="Sin coordenadas">Mapa</button>
               `}
-              <button class="btn-admin" data-edit-property="${prop.registro_cab_id || prop.id}" title="Editar propiedad ID: ${prop.registro_cab_id || prop.id}">
-                Editar
-              </button>
+              <button class="btn-admin" data-edit-property="${prop.registro_cab_id || prop.id}">Editar</button>
               ${prop.estado === 'borrador' && this.app.currentUser?.perfil_id === 4 ? `
-                <button class="btn-admin" data-publish-property="${prop.registro_cab_id}" title="Publicar propiedad">
-                  Publicar
-                </button>
+                <button class="btn-admin" data-publish-property="${prop.registro_cab_id}">Publicar</button>
               ` : ''}
               ${this.app.currentUser?.perfil_id === 4 && !prop.corredor_asignado_id ? `
-                <button class="btn-admin btn-asignar-corredor" data-assign-broker="${prop.registro_cab_id}">
-                  <i class="fas fa-user-tie"></i> Asignar Corredor
-                </button>
+                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}"><i class="fas fa-user-tie"></i> Asignar</button>
               ` : ''}
               ${this.app.currentUser?.perfil_id === 4 && prop.corredor_asignado_id ? `
-                <span class="btn-admin" style="background: var(--azul-corporativo); color: white; cursor: default; font-size: 0.7rem;">
-                  <i class="fas fa-user-tie"></i> Corredor #${prop.corredor_asignado_id}
-                </span>
+                <span class="btn-admin btn-admin-assigned"><i class="fas fa-user-tie"></i> #${prop.corredor_asignado_id}</span>
               ` : ''}
             </div>
           </div>
@@ -358,6 +445,22 @@ class PropiedadesTab {
    * Configurar event listeners de propiedades
    */
   setupPropertyListeners() {
+    // Toggle dropdown "mas acciones"
+    document.querySelectorAll('[data-toggle-more]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const propId = e.currentTarget.dataset.toggleMore;
+        const dropdown = document.getElementById(`dropdown-${propId}`);
+        document.querySelectorAll('.prop-more-dropdown').forEach(d => {
+          if (d !== dropdown) d.classList.remove('open');
+        });
+        dropdown.classList.toggle('open');
+      });
+    });
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.prop-more-dropdown').forEach(d => d.classList.remove('open'));
+    });
+
     // Ver detalle
     const viewBtns = document.querySelectorAll('[data-view-property]');
 

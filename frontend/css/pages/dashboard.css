@@ -1751,3 +1751,775 @@
     width: 100%;
   }
 }
+
+/* ==========================================
+   Property Card - Compacta
+   ========================================== */
+.property-card {
+  display: flex;
+  background: white;
+  border: 1px solid var(--borde);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.property-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--dorado);
+}
+
+/* Imagen - llena toda la altura de la card */
+.property-image-carousel {
+  flex-shrink: 0;
+  width: clamp(200px, 20vw, 280px);
+  min-height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.property-card {
+  align-items: stretch;
+}
+
+.property-image-carousel .carousel-images {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.property-image-carousel .carousel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.property-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  color: #94a3b8;
+}
+
+.property-image-placeholder svg {
+  width: 36px;
+  height: 36px;
+  opacity: 0.5;
+}
+
+.property-image-placeholder span {
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.property-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  z-index: 20;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+.photo-counter {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.carousel-prev,
+.carousel-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.85);
+  color: #1a1a1a;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 15;
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.property-image-carousel:hover .carousel-prev,
+.property-image-carousel:hover .carousel-next {
+  opacity: 1;
+}
+
+.carousel-prev { left: 6px; }
+.carousel-next { right: 6px; }
+
+.favorite-btn-beautiful {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+}
+
+/* Info compacta */
+.property-info {
+  flex: 1;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  justify-content: center;
+}
+
+.prop-row-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.property-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--gris-oscuro);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prop-tipo-badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--azul-corporativo);
+  background: rgba(15,71,97,0.08);
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.property-location {
+  font-size: 0.75rem;
+  color: var(--gris-medio);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prop-row-price {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.property-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--azul-corporativo);
+  white-space: nowrap;
+}
+
+.property-features {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.feature {
+  font-size: 0.7rem;
+  color: var(--gris-medio);
+  background: var(--gris-claro);
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* Stats inline */
+.prop-row-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--gris-medio);
+  flex-wrap: wrap;
+}
+
+.prop-crm-chip {
+  font-weight: 600;
+  font-size: 0.68rem;
+}
+
+.prop-phone-link {
+  color: var(--azul-corporativo);
+  text-decoration: none;
+  font-size: 0.7rem;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.prop-phone-link:hover {
+  color: var(--dorado);
+}
+
+/* Contacto compacto */
+.prop-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.prop-contact-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--azul-corporativo);
+  border: 1.5px solid var(--azul-corporativo);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.prop-contact-link {
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.prop-contact-link:hover {
+  background: var(--azul-corporativo);
+  color: white;
+}
+
+/* Acciones - botones compactos */
+.admin-actions-simple {
+  display: flex;
+  gap: 5px;
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+.btn-admin {
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1.5px solid var(--azul-corporativo);
+  border-radius: 5px;
+  background: white;
+  color: var(--azul-corporativo);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-admin:hover:not(:disabled) {
+  background: var(--azul-corporativo);
+  color: white;
+}
+
+.btn-admin:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-admin-assigned {
+  background: var(--azul-corporativo);
+  color: white;
+  cursor: default;
+  font-size: 0.68rem;
+}
+
+/* Mobile */
+/* ==========================================
+   MOBILE 768px — Cards + Paginacion
+   ========================================== */
+@media (max-width: 768px) {
+  .property-card {
+    flex-direction: column;
+  }
+
+  .property-image-carousel {
+    width: 100% !important;
+    min-height: unset !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
+  }
+
+  .property-image-carousel .carousel-images {
+    position: relative !important;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+
+  .property-image-carousel .carousel-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .property-image-carousel .carousel-prev,
+  .property-image-carousel .carousel-next {
+    opacity: 1 !important;
+  }
+
+  .property-badge {
+    top: 8px !important;
+    left: 8px !important;
+  }
+
+  .property-info {
+    padding: 8px 10px;
+    gap: 4px;
+  }
+
+  .property-title {
+    font-size: 0.85rem;
+  }
+
+  .property-location {
+    font-size: 0.72rem;
+  }
+
+  .prop-row-price {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .property-price {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .property-features {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    gap: 4px !important;
+    scrollbar-width: none;
+  }
+
+  .property-features::-webkit-scrollbar {
+    display: none;
+  }
+
+  .property-features .feature {
+    flex-shrink: 0;
+    font-size: 0.65rem !important;
+    padding: 1px 4px !important;
+  }
+
+  .prop-row-stats {
+    font-size: 0.68rem;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .prop-contact-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 4px;
+    scrollbar-width: none;
+  }
+
+  .prop-contact-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .prop-contact-chip {
+    flex-shrink: 0;
+    font-size: 0.65rem;
+    padding: 2px 5px;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .admin-actions-simple {
+    flex-wrap: nowrap !important;
+    gap: 3px !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .admin-actions-simple::-webkit-scrollbar {
+    display: none;
+  }
+
+  .btn-admin {
+    min-width: unset !important;
+    padding: 4px 8px !important;
+    font-size: 0.68rem !important;
+    border-width: 1px !important;
+    border-radius: 5px !important;
+    flex-shrink: 0;
+  }
+
+  /* Paginacion mobile */
+  .pag-numeros {
+    display: none !important;
+  }
+
+  .pag-btn-texto {
+    display: none !important;
+  }
+
+  .pag-indicador {
+    display: flex !important;
+    position: static !important;
+    transform: none !important;
+    font-size: 0.82rem !important;
+    font-weight: 600;
+    color: var(--azul-corporativo);
+    white-space: nowrap;
+    order: 0;
+  }
+
+  .pag-indicador strong {
+    color: var(--azul-corporativo);
+  }
+
+  .paginacion {
+    justify-content: center !important;
+    gap: 10px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .pag-prev { order: -1; }
+  .pag-next { order: 1; }
+
+  .pag-btn.pag-prev,
+  .pag-btn.pag-next {
+    width: 34px !important;
+    padding: 0 !important;
+  }
+}
+
+/* ==========================================
+   MOBILE 480px — Cards + Paginacion
+   ========================================== */
+@media (max-width: 480px) {
+  .property-image-carousel {
+    aspect-ratio: 2 / 1 !important;
+  }
+
+  .property-image-carousel .carousel-images {
+    aspect-ratio: 2 / 1;
+  }
+
+  .property-info {
+    padding: 6px 8px;
+    gap: 3px;
+  }
+
+  .property-title {
+    font-size: 0.8rem;
+  }
+
+  .property-price {
+    font-size: 0.85rem;
+  }
+
+  .prop-contact-chip {
+    max-width: 140px;
+    font-size: 0.6rem;
+  }
+
+  .btn-admin {
+    padding: 3px 6px !important;
+    font-size: 0.62rem !important;
+  }
+
+  .carousel-prev,
+  .carousel-next {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .paginacion {
+    gap: 8px !important;
+  }
+
+  .pag-btn.pag-prev,
+  .pag-btn.pag-next {
+    height: 30px !important;
+    width: 30px !important;
+    min-width: 30px !important;
+  }
+
+  .pag-indicador {
+    font-size: 0.75rem !important;
+  }
+
+  /* Header titulo + boton wrap en mobile */
+  .propiedades-header > div[style] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .propiedades-header > div[style] h2 {
+    flex: 1 1 100% !important;
+    font-size: 1.1rem !important;
+  }
+
+  .propiedades-header #btnNuevaPropiedad {
+    padding: 8px 14px !important;
+    font-size: 0.82rem !important;
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* ==========================================
+   Paginacion azul corporativa
+   ========================================== */
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 0;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.paginacion-top {
+  border-bottom: 1px solid var(--borde);
+  margin-bottom: 12px;
+}
+
+.paginacion-bottom {
+  border-top: 1px solid var(--borde);
+  margin-top: 12px;
+}
+
+.pag-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  padding: 0 12px !important;
+  border: 1.5px solid var(--azul-corporativo) !important;
+  border-radius: 6px !important;
+  background: white !important;
+  color: var(--azul-corporativo) !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pag-btn:hover:not(:disabled) {
+  background: var(--azul-medio) !important;
+  color: white !important;
+  border-color: var(--azul-medio) !important;
+}
+
+.pag-btn:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed;
+  border-color: var(--borde) !important;
+  color: var(--gris-medio) !important;
+  background: var(--gris-claro) !important;
+}
+
+.pag-numeros {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pag-num {
+  padding: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.pag-num.activo {
+  background: var(--azul-corporativo) !important;
+  color: white !important;
+  border-color: var(--azul-corporativo) !important;
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}
+
+.pag-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: var(--gris-medio);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.pag-indicador {
+  display: none;
+}
+
+/* Paginacion mobile: movido a bloque consolidado @768px y @480px arriba */
+
+/* ==========================================
+   Leyenda de propiedades - compacta
+   ========================================== */
+.prop-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--gris-claro, #f9f9f9);
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--borde, #e0e0e0);
+}
+
+.prop-legend-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.prop-legend-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gris-medio, #666);
+  margin-right: 2px;
+}
+
+.prop-legend-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--borde, #e0e0e0);
+}
+
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--blanco, #fff);
+  border: 1px solid var(--borde, #e0e0e0);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  transition: var(--transition-fast, 0.2s ease);
+}
+
+.legend-chip:hover {
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.08));
+  transform: translateY(-1px);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-val {
+  font-weight: 700;
+  color: var(--gris-oscuro, #333);
+}
+
+.legend-lbl {
+  color: var(--gris-medio, #666);
+  font-weight: 400;
+}
+
+@media (max-width: 768px) {
+  .prop-legend {
+    padding: 8px 12px;
+    gap: 8px;
+    overflow-x: hidden;
+  }
+
+  .prop-legend-sep {
+    display: none;
+  }
+
+  .prop-legend-group {
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .legend-chip {
+    padding: 3px 8px;
+    font-size: 0.72rem;
+    max-width: 100%;
+  }
+
+  .legend-lbl {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 90px;
+  }
+
+  .legend-dot {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .prop-legend {
+    flex-direction: column;
+    align-items: flex-start;
+    overflow-x: hidden;
+  }
+
+  .prop-legend-title {
+    width: 100%;
+    margin-bottom: 2px;
+  }
+
+  .prop-legend-group {
+    flex-wrap: wrap;
+  }
+
+  .legend-chip {
+    font-size: 0.7rem;
+    padding: 2px 7px;
+  }
+
+  .legend-lbl {
+    max-width: 70px;
+  }
+}

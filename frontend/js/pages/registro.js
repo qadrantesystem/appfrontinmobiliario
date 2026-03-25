@@ -37,6 +37,7 @@ class RegistroPage {
     this.setupTipoPersonaToggle();
     this.setupRegistroForm();
     this.setupVerificacionModal();
+    this.setupPasswordToggle();
   }
 
   setupPerfilSelector() {
@@ -98,6 +99,20 @@ class RegistroPage {
             '<strong>Importante:</strong> Necesitarás presentar tu licencia de corredor y tu cuenta será verificada por un administrador (24-48 horas).';
           break;
       }
+    });
+  }
+
+  setupPasswordToggle() {
+    document.querySelectorAll('.password-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = btn.parentElement.querySelector('input');
+        const icon = btn.querySelector('i');
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+        btn.setAttribute('aria-label', isPassword ? 'Ocultar contrasena' : 'Mostrar contrasena');
+      });
     });
   }
 

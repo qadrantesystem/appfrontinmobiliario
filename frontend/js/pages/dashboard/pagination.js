@@ -5,106 +5,82 @@
   class DashboardPagination {
     constructor(dashboard) {
       this.dashboard = dashboard;
-      this.activeTab = null; // ✅ Referencia al tab activo (PropiedadesTab)
+      this.activeTab = null;
       this.currentPage = 1;
-      this.itemsPerPage = 10;
+      this.itemsPerPage = 5;
     }
 
-    /**
-     * ✅ NUEVO: Setear el tab activo que usará el paginador
-     */
     setActiveTab(tab) {
       this.activeTab = tab;
-      console.log('✅ Pagination - Tab activo configurado:', tab.constructor.name);
     }
 
     updateItemsPerPage() {
-      this.itemsPerPage = window.innerWidth <= 768 ? 5 : 10;
+      this.itemsPerPage = 5;
+    }
+
+    _generarPaginas(actual, total) {
+      const paginas = [];
+      for (let i = 1; i <= total; i++) {
+        const esExtremo = (i === 1 || i === total);
+        const esVentana = (i >= actual - 1 && i <= actual + 1);
+        if (esExtremo || esVentana) {
+          const ultimo = paginas[paginas.length - 1];
+          if (ultimo && typeof ultimo === 'number' && i - ultimo > 1) {
+            paginas.push('...');
+          }
+          paginas.push(i);
+        }
+      }
+      return paginas;
     }
 
     render(filteredCount) {
       const totalPages = Math.ceil(filteredCount / this.itemsPerPage);
-      
-      if (totalPages <= 1) {
-        return '';
-      }
+      if (totalPages <= 1) return '';
 
-      const isMobile = window.innerWidth <= 768;
+      const paginas = this._generarPaginas(this.currentPage, totalPages);
 
-      let html = `
-        <div id="paginador" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: ${isMobile ? '6px' : 'var(--spacing-md)'}; margin-top: var(--spacing-xl); flex-wrap: nowrap;">
-          <button class="btn btn-secondary pagination-btn pagination-prev" data-page="${this.currentPage - 1}" ${this.currentPage === 1 ? 'disabled' : ''}>
-            ${isMobile ? '‹' : '‹ Anterior'}
-          </button>
-          <div style="display: flex; gap: ${isMobile ? '4px' : '8px'}; align-items: center;">
-      `;
-
-      // En móvil mostrar solo página actual y total
-      if (isMobile) {
-        html += `
-          <button class="btn btn-primary pagination-btn" style="min-width: 32px; cursor: default;" disabled>
-            ${this.currentPage}
-          </button>
-          <span style="color: var(--gris-medio); font-size: 0.85rem;">/</span>
-          <span style="color: var(--gris-medio); font-size: 0.85rem;">${totalPages}</span>
-        `;
-      } else {
-        // Desktop: mostrar números como antes
-        for (let i = 1; i <= totalPages; i++) {
-          if (i === 1 || i === totalPages || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
-            html += `
-              <button class="btn ${i === this.currentPage ? 'btn-primary' : 'btn-secondary'} pagination-btn pagination-number" 
-                      data-page="${i}" 
-                      style="min-width: 40px;"
-                      ${i === this.currentPage ? 'disabled' : ''}>
-                ${i}
-              </button>
-            `;
-          } else if (i === this.currentPage - 2 || i === this.currentPage + 2) {
-            html += '<span style="padding: 8px; color: var(--gris-medio);">...</span>';
-          }
+      const numerosHTML = paginas.map(p => {
+        if (p === '...') {
+          return '<span class="pag-ellipsis">&hellip;</span>';
         }
-      }
+        const activo = p === this.currentPage ? ' activo' : '';
+        const disabled = p === this.currentPage ? ' disabled' : '';
+        return `<button class="pag-btn pag-num${activo}" data-page="${p}"${disabled}>${p}</button>`;
+      }).join('');
 
-      html += `
-          </div>
-          <button class="btn btn-secondary pagination-btn pagination-next" data-page="${this.currentPage + 1}" ${this.currentPage === totalPages ? 'disabled' : ''}>
-            ${isMobile ? '›' : 'Siguiente ›'}
+      return `
+        <nav class="paginacion" id="paginador" aria-label="Paginacion">
+          <button class="pag-btn pag-prev" data-page="${this.currentPage - 1}" ${this.currentPage === 1 ? 'disabled' : ''}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 3L5 8l5 5"/></svg>
+            <span class="pag-btn-texto">Anterior</span>
           </button>
-        </div>
+          <div class="pag-numeros">${numerosHTML}</div>
+          <div class="pag-indicador">Pagina <strong>${this.currentPage}</strong> de <strong>${totalPages}</strong></div>
+          <button class="pag-btn pag-next" data-page="${this.currentPage + 1}" ${this.currentPage === totalPages ? 'disabled' : ''}>
+            <span class="pag-btn-texto">Siguiente</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 3l5 5-5 5"/></svg>
+          </button>
+        </nav>
       `;
-
-      return html;
     }
 
     setupListeners() {
-      // Event delegation para botones de paginación
       const paginador = document.getElementById('paginador');
       if (!paginador) return;
-
       paginador.addEventListener('click', (e) => {
-        const btn = e.target.closest('.pagination-btn');
+        const btn = e.target.closest('.pag-btn');
         if (!btn || btn.disabled) return;
-
         const page = parseInt(btn.dataset.page);
-        if (page && page > 0) {
-          this.goToPage(page);
-        }
+        if (page && page > 0) this.goToPage(page);
       });
     }
 
     goToPage(page) {
-      console.log(`📄 Paginador - Ir a página ${page}`);
       this.currentPage = page;
-
-      // ✅ FIX: Usar activeTab (PropiedadesTab) en lugar de dashboard
       if (this.activeTab && typeof this.activeTab.renderPropertiesPage === 'function') {
         this.activeTab.renderPropertiesPage();
-        console.log('✅ Página cambiada exitosamente');
-      } else {
-        console.warn('⚠️ No hay tab activo para cambiar de página');
       }
-
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
