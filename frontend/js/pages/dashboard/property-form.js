@@ -490,10 +490,10 @@ class PropertyForm {
     const tipo = (tipoInmueble || '').toLowerCase();
     
     if (tipo.includes('edificio') && tipo.includes('oficina')) {
-      return 'Nombre del Edificio de Oficinas';
+      return 'Número de la Oficina';
     }
     if (tipo.includes('edificio') && tipo.includes('departamento')) {
-      return 'Nombre del Edificio de Departamentos';
+      return 'Número del Departamento';
     }
     if (tipo.includes('oficina')) {
       return 'Número de Oficina';
