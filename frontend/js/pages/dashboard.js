@@ -1663,107 +1663,12 @@ class Dashboard {
       });
     });
 
-    // ❤️ Favoritos - Cargar estado inicial
-    const favoriteBtns = document.querySelectorAll('[data-favorite-property]');
+    // ❤️ Favoritos - Delegado a FavoritesHandler (favorites-handler.js)
+    // Legacy code desactivado para evitar doble listener
+    // this.loadFavoritesState();
 
-    // 🔥 Cargar favoritos del usuario y marcar corazones
-    this.loadFavoritesState();
-
-    favoriteBtns.forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        
-        // 🔥 GUARDAR REFERENCIA AL BOTÓN ANTES DE LAS LLAMADAS ASYNC
-        const button = e.currentTarget;
-        const propId = parseInt(button.dataset.favoriteProperty);
-        const favoritoId = button.dataset.favoritoId;
-        
-        // ✅ Verificar si es favorito por la clase
-        const isFavorito = button.classList.contains('is-favorite');
-
-        let success;
-        let newFavoritoId;
-        
-        if (isFavorito) {
-          // 💔 Quitar favorito - SIEMPRE buscar el favorito_id actualizado
-          const token = authService.getToken();
-          const response = await fetch(`${API_CONFIG.BASE_URL}/favoritos/`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
-
-            // 🔥 El API puede devolver data.data o directamente data como array
-            const favoritos = Array.isArray(data) ? data : (data.data || []);
-
-            const favorito = favoritos.find(f => parseInt(f.registro_cab_id) === parseInt(propId));
-            
-            if (favorito) {
-              success = await favoritesActionService.quitarFavorito(favorito.favorito_id);
-            } else {
-              console.error('❌ No se encontró el favorito. PropID buscado:', propId, 'Tipo:', typeof propId);
-              showNotification('❌ No se pudo quitar de favoritos', 'error');
-              success = false;
-            }
-          }
-        } else {
-          // ❤️ Agregar favorito
-          const result = await favoritesActionService.agregarFavorito(propId);
-          success = result !== null;
-          if (result) {
-            // Puede venir en result.data o directamente en result
-            newFavoritoId = result.data?.favorito_id || result.favorito_id;
-          }
-        }
-        
-        if (success) {
-          // 🔥 Si estamos en tab FAVORITOS y se quitó, eliminar de la vista
-          if (isFavorito && this.currentTab === 'favoritos') {
-            const card = button.closest('.property-card');
-            if (card) {
-              card.style.animation = 'fadeOut 0.3s ease';
-              setTimeout(() => {
-                card.remove();
-                // Actualizar contador
-                const header = document.querySelector('.favoritos-header h2');
-                if (header) {
-                  const remaining = document.querySelectorAll('.property-card').length;
-                  header.textContent = `❤️ Mis Favoritos (${remaining})`;
-                  
-                  // Si no quedan favoritos, mostrar empty state
-                  if (remaining === 0) {
-                    this.loadTabContent('favoritos', this.currentUser.perfil_id);
-                  }
-                }
-              }, 300);
-            }
-          } else {
-            // ✅ En otros tabs, solo cambiar visual
-            button.classList.toggle('is-favorite');
-            
-            // Actualizar favorito_id
-            if (isFavorito) {
-              delete button.dataset.favoritoId;
-              button.title = 'Agregar a favoritos';
-            } else {
-              if (newFavoritoId) {
-                button.dataset.favoritoId = newFavoritoId;
-              }
-              button.title = 'Quitar de favoritos';
-            }
-            
-            // ✅ Animación de pulso mejorada
-            button.classList.add('favorite-pulse');
-            setTimeout(() => {
-              button.classList.remove('favorite-pulse');
-            }, 600);
-          }
-        } else {
-          console.error('❌ Success es false, no se cambia el visual');
-        }
-      });
-    });
+    // Legacy listener de favoritos desactivado — ahora lo maneja favorites-handler.js
+    // con syncPropertyData() para mantener allProperties sincronizado
 
     // Asignar corredor (solo admin)
     const assignBtns = document.querySelectorAll('[data-assign-broker]');
