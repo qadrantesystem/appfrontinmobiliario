@@ -670,9 +670,9 @@
 }
 
 /* ============================================
-   TORRE - Indicador de estado de ocupación
-   Barra inferior 4px en cada cajita de oficina
-   LIBRE = sin barra | OCUPADA = naranja | RESERVADA = violeta
+   TORRE - Indicadores de estado en cajita
+   ::after  = Barra inferior 4px (ocupación)
+   ::before = Dot superior-derecho 6px (equipada)
    ============================================ */
 
 .oficina-seleccionable {
@@ -690,6 +690,20 @@
   height: 4px;
   background: transparent;
   transition: background 0.2s ease;
+}
+
+/* Dot equipada (esquina superior-derecha, solo si tiene clase) */
+.oficina-seleccionable.equipada::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--dorado, #ff9700);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
+  z-index: 1;
 }
 
 /* OCUPADA ALQUILER */
@@ -714,34 +728,35 @@
    ============================================ */
 .leyenda-torre-completa {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin-top: 10px;
-  padding: 10px 14px;
+  padding: 6px 10px;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid #e2e8f0;
 }
 
 .leyenda-torre-seccion {
   display: flex;
-  gap: 10px;
+  gap: 6px;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .leyenda-torre-seccion__titulo {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 700;
   color: var(--azul-corporativo);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
 }
 
 .leyenda-torre-separador {
   width: 1px;
-  height: 24px;
+  height: 18px;
   background: #cbd5e1;
   flex-shrink: 0;
 }
@@ -749,23 +764,32 @@
 .leyenda-torre-item {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.72rem;
+  gap: 3px;
+  font-size: 0.65rem;
   color: #4a5568;
   font-weight: 500;
 }
 
 /* Cuadros de color para tipo */
 .leyenda-torre-cuadro {
-  width: 16px;
-  height: 12px;
-  border-radius: 3px;
+  width: 12px;
+  height: 10px;
+  border-radius: 2px;
   flex-shrink: 0;
+}
+
+/* Dot de equipada en leyenda */
+.leyenda-torre-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: var(--dorado, #ff9700);
 }
 
 /* Barras de color para ocupación */
 .leyenda-torre-barra {
-  width: 20px;
+  width: 16px;
   height: 4px;
   border-radius: 2px;
   flex-shrink: 0;
@@ -784,11 +808,14 @@
   background: #6366f1;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .leyenda-torre-completa {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .leyenda-torre-seccion {
+    flex-wrap: wrap;
   }
 
   .leyenda-torre-separador {

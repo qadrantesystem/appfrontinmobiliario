@@ -4475,11 +4475,11 @@ class PropertyForm {
             extraClass = 'para-eliminar';
             textColor = '#ef4444';
           } else if (tieneEquipamiento) {
-            bgColor = '#fffbf0';
+            bgColor = 'white';
             borderStyle = '2px solid var(--dorado, #ff9700)';
-            iconPrefix = '⭐ ';
-            extraClass = 'equipada selected';
-            textColor = '#b45309';
+            iconPrefix = '';
+            extraClass = 'equipada';
+            textColor = 'var(--azul-corporativo, #0f4761)';
           } else {
             bgColor = 'white';
             borderStyle = '2px solid var(--azul-corporativo, #0f4761)';
@@ -4754,7 +4754,7 @@ class PropertyForm {
       }
     }
 
-    // Leyenda completa: Tipo (color fondo) + Ocupación (barra inferior)
+    // Leyenda compacta: Tipo + Equipada + Ocupación — todo en una fila
     html += `
       <div class="leyenda-torre-completa">
         <div class="leyenda-torre-seccion">
@@ -4763,20 +4763,20 @@ class PropertyForm {
             <span class="leyenda-torre-cuadro" style="background: white; border: 2px solid var(--azul-corporativo);"></span> Existente
           </span>
           <span class="leyenda-torre-item">
-            <span class="leyenda-torre-cuadro" style="background: #fffbf0; border: 2px solid var(--dorado);"></span> Equipada
-          </span>
-          <span class="leyenda-torre-item">
             <span class="leyenda-torre-cuadro" style="background: white; border: 2px dashed #10b981;"></span> Nueva
           </span>
           <span class="leyenda-torre-item">
             <span class="leyenda-torre-cuadro" style="background: #fff5f5; border: 2px dashed #ef4444;"></span> Eliminar
+          </span>
+          <span class="leyenda-torre-item">
+            <span class="leyenda-torre-dot"></span> Equipada
           </span>
         </div>
         <span class="leyenda-torre-separador"></span>
         <div class="leyenda-torre-seccion">
           <span class="leyenda-torre-seccion__titulo">Ocupación:</span>
           <span class="leyenda-torre-item">
-            <span class="leyenda-torre-barra leyenda-torre-barra--libre"></span> Libre (sin barra)
+            <span class="leyenda-torre-barra leyenda-torre-barra--libre"></span> Libre
           </span>
           <span class="leyenda-torre-item">
             <span class="leyenda-torre-barra leyenda-torre-barra--ocupada"></span> Alquiler
@@ -6599,8 +6599,6 @@ class PropertyForm {
         const esEquipada = oficina.classList.contains('equipada');
         if (esNueva) {
           oficina.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-        } else if (esEquipada) {
-          oficina.style.background = '#fffbf0';
         } else {
           oficina.style.background = 'white';
         }
