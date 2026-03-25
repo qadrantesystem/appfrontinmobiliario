@@ -4363,8 +4363,10 @@ class PropertyForm {
         const oficinasExistentes = oficinasPorPisoReal[piso] || [];
         const cantidadExistentes = oficinasExistentes.length;
 
-        // ✅ Obtener cantidad configurada por el usuario
-        const cantidadConfigurada = this.getOficinasEnPiso(piso, cantidadExistentes);
+        // ✅ Obtener cantidad configurada: si el piso tiene oficinas usa esa cantidad,
+        // si no tiene usa el default de oficinas/piso (característica 120)
+        const defaultParaPiso = cantidadExistentes > 0 ? cantidadExistentes : parseInt(oficinasPorPiso) || 0;
+        const cantidadConfigurada = this.getOficinasEnPiso(piso, defaultParaPiso);
 
         // Calcular oficinas nuevas (si subió) o a eliminar automáticamente (si bajó)
         const oficinasNuevas = Math.max(0, cantidadConfigurada - cantidadExistentes);
