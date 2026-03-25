@@ -105,6 +105,7 @@ class FavoritesHandler {
         const favoritoId = result.favorito_id || result.id;
         this.favoritesCache.set(propId, favoritoId);
         this.updateButtonState(propId, true);
+        this.syncPropertyData(propId, true);
         this.animateButton(propId);
       }
 
@@ -131,12 +132,26 @@ class FavoritesHandler {
       if (success) {
         this.favoritesCache.delete(propId);
         this.updateButtonState(propId, false);
+        this.syncPropertyData(propId, false);
         this.animateButton(propId);
       }
 
     } catch (error) {
       console.error('❌ Error quitando favorito:', error);
       showNotification('❌ Error al quitar de favoritos', 'error');
+    }
+  }
+
+  /**
+   * 🔄 Sincronizar es_favorito en allProperties del tab activo
+   */
+  syncPropertyData(propId, isFavorite) {
+    const tab = window.currentPropiedadesTab || window.propiedadesTab;
+    if (tab && tab.allProperties) {
+      const prop = tab.allProperties.find(p => p.registro_cab_id === propId);
+      if (prop) {
+        prop.es_favorito = isFavorite;
+      }
     }
   }
 

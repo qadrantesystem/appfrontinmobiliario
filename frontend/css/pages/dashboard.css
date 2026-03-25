@@ -1885,6 +1885,11 @@
   top: 8px;
   right: 8px;
   z-index: 20;
+  touch-action: manipulation;
+}
+
+.favorite-btn-beautiful .heart-icon {
+  pointer-events: none;
 }
 
 /* Info compacta */
