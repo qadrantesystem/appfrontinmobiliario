@@ -3534,54 +3534,73 @@ class PropertyForm {
    * Crear edificio rapido desde modal SweetAlert2
    */
   async mostrarModalEdificioRapido() {
-    // Obtener propietario_id de multiples fuentes
+    // Obtener propietario_id — buscar/crear si no existe
     let propietarioId = this.formData.propietario_id
       || (this.autoFillDNI?.getPropietarioData()?.propietario_id)
       || null;
 
-    // Si no hay propietario_id pero hay DNI del usuario logueado, buscar/crear silenciosamente
     if (!propietarioId) {
-      const dni = this.formData.propietario_real_dni || document.getElementById('propietario_dni')?.value || document.getElementById('propietario_ruc')?.value;
-      if (dni && dni.length >= 8) {
+      // Datos del propietario desde formData (ya recopilados en collectStepData del Step 1)
+      const dni = this.formData.propietario_real_dni || '';
+      const nombre = this.formData.propietario_real_nombre || '';
+      const telefono = this.formData.propietario_real_telefono || '';
+      const email = this.formData.propietario_real_email || '';
+
+      console.log('🔍 Buscando propietario — DNI:', dni, 'Nombre:', nombre);
+
+      if (!dni || !nombre) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Propietario requerido',
+          text: 'Completa los datos del propietario en el Paso 1 primero.',
+          confirmButtonColor: '#ff9800'
+        });
+        return;
+      }
+
+      // Buscar si ya existe
+      try {
+        const existente = await propietarioService.buscarPorDNI(dni);
+        if (existente && existente.propietario_id) {
+          propietarioId = existente.propietario_id;
+          this.formData.propietario_id = propietarioId;
+          console.log('✅ Propietario encontrado:', propietarioId);
+        }
+      } catch (e) {
+        console.log('📝 Propietario no encontrado, creando...');
+      }
+
+      // Si no existe, crear
+      if (!propietarioId) {
         try {
-          const existente = await propietarioService.buscarPorDNI(dni);
-          if (existente) {
-            propietarioId = existente.propietario_id;
-            this.formData.propietario_id = propietarioId;
-          }
-        } catch (e) {
-          // No encontrado — crear propietario nuevo
-          try {
-            const tipoPersona = this.formData.propietario_tipo_persona || 'natural';
-            const payload = {
-              tipo_persona: tipoPersona,
-              tipo_documento: tipoPersona === 'juridica' ? 'RUC' : 'DNI',
-              dni: dni,
-              nombre: this.formData.propietario_real_nombre || document.getElementById('propietario_nombre')?.value || document.getElementById('propietario_razon_social')?.value || '',
-              telefono: this.formData.propietario_real_telefono || document.getElementById('propietario_telefono')?.value || document.getElementById('propietario_telefono_j')?.value || '',
-              email: this.formData.propietario_real_email || document.getElementById('propietario_email')?.value || document.getElementById('propietario_email_j')?.value || null,
-              razon_social: this.formData.propietario_razon_social || null,
-              ruc: this.formData.propietario_ruc || null,
-              representante_legal: this.formData.propietario_representante_legal || null
-            };
-            const creado = await propietarioService.crear(payload);
-            propietarioId = creado.propietario_id;
-            this.formData.propietario_id = propietarioId;
-          } catch (err) {
-            console.error('Error creando propietario:', err);
-          }
+          const tipoPersona = this.formData.propietario_tipo_persona || 'natural';
+          const payload = {
+            tipo_persona: tipoPersona,
+            tipo_documento: tipoPersona === 'juridica' ? 'RUC' : 'DNI',
+            dni: dni,
+            nombre: nombre,
+            telefono: telefono,
+            email: email || null,
+            razon_social: this.formData.propietario_razon_social || null,
+            ruc: this.formData.propietario_ruc || null,
+            representante_legal: this.formData.propietario_representante_legal || null
+          };
+          console.log('📋 Creando propietario:', payload);
+          const creado = await propietarioService.crear(payload);
+          propietarioId = creado.propietario_id;
+          this.formData.propietario_id = propietarioId;
+          console.log('✅ Propietario creado:', propietarioId);
+        } catch (err) {
+          console.error('❌ Error creando propietario:', err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo registrar el propietario: ' + err.message,
+            confirmButtonColor: '#f44336'
+          });
+          return;
         }
       }
-    }
-
-    if (!propietarioId) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Propietario requerido',
-        text: 'Completa los datos del propietario en el Paso 1 primero.',
-        confirmButtonColor: '#ff9800'
-      });
-      return;
     }
 
     // Obtener distrito seleccionado en el formulario actual
