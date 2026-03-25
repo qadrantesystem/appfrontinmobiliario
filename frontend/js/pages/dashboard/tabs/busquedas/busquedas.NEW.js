@@ -687,6 +687,7 @@ class BusquedasTab {
 
       this.allTipos = Array.isArray(tipos) ? tipos : tipos.data || [];
       this.allDistritos = Array.isArray(distritos) ? distritos : distritos.data || [];
+      this.allDistritos.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
       this.allCaracteristicas = Array.isArray(carac) ? carac : carac.data || [];
 
     } catch (error) {

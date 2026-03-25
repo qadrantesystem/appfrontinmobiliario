@@ -3603,7 +3603,13 @@ class PropertyForm {
           <input id="swal-nombre" class="swal2-input" placeholder="Ej: Torre Empresarial San Isidro" style="width: 100%; margin: 0 0 12px 0;">
 
           <label style="font-weight: 600; margin-bottom: 4px; display: block;">Direccion</label>
-          <input id="swal-direccion" class="swal2-input" placeholder="Ej: Av. Javier Prado Este 4600" style="width: 100%; margin: 0 0 12px 0;">
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <input id="swal-direccion" class="swal2-input" placeholder="Ej: Av. Javier Prado Este 4600" style="flex: 3; margin: 0;">
+            <input id="swal-numero" class="swal2-input" placeholder="N°" style="flex: 1; margin: 0; max-width: 80px;">
+          </div>
+
+          <label style="font-weight: 600; margin-bottom: 4px; display: block;">Cantidad de pisos</label>
+          <input id="swal-pisos" type="number" class="swal2-input" placeholder="Ej: 4" min="1" max="50" style="width: 100%; margin: 0 0 12px 0;">
         </div>
       `,
       focusConfirm: false,
@@ -3613,18 +3619,25 @@ class PropertyForm {
       confirmButtonColor: '#ff9800',
       preConfirm: () => {
         const nombre = document.getElementById('swal-nombre').value.trim();
-        const direccion = document.getElementById('swal-direccion').value.trim();
+        const direccionBase = document.getElementById('swal-direccion').value.trim();
+        const numero = document.getElementById('swal-numero').value.trim();
+        const pisos = parseInt(document.getElementById('swal-pisos').value) || 0;
 
         if (!nombre || nombre.length < 5) {
           Swal.showValidationMessage('El nombre debe tener al menos 5 caracteres');
           return false;
         }
-        if (!direccion || direccion.length < 10) {
-          Swal.showValidationMessage('La direccion debe tener al menos 10 caracteres');
+        if (!direccionBase || direccionBase.length < 5) {
+          Swal.showValidationMessage('La direccion es requerida');
+          return false;
+        }
+        if (pisos < 1) {
+          Swal.showValidationMessage('Ingresa la cantidad de pisos del edificio');
           return false;
         }
 
-        return { nombre_inmueble: nombre, direccion };
+        const direccion = numero ? `${direccionBase} ${numero}` : direccionBase;
+        return { nombre_inmueble: nombre, direccion, pisos };
       }
     });
 
@@ -3655,6 +3668,22 @@ class PropertyForm {
 
       const nuevoEdificio = result.data;
 
+      // Guardar cantidad de pisos como caracteristica del edificio (ID 110)
+      if (formValues.pisos && nuevoEdificio.registro_cab_id) {
+        try {
+          await fetch(`${API_CONFIG.BASE_URL}/caracteristicas-x-inmueble/propiedad/${nuevoEdificio.registro_cab_id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authService.getToken()}`
+            },
+            body: JSON.stringify([{ caracteristica_id: 110, valor: String(formValues.pisos) }])
+          });
+        } catch (e) {
+          console.warn('No se pudo guardar pisos como caracteristica:', e);
+        }
+      }
+
       // Recargar combo y seleccionar el nuevo edificio
       if (this.selectorEdificio) {
         await this.selectorEdificio.reload();
@@ -3664,7 +3693,7 @@ class PropertyForm {
       Swal.fire({
         icon: 'success',
         title: 'Edificio creado',
-        text: `"${nuevoEdificio.nombre_inmueble}" creado en borrador. Puede completar sus datos despues.`,
+        text: `"${nuevoEdificio.nombre_inmueble}" creado con ${formValues.pisos} pisos en borrador.`,
         confirmButtonColor: '#4CAF50',
         timer: 3000,
         timerProgressBar: true
