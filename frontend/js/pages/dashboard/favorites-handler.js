@@ -172,11 +172,12 @@ class FavoritesHandler {
         button.classList.remove('is-favorite');
         button.title = 'Agregar a favoritos';
       }
-      
-      // Forzar repaint
-      button.style.display = 'none';
-      button.offsetHeight;
-      button.style.display = '';
+
+      // Forzar update visual en mobile con RAF
+      const icon = button.querySelector('.heart-icon');
+      if (icon) {
+        icon.style.color = isFavorite ? '#ef4444' : '#cbd5e1';
+      }
     });
   }
 
