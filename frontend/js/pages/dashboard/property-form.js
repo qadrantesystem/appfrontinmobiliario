@@ -2090,7 +2090,7 @@ class PropertyForm {
         </div>
 
         <!-- Título SEO -->
-        ${this.renderInput('titulo', 'Título del Anuncio', 'text', true, 'Departamento moderno con vista al mar', { maxlength: '150' })}
+        ${this.renderInput('titulo', 'Título de Propiedad', 'text', true, 'Departamento moderno con vista al mar', { maxlength: '150' })}
         
         <!-- Descripción -->
         <div class="form-group">
