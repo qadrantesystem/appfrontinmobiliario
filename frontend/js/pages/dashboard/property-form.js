@@ -3813,7 +3813,8 @@ class PropertyForm {
         let cantidadPisos;
         if (this._pisosEdificioRapido) {
           cantidadPisos = this._pisosEdificioRapido;
-          this._pisosEdificioRapido = null; // Limpiar para próximas selecciones
+          // Limpiar después de 2 segundos (evita que doble callback lo pise)
+          setTimeout(() => { this._pisosEdificioRapido = null; }, 2000);
           console.log(`✅ Usando pisos del modal rapido: ${cantidadPisos}`);
         } else {
           cantidadPisos = await edificioService.obtenerCantidadPisos(edificio.registro_cab_id);
