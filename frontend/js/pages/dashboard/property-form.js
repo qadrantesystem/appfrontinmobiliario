@@ -3767,19 +3767,41 @@ class PropertyForm {
       }
     }
 
-    // 2. Heredar dirección
+    // 2. Heredar dirección — parsear en campos separados
     if (edificio.direccion) {
       const direccionInput = document.getElementById('direccion');
       const nombreViaInput = document.getElementById('nombre_via');
+      const numeroInput = document.getElementById('numero_direccion');
+      const tipoViaSelect = document.getElementById('tipo_via');
 
       if (direccionInput && (!direccionInput.value || direccionInput.value.trim() === '')) {
         direccionInput.value = edificio.direccion;
         this.formData.direccion = edificio.direccion;
-        console.log('✅ Dirección heredada:', edificio.direccion);
-      }
 
-      if (nombreViaInput && (!nombreViaInput.value || nombreViaInput.value.trim() === '')) {
-        nombreViaInput.value = edificio.direccion.split(',')[0] || edificio.direccion;
+        // Parsear dirección: separar tipo_via, nombre y número
+        const dir = edificio.direccion.split(',')[0] || edificio.direccion;
+        const tipos = ['av\\.?', 'avenida', 'jr\\.?', 'jiron', 'ca\\.?', 'calle', 'psje\\.?', 'pasaje', 'prol\\.?', 'prolongacion'];
+        const tipoMap = { 'av': 'Avenida', 'avenida': 'Avenida', 'jr': 'Jirón', 'jiron': 'Jirón', 'ca': 'Calle', 'calle': 'Calle', 'psje': 'Pasaje', 'pasaje': 'Pasaje', 'prol': 'Prolongación', 'prolongacion': 'Prolongación' };
+        const regex = new RegExp(`^(${tipos.join('|')})\\s+(.+?)\\s+(\\d+)\\s*$`, 'i');
+        const match = dir.match(regex);
+
+        if (match) {
+          const tipoKey = match[1].toLowerCase().replace('.', '');
+          if (tipoViaSelect && tipoMap[tipoKey]) tipoViaSelect.value = tipoMap[tipoKey];
+          if (nombreViaInput) nombreViaInput.value = match[2].trim();
+          if (numeroInput) numeroInput.value = match[3];
+        } else {
+          // Sin tipo reconocido — separar nombre y número al final
+          const matchNum = dir.match(/^(.+?)\s+(\d+)\s*$/);
+          if (matchNum) {
+            if (nombreViaInput) nombreViaInput.value = matchNum[1].trim();
+            if (numeroInput) numeroInput.value = matchNum[2];
+          } else {
+            if (nombreViaInput) nombreViaInput.value = dir.trim();
+          }
+        }
+
+        console.log('✅ Dirección heredada y parseada:', edificio.direccion);
       }
     }
 
