@@ -1294,11 +1294,8 @@ class PropertyForm {
         }
       }
 
-      // Disparar busqueda DNI para que AutoFillDNI obtenga propietario_id
-      const dniValue = this.formData.propietario_real_dni;
-      if (dniValue && dniValue.length === 8 && this.autoFillDNI) {
-        this.autoFillDNI.handleDNIBlur();
-      }
+      // No disparar búsqueda automática al cargar — el usuario buscará manualmente
+      // La búsqueda se activa con blur o Enter en el campo DNI
     } 
     else if (this.currentStep === 2) {
       console.log('📝 Llenando campos del Paso 2 (Información Básica)');
@@ -2494,35 +2491,8 @@ class PropertyForm {
       }
     });
 
-    // 🆕 Formatear teléfono automáticamente con +51
-    const telefonoInput = document.getElementById('propietario_telefono');
-    if (telefonoInput) {
-      telefonoInput.addEventListener('input', (e) => {
-        let value = e.target.value.replace(/\D/g, ''); // Solo números
-        
-        // Limitar a 9 dígitos
-        if (value.length > 9) {
-          value = value.substring(0, 9);
-        }
-        
-        // Formatear: 999 999 999
-        if (value.length >= 6) {
-          value = value.substring(0, 3) + ' ' + value.substring(3, 6) + ' ' + value.substring(6);
-        } else if (value.length >= 3) {
-          value = value.substring(0, 3) + ' ' + value.substring(3);
-        }
-        
-        e.target.value = value;
-      });
-      
-      // Al perder el foco, agregar +51 si no está
-      telefonoInput.addEventListener('blur', (e) => {
-        const value = e.target.value.trim();
-        if (value && !value.startsWith('+51')) {
-          e.target.value = '+51 ' + value;
-        }
-      });
-    }
+    // Teléfono: sin formatter agresivo, solo permite números y + espacios
+    // El usuario escribe libremente: 932259291, +51 932259291, etc.
 
     // ✅ Botón Ubicar en Mapa (Geocoding)
     document.getElementById('btnUbicarMapa')?.addEventListener('click', async () => {
