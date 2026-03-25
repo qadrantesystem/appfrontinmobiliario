@@ -3668,25 +3668,13 @@ class PropertyForm {
 
       const nuevoEdificio = result.data;
 
+      // Guardar pisos del modal para que handleEdificioHerencia los use
+      this._pisosEdificioRapido = formValues.pisos ? parseInt(formValues.pisos) : null;
+
       // Recargar combo y seleccionar el nuevo edificio
       if (this.selectorEdificio) {
         await this.selectorEdificio.reload();
         await this.selectorEdificio.setEdificio(nuevoEdificio.registro_cab_id);
-      }
-
-      // Generar combo de pisos directamente con el valor del modal (sin depender del backend)
-      if (formValues.pisos) {
-        const pisoSelect = document.getElementById('piso-select');
-        const pisoContainer = document.getElementById('piso-container');
-        if (pisoSelect) {
-          let opcionesPiso = '<option value="">-- Seleccionar piso --</option>';
-          for (let i = 1; i <= formValues.pisos; i++) {
-            opcionesPiso += `<option value="${i}">Piso ${i}</option>`;
-          }
-          pisoSelect.innerHTML = opcionesPiso;
-          if (pisoContainer) pisoContainer.style.display = 'block';
-          console.log(`✅ Combo de pisos generado: ${formValues.pisos} pisos`);
-        }
       }
 
       Swal.fire({
@@ -3821,7 +3809,15 @@ class PropertyForm {
         pisoSelect.innerHTML = '<option value="">Cargando pisos...</option>';
         pisoContainer.style.display = 'block';
 
-        const cantidadPisos = await edificioService.obtenerCantidadPisos(edificio.registro_cab_id);
+        // Usar pisos del modal rápido si están disponibles, sino consultar backend
+        let cantidadPisos;
+        if (this._pisosEdificioRapido) {
+          cantidadPisos = this._pisosEdificioRapido;
+          this._pisosEdificioRapido = null; // Limpiar para próximas selecciones
+          console.log(`✅ Usando pisos del modal rapido: ${cantidadPisos}`);
+        } else {
+          cantidadPisos = await edificioService.obtenerCantidadPisos(edificio.registro_cab_id);
+        }
 
         // Generar opciones de piso
         let opcionesPiso = '<option value="">-- Seleccionar piso --</option>';
