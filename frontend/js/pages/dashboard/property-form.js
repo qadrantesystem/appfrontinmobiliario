@@ -1276,27 +1276,38 @@ class PropertyForm {
     // Rellenar campos según el paso actual
     if (this.currentStep === 1) {
       console.log('📝 Llenando campos del Paso 1 (Propietario)');
-      console.log('  propietario_real_nombre:', this.formData.propietario_real_nombre);
-      
-      const campos = {
-        'propietario_nombre': this.formData.propietario_real_nombre || '',
-        'propietario_dni': this.formData.propietario_real_dni || '',
-        'propietario_telefono': this.formData.propietario_real_telefono || '',
-        'propietario_email': this.formData.propietario_real_email || ''
-      };
+      const esJuridica = this.formData.propietario_tipo_persona === 'juridica';
 
-      for (const [id, valor] of Object.entries(campos)) {
-        const campo = document.getElementById(id);
-        if (campo) {
-          campo.value = valor;
-          console.log(`  ✅ ${id} = "${valor}"`);
-        } else {
-          console.error(`  ❌ Campo ${id} NO ENCONTRADO en el DOM`);
+      if (esJuridica) {
+        const campos = {
+          'propietario_ruc': this.formData.propietario_ruc || '',
+          'propietario_razon_social': this.formData.propietario_razon_social || '',
+          'propietario_representante_legal': this.formData.propietario_representante_legal || '',
+          'propietario_telefono_j': this.formData.propietario_real_telefono || '',
+          'propietario_email_j': this.formData.propietario_real_email || ''
+        };
+        for (const [id, valor] of Object.entries(campos)) {
+          const campo = document.getElementById(id);
+          if (campo) campo.value = valor;
+        }
+      } else {
+        const campos = {
+          'propietario_nombre': this.formData.propietario_real_nombre || '',
+          'propietario_dni': this.formData.propietario_real_dni || '',
+          'propietario_telefono': this.formData.propietario_real_telefono || '',
+          'propietario_email': this.formData.propietario_real_email || ''
+        };
+        for (const [id, valor] of Object.entries(campos)) {
+          const campo = document.getElementById(id);
+          if (campo) campo.value = valor;
         }
       }
 
-      // No disparar búsqueda automática al cargar — el usuario buscará manualmente
-      // La búsqueda se activa con blur o Enter en el campo DNI
+      // Restaurar propietario_id en hidden
+      const hiddenId = document.getElementById('propietario_id_hidden');
+      if (hiddenId && this.formData.propietario_id) {
+        hiddenId.value = this.formData.propietario_id;
+      }
     } 
     else if (this.currentStep === 2) {
       console.log('📝 Llenando campos del Paso 2 (Información Básica)');
@@ -1392,6 +1403,11 @@ class PropertyForm {
           }
         });
       }, 300); // ⏱️ Mayor delay para esperar que carguen las características
+    }
+    else if (this.currentStep === 4) {
+      // Paso 4 se auto-restaura desde formData via renderStep4()
+      // Solo necesitamos re-attach los listeners de las oficinas
+      console.log('📝 Paso 4 (Torre) — datos restaurados desde formData');
     }
     else if (this.currentStep === 5) {
       console.log('📝 Llenando campos del Paso 5 (Precios y Descripción)');
@@ -1762,9 +1778,6 @@ class PropertyForm {
             { value: '4', label: 'Totalmente implementado' }
           ], false) : ''}
         </div>
-        <p style="color: var(--gris-medio); margin-top: var(--spacing-sm); font-size: 0.85rem;">
-          ℹ️ Habitaciones, baños y parqueos se agregan en "Características Adicionales" abajo
-        </p>
       </div>
 
       <!-- Características Adicionales (Acordeón) -->
@@ -4230,15 +4243,13 @@ class PropertyForm {
         } else {
           // Restaurar color sobrio según tipo
           const esEquipada = oficina.classList.contains('equipada');
+          oficina.style.background = 'white';
           if (esEquipada) {
-            oficina.style.background = '#fffbf0';
             oficina.style.borderColor = 'var(--dorado, #ff9700)';
-            oficina.style.color = '#b45309';
           } else {
-            oficina.style.background = 'white';
             oficina.style.borderColor = 'var(--azul-corporativo, #0f4761)';
-            oficina.style.color = 'var(--azul-corporativo, #0f4761)';
           }
+          oficina.style.color = 'var(--azul-corporativo, #0f4761)';
           oficina.style.transform = 'scale(1)';
         }
       });
@@ -5618,7 +5629,7 @@ class PropertyForm {
         if (esNueva) {
           oficina.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
         } else {
-          oficina.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
+          oficina.style.background = 'white';
         }
         oficina.style.transform = 'scale(1)';
       });
