@@ -3700,6 +3700,28 @@ class PropertyForm {
 
       const nuevoEdificio = result.data;
 
+      // Guardar características del edificio (pisos) en la BD
+      if (formValues.pisos && nuevoEdificio.registro_cab_id) {
+        try {
+          const caracFormData = new FormData();
+          caracFormData.append('propiedad_json', JSON.stringify({
+            caracteristicas: [
+              { caracteristica_id: 110, valor: String(formValues.pisos) },
+              { caracteristica_id: 120, valor: '3' },
+              { caracteristica_id: 111, valor: '0' }
+            ]
+          }));
+          await fetch(`${API_CONFIG.BASE_URL}/propiedades/actualizar-completa/${nuevoEdificio.registro_cab_id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${authService.getToken()}` },
+            body: caracFormData
+          });
+          console.log('✅ Características del edificio guardadas (pisos=' + formValues.pisos + ')');
+        } catch (e) {
+          console.warn('⚠️ No se pudieron guardar características:', e);
+        }
+      }
+
       // Guardar pisos del modal para que handleEdificioHerencia los use
       this._pisosEdificioRapido = formValues.pisos ? parseInt(formValues.pisos) : null;
 
