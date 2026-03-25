@@ -692,9 +692,15 @@
   transition: background 0.2s ease;
 }
 
-/* OCUPADA */
-.oficina-ocupada::after {
+/* OCUPADA ALQUILER */
+.oficina-ocupada::after,
+.oficina-ocupada-alquiler::after {
   background: #f59e0b;
+}
+
+/* OCUPADA VENTA */
+.oficina-ocupada-venta::after {
+  background: var(--azul-corporativo, #0f4761);
 }
 
 /* RESERVADA */

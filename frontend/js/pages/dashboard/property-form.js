@@ -4176,22 +4176,21 @@ class PropertyForm {
         oficina.classList.toggle('selected');
 
         if (oficina.classList.contains('selected')) {
-          oficina.style.background = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)';
-          oficina.style.transform = 'scale(1.05)';
+          oficina.style.background = '#fffbf0';
+          oficina.style.borderColor = 'var(--dorado, #ff9700)';
+          oficina.style.color = '#b45309';
+          oficina.style.transform = 'scale(1.02)';
         } else {
-          // Restaurar color original según tipo
-          const esNueva = oficina.classList.contains('oficina-nueva');
+          // Restaurar color sobrio según tipo
           const esEquipada = oficina.classList.contains('equipada');
-
-          if (esNueva) {
-            // Verde para nuevas
-            oficina.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-          } else if (esEquipada) {
-            // Dorado para equipadas (mantener estado visual)
-            oficina.style.background = 'linear-gradient(135deg, var(--dorado) 0%, var(--dorado-hover) 100%)';
+          if (esEquipada) {
+            oficina.style.background = '#fffbf0';
+            oficina.style.borderColor = 'var(--dorado, #ff9700)';
+            oficina.style.color = '#b45309';
           } else {
-            // Azul para existentes sin equipar
-            oficina.style.background = 'linear-gradient(135deg, var(--azul-corporativo) 0%, var(--azul-claro) 100%)';
+            oficina.style.background = 'white';
+            oficina.style.borderColor = 'var(--azul-corporativo, #0f4761)';
+            oficina.style.color = 'var(--azul-corporativo, #0f4761)';
           }
           oficina.style.transform = 'scale(1)';
         }
@@ -4728,7 +4727,10 @@ class PropertyForm {
             <span class="leyenda-torre-barra leyenda-torre-barra--libre"></span> Libre (sin barra)
           </span>
           <span class="leyenda-torre-item">
-            <span class="leyenda-torre-barra leyenda-torre-barra--ocupada"></span> Ocupada
+            <span class="leyenda-torre-barra leyenda-torre-barra--ocupada"></span> Alquiler
+          </span>
+          <span class="leyenda-torre-item">
+            <span class="leyenda-torre-barra" style="background: var(--azul-corporativo, #0f4761);"></span> Venta
           </span>
           <span class="leyenda-torre-item">
             <span class="leyenda-torre-barra leyenda-torre-barra--reservada"></span> Reservada
@@ -6557,9 +6559,12 @@ class PropertyForm {
       this.formData.datosOcupacion.forEach(dato => {
         const cajita = document.querySelector(`.oficina-seleccionable[data-oficina-id="${dato.numero_oficina}"]`);
         if (!cajita) return;
-        cajita.classList.remove('oficina-ocupada', 'oficina-reservada');
-        if (dato.estado_ocupacion === 'ocupada') cajita.classList.add('oficina-ocupada');
-        else if (dato.estado_ocupacion === 'reservada') cajita.classList.add('oficina-reservada');
+        cajita.classList.remove('oficina-ocupada', 'oficina-ocupada-alquiler', 'oficina-ocupada-venta', 'oficina-reservada');
+        if (dato.estado_ocupacion === 'ocupada') {
+          cajita.classList.add(dato.tipo_transaccion === 'venta' ? 'oficina-ocupada-venta' : 'oficina-ocupada');
+        } else if (dato.estado_ocupacion === 'reservada') {
+          cajita.classList.add('oficina-reservada');
+        }
       });
 
       // ===== PERSISTIR EN BACKEND =====
