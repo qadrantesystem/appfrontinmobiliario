@@ -3668,29 +3668,25 @@ class PropertyForm {
 
       const nuevoEdificio = result.data;
 
-      // Guardar cantidad de pisos como caracteristica del edificio (ID 110)
-      if (formValues.pisos && nuevoEdificio.registro_cab_id) {
-        try {
-          await fetch(`${API_CONFIG.BASE_URL}/propiedades/${nuevoEdificio.registro_cab_id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${authService.getToken()}`
-            },
-            body: JSON.stringify({
-              caracteristicas: [{ caracteristica_id: 110, valor: String(formValues.pisos) }]
-            })
-          });
-          console.log('✅ Pisos guardados:', formValues.pisos);
-        } catch (e) {
-          console.warn('No se pudo guardar pisos como caracteristica:', e);
-        }
-      }
-
       // Recargar combo y seleccionar el nuevo edificio
       if (this.selectorEdificio) {
         await this.selectorEdificio.reload();
         await this.selectorEdificio.setEdificio(nuevoEdificio.registro_cab_id);
+      }
+
+      // Generar combo de pisos directamente con el valor del modal (sin depender del backend)
+      if (formValues.pisos) {
+        const pisoSelect = document.getElementById('piso-select');
+        const pisoContainer = document.getElementById('piso-container');
+        if (pisoSelect) {
+          let opcionesPiso = '<option value="">-- Seleccionar piso --</option>';
+          for (let i = 1; i <= formValues.pisos; i++) {
+            opcionesPiso += `<option value="${i}">Piso ${i}</option>`;
+          }
+          pisoSelect.innerHTML = opcionesPiso;
+          if (pisoContainer) pisoContainer.style.display = 'block';
+          console.log(`✅ Combo de pisos generado: ${formValues.pisos} pisos`);
+        }
       }
 
       Swal.fire({
