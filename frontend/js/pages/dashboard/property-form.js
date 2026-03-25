@@ -3623,11 +3623,11 @@ class PropertyForm {
         const numero = document.getElementById('swal-numero').value.trim();
         const pisos = parseInt(document.getElementById('swal-pisos').value) || 0;
 
-        if (!nombre || nombre.length < 5) {
-          Swal.showValidationMessage('El nombre debe tener al menos 5 caracteres');
+        if (!nombre || nombre.trim() === '') {
+          Swal.showValidationMessage('El nombre del edificio es requerido');
           return false;
         }
-        if (!direccionBase || direccionBase.length < 5) {
+        if (!direccionBase || direccionBase.trim() === '') {
           Swal.showValidationMessage('La direccion es requerida');
           return false;
         }
@@ -3671,14 +3671,17 @@ class PropertyForm {
       // Guardar cantidad de pisos como caracteristica del edificio (ID 110)
       if (formValues.pisos && nuevoEdificio.registro_cab_id) {
         try {
-          await fetch(`${API_CONFIG.BASE_URL}/caracteristicas-x-inmueble/propiedad/${nuevoEdificio.registro_cab_id}`, {
-            method: 'POST',
+          await fetch(`${API_CONFIG.BASE_URL}/propiedades/${nuevoEdificio.registro_cab_id}`, {
+            method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${authService.getToken()}`
             },
-            body: JSON.stringify([{ caracteristica_id: 110, valor: String(formValues.pisos) }])
+            body: JSON.stringify({
+              caracteristicas: [{ caracteristica_id: 110, valor: String(formValues.pisos) }]
+            })
           });
+          console.log('✅ Pisos guardados:', formValues.pisos);
         } catch (e) {
           console.warn('No se pudo guardar pisos como caracteristica:', e);
         }
