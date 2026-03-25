@@ -4527,7 +4527,7 @@ class PropertyForm {
               "
               title="${paraEliminar
                 ? 'MARCADA PARA ELIMINAR'
-                : `${shortName} — ${oficina.area || 50}m2${tieneEquipamiento ? ' | Equipada' : ''}${datosOcup ? ` | ${datosOcup.estado_ocupacion === 'ocupada' ? 'Ocupada (' + (datosOcup.tipo_transaccion === 'venta' ? 'Venta' : 'Alquiler') + (datosOcup.precio_oficina ? ' S/' + datosOcup.precio_oficina : '') + ')' : datosOcup.estado_ocupacion === 'reservada' ? 'Reservada' : 'Libre'}` : ''}`}"
+                : `${shortName} — ${oficina.area || 50}m²${tieneEquipamiento ? ' | Equipada' : ''}${datosOcup ? ` | ${datosOcup.estado_ocupacion === 'ocupada' ? 'Ocupada (' + (datosOcup.tipo_transaccion === 'venta' ? 'Venta' : 'Alquiler') + ')' + (datosOcup.ocupante_nombre ? ' — ' + datosOcup.ocupante_nombre : '') + (datosOcup.precio_oficina ? ' | S/' + datosOcup.precio_oficina : '') : datosOcup.estado_ocupacion === 'reservada' ? 'Reservada' + (datosOcup.ocupante_nombre ? ' — ' + datosOcup.ocupante_nombre : '') : 'Libre'}` : ''}`}"
             >
               ${iconPrefix}${shortName}
             </div>
@@ -6607,7 +6607,7 @@ class PropertyForm {
         oficina.style.transform = 'scale(1)';
       });
 
-      // Actualizar clases de estado de ocupación (barras) en la torre
+      // Actualizar clases de estado de ocupación (barras) y tooltip en la torre
       this.formData.datosOcupacion.forEach(dato => {
         const cajita = document.querySelector(`.oficina-seleccionable[data-oficina-id="${dato.numero_oficina}"]`);
         if (!cajita) return;
@@ -6617,6 +6617,17 @@ class PropertyForm {
         } else if (dato.estado_ocupacion === 'reservada') {
           cajita.classList.add('oficina-reservada');
         }
+        // Actualizar tooltip con datos del ocupante
+        const nombre = cajita.dataset.nombre || `Of. ${dato.numero_oficina}`;
+        const metraje = cajita.dataset.metraje || 50;
+        let tooltipOcup = '';
+        if (dato.estado_ocupacion === 'ocupada') {
+          const tipo = dato.tipo_transaccion === 'venta' ? 'Venta' : 'Alquiler';
+          tooltipOcup = ` | Ocupada (${tipo})${dato.ocupante_nombre ? ' — ' + dato.ocupante_nombre : ''}${dato.precio_oficina ? ' | S/' + dato.precio_oficina : ''}`;
+        } else if (dato.estado_ocupacion === 'reservada') {
+          tooltipOcup = ` | Reservada${dato.ocupante_nombre ? ' — ' + dato.ocupante_nombre : ''}`;
+        }
+        cajita.setAttribute('title', `${nombre} — ${metraje}m²${tooltipOcup}`);
       });
 
       // ===== PERSISTIR EN BACKEND =====
