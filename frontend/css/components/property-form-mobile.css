@@ -246,23 +246,56 @@
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
-  
+
+  /* Toggle persona natural/juridica */
+  .tipo-persona-card {
+    padding: 8px 10px !important;
+  }
+
+  .tipo-persona-card div {
+    font-size: 0.78rem !important;
+  }
+
   /* Dirección compacta en móvil: layout vertical */
   .direccion-compacta-grid {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
-  
+
   /* Tipo Inmueble + Distrito en móvil: layout vertical */
   .tipo-distrito-grid {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
-  
+
   /* Datos Básicos en móvil: layout vertical */
   .datos-basicos-grid {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
+  }
+
+  /* SweetAlert2 modal edificio rapido - responsive */
+  .swal2-popup {
+    padding: 16px !important;
+    width: 95% !important;
+    max-width: 95vw !important;
+  }
+
+  .swal2-html-container {
+    font-size: 0.9rem !important;
+  }
+
+  .swal2-html-container div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .swal2-html-container input#swal-numero {
+    width: 100% !important;
+  }
+
+  .swal2-html-container .swal2-input {
+    font-size: 0.9rem !important;
+    padding: 8px 10px !important;
   }
 }
 

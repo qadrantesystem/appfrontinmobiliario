@@ -3602,10 +3602,15 @@ class PropertyForm {
           <label style="font-weight: 600; margin-bottom: 4px; display: block;">Nombre del edificio</label>
           <input id="swal-nombre" class="swal2-input" placeholder="Ej: Torre Empresarial San Isidro" style="width: 100%; margin: 0 0 12px 0;">
 
-          <label style="font-weight: 600; margin-bottom: 4px; display: block;">Direccion</label>
-          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <input id="swal-direccion" class="swal2-input" placeholder="Ej: Av. Javier Prado Este 4600" style="flex: 3; margin: 0;">
-            <input id="swal-numero" class="swal2-input" placeholder="N°" style="flex: 1; margin: 0; max-width: 80px;">
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; margin-bottom: 4px; display: block;">Direccion</label>
+              <input id="swal-direccion" class="swal2-input" placeholder="Ej: Av. Javier Prado Este" style="width: 100%; margin: 0;">
+            </div>
+            <div>
+              <label style="font-weight: 600; margin-bottom: 4px; display: block;">N°</label>
+              <input id="swal-numero" class="swal2-input" placeholder="4600" style="width: 80px; margin: 0;">
+            </div>
           </div>
 
           <label style="font-weight: 600; margin-bottom: 4px; display: block;">Cantidad de pisos</label>
