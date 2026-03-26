@@ -182,11 +182,11 @@ class BusquedasLista {
     // Tipo de búsqueda (badge)
     let tipoBusquedaBadge = '';
     if (filtrosAvanzados.length > 0) {
-      tipoBusquedaBadge = `<span style="background: #8B5CF6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">🔬 AVANZADA</span>`;
+      tipoBusquedaBadge = `<span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">🔬 AVANZADA</span>`;
     } else if (Object.keys(filtrosBasicos).some(k => filtrosBasicos[k])) {
-      tipoBusquedaBadge = `<span style="background: #0066CC; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">📋 BÁSICA</span>`;
+      tipoBusquedaBadge = `<span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">📋 BÁSICA</span>`;
     } else {
-      tipoBusquedaBadge = `<span style="background: #6b7280; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">🔍 GENÉRICA</span>`;
+      tipoBusquedaBadge = `<span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">🔍 GENÉRICA</span>`;
     }
 
     // Formatear ubicación (usar nombres resueltos)
@@ -227,27 +227,27 @@ class BusquedasLista {
         </div>
 
         <!-- Resumen visual de criterios -->
-        <div class="saved-search-criteria" style="display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; padding: 12px; background: #f8fafc; border-radius: 8px;">
+        <div class="saved-search-criteria" style="display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; padding: 10px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
           ${tipoNombre ? `
-            <span style="background: #0066CC; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+            <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
               🏢 ${tipoNombre}
             </span>
           ` : ''}
-          <span style="background: ${transaccion === 'alquiler' ? '#10b981' : '#f59e0b'}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+          <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
             ${transaccionTexto}
           </span>
           ${ubicacionTexto ? `
-            <span style="background: #6366f1; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+            <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
               📍 ${ubicacionTexto}
             </span>
           ` : ''}
           ${area ? `
-            <span style="background: #8b5cf6; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+            <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
               📐 ${area} m²
             </span>
           ` : ''}
           ${presupuesto ? `
-            <span style="background: #059669; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;">
+            <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
               💵 USD ${this.formatNumber(presupuesto)}
             </span>
           ` : ''}
@@ -261,11 +261,11 @@ class BusquedasLista {
           </div>
           ${(busqueda.cantidad_individuales !== null && busqueda.cantidad_individuales !== undefined) ? `
             <div style="display: flex; gap: 12px; font-size: 0.85rem;">
-              <span style="color: #0066CC; background: #e0f2fe; padding: 2px 8px; border-radius: 4px;">
-                <i class="fas fa-building"></i> ${busqueda.cantidad_individuales} individuales
+              <span style="color: var(--azul-corporativo, #0f4761); background: white; border: 1px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">
+                🏢 ${busqueda.cantidad_individuales} individuales
               </span>
-              <span style="color: #10b981; background: #d1fae5; padding: 2px 8px; border-radius: 4px;">
-                <i class="fas fa-layer-group"></i> ${busqueda.cantidad_combinaciones || 0} combinaciones
+              <span style="color: var(--azul-corporativo, #0f4761); background: white; border: 1px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">
+                🔗 ${busqueda.cantidad_combinaciones || 0} combinaciones
               </span>
             </div>
           ` : `
