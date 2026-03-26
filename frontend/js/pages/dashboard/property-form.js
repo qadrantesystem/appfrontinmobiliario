@@ -2538,19 +2538,44 @@ class PropertyForm {
         labelNombreInmueble.innerHTML = `${nuevoLabel} <span style="color: red;">*</span>`;
         console.log(`✅ Label actualizado: "${nuevoLabel}"`);
       }
-    const nombreInmuebleInput = document.getElementById('nombre_inmueble');
+      // Re-renderizar bloque nombre/metraje/parqueos según tipo
       const nombreContainer = document.getElementById('nombre_inmueble_container');
-      if (nombreInmuebleInput) {
+      if (nombreContainer) {
+        const nuevoLabel = this.getNombreInmuebleLabel(nombreTipo);
         if (nombreTipoLower.includes('casa')) {
-          if (nombreContainer) nombreContainer.style.display = 'none';
-          nombreInmuebleInput.value = '';
+          nombreContainer.style.display = 'none';
+        } else if (requiereEdificioPadre) {
+          // Oficina/Departamento: mostrar metraje y parqueos al lado
+          nombreContainer.style.display = 'grid';
+          nombreContainer.style.gridTemplateColumns = '1fr 120px 120px';
+          nombreContainer.style.gap = '8px';
+          nombreContainer.style.alignItems = 'flex-end';
+          nombreContainer.innerHTML = `
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="nombre_inmueble" id="label_nombre_inmueble" style="font-size: 0.85rem;">
+                ${nuevoLabel} <span style="color: red;">*</span>
+              </label>
+              <input type="text" id="nombre_inmueble" class="form-control" placeholder="Ej: 501" required style="padding: 8px 10px; font-size: 0.95rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="area" style="font-size: 0.85rem;">Metraje (m²) <span style="color: red;">*</span></label>
+              <input type="number" id="area" class="form-control" placeholder="85" step="0.01" min="1" required style="padding: 8px 10px; font-size: 0.95rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="estacionamientos" style="font-size: 0.85rem;">Parqueos</label>
+              <input type="number" id="estacionamientos" class="form-control" placeholder="0" min="0" style="padding: 8px 10px; font-size: 0.95rem;">
+            </div>
+          `;
         } else {
-          if (nombreContainer) nombreContainer.style.display = 'block';
-          const autoNombre = this.getNombreInmuebleLabel(nombreTipo);
-          nombreInmuebleInput.placeholder = autoNombre;
-          if (!nombreInmuebleInput.value) {
-            nombreInmuebleInput.value = autoNombre;
-          }
+          // Tipo normal: solo nombre
+          nombreContainer.style.display = 'block';
+          nombreContainer.style.gridTemplateColumns = '';
+          nombreContainer.innerHTML = `
+            <label for="nombre_inmueble" id="label_nombre_inmueble">
+              ${nuevoLabel} <span style="color: red;">*</span>
+            </label>
+            <input type="text" id="nombre_inmueble" class="form-control" required>
+          `;
         }
       }
 });
