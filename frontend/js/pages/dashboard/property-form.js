@@ -25,6 +25,7 @@ class PropertyForm {
       numero_direccion: '',
       urbanizacion: '',
       referencia: '',
+      estacionamientos: null,
       latitud: null,
       longitud: null,
       area: null,
@@ -327,6 +328,7 @@ class PropertyForm {
         longitud: prop.longitud || null,
         
         area: prop.area || null,
+        estacionamientos: prop.estacionamientos || null,
         antiguedad: prop.antiguedad || null,
         implementacion: prop.implementacion || null,
         
@@ -1361,6 +1363,16 @@ class PropertyForm {
         this.parseDireccion(this.formData.direccion);
       }
       
+      // Restaurar metraje y parqueos (para oficinas, están en paso 2)
+      const areaInput = document.getElementById('area');
+      if (areaInput && this.formData.area) {
+        areaInput.value = this.formData.area;
+      }
+      const estInput = document.getElementById('estacionamientos');
+      if (estInput && this.formData.estacionamientos) {
+        estInput.value = this.formData.estacionamientos;
+      }
+
       // Nota: La pre-selección de edificio padre se hace en initSelectorEdificio()
       // después de que cargue las opciones de forma asíncrona
     } 
@@ -1704,13 +1716,32 @@ class PropertyForm {
           <div id="edificio-caracteristicas-container"></div>
         </div>
         
-        <!-- ✅ Nombre del Inmueble con label dinámico -->
+        <!-- ✅ Nombre del Inmueble + Metraje + Parqueos (fila compacta para oficinas) -->
+        ${requiereEdificioPadre ? `
+        <div style="display: grid; grid-template-columns: 1fr 120px 120px; gap: 8px; align-items: flex-end;" id="nombre_inmueble_container">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="nombre_inmueble" id="label_nombre_inmueble" style="font-size: 0.85rem;">
+              ${labelNombreInmueble} <span style="color: red;">*</span>
+            </label>
+            <input type="text" id="nombre_inmueble" class="form-control" placeholder="Ej: 501" required style="padding: 8px 10px; font-size: 0.95rem;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="area" style="font-size: 0.85rem;">Metraje (m²) <span style="color: red;">*</span></label>
+            <input type="number" id="area" class="form-control" placeholder="85" step="0.01" min="1" required style="padding: 8px 10px; font-size: 0.95rem;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="estacionamientos" style="font-size: 0.85rem;">Parqueos</label>
+            <input type="number" id="estacionamientos" class="form-control" placeholder="0" min="0" style="padding: 8px 10px; font-size: 0.95rem;">
+          </div>
+        </div>
+        ` : `
         <div class="form-group" id="nombre_inmueble_container">
           <label for="nombre_inmueble" id="label_nombre_inmueble">
             ${labelNombreInmueble} <span style="color: red;">*</span>
           </label>
           <input type="text" id="nombre_inmueble" class="form-control" required>
         </div>
+        `}
         
         <!-- 🆕 Dirección separada en componentes -->
         <div class="direccion-group" style="border: 1px solid #e2e8f0; padding: var(--spacing-md); border-radius: 8px; background: #f8fafc;">
@@ -1777,22 +1808,27 @@ class PropertyForm {
   }
 
   renderStep3() {
+    const tipoIdInt = parseInt(this.formData.tipo_inmueble_id) || 0;
+    const requiereEdificioPadre = (tipoIdInt === 1 || tipoIdInt === 3);
+    // Título dinámico: para oficinas en edificio muestra "Características del Edificio"
+    const tituloStep3 = requiereEdificioPadre ? 'Características del Edificio' : 'Características del Inmueble';
+
     return `
       <h3 style="margin-bottom: var(--spacing-md); color: var(--azul-corporativo); display: flex; align-items: center; gap: 10px; font-size: 1.3rem;">
         <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: white; border: 3px solid var(--azul-corporativo);">
           <i data-lucide="sliders" style="width: 20px; height: 20px; color: var(--azul-corporativo);"></i>
         </span>
-        Características del Inmueble
+        ${tituloStep3}
       </h3>
-      
-      <!-- Características Físicas Básicas -->
+
+      ${!requiereEdificioPadre ? `
+      <!-- Datos Básicos (solo para tipos que NO son oficina en edificio) -->
       <div style="background: #f8f9fa; padding: var(--spacing-md); border-radius: 8px; margin-bottom: var(--spacing-lg);">
         <h4 style="margin-bottom: var(--spacing-sm); color: var(--azul-corporativo); font-size: 0.95rem;">Datos Básicos</h4>
-        <!-- ✅ Grid compacto en una sola línea -->
         <div class="datos-basicos-grid" style="display: grid; grid-template-columns: 150px 150px 1fr; gap: var(--spacing-sm);">
           ${this.renderInputCompact('area', 'Área (m²)', 'number', true, '120', { step: '0.01', min: '1' })}
           ${this.renderInputCompact('antiguedad', 'Años de Antigüedad', 'number', false, '5', { min: '0' })}
-          ${![12, 13].includes(parseInt(this.formData.tipo_inmueble_id)) ? this.renderSelectCompact('implementacion', 'Implementación', [
+          ${![12, 13].includes(tipoIdInt) ? this.renderSelectCompact('implementacion', 'Implementación', [
             { value: '', label: 'Seleccionar...' },
             { value: '1', label: 'Sin implementar' },
             { value: '2', label: 'Semi implementado' },
@@ -1801,6 +1837,7 @@ class PropertyForm {
           ], false) : ''}
         </div>
       </div>
+      ` : ''}
 
       <!-- Características Adicionales (Acordeón) -->
       <div>
@@ -2875,10 +2912,15 @@ class PropertyForm {
       if (requiereEdificioPadre) {
         this.formData.padre_registro_cab_id = document.getElementById('edificio-padre-select')?.value || null;
         this.formData.piso = document.getElementById('piso-select')?.value || null;
+        // Metraje y parqueos ahora están en paso 2 para oficinas
+        this.formData.area = document.getElementById('area')?.value || null;
+        this.formData.estacionamientos = document.getElementById('estacionamientos')?.value || null;
 
-        console.log('🏢 Datos de edificio padre recopilados (Paso 2):', {
+        console.log('🏢 Datos de oficina en edificio recopilados (Paso 2):', {
           padre_registro_cab_id: this.formData.padre_registro_cab_id,
-          piso: this.formData.piso
+          piso: this.formData.piso,
+          area: this.formData.area,
+          estacionamientos: this.formData.estacionamientos
         });
       }
     } else if (this.currentStep === 3) {
@@ -3362,7 +3404,7 @@ class PropertyForm {
         longitud: this.formData.longitud ? parseFloat(this.formData.longitud) : null,
 
         area: this.formData.area ? parseFloat(this.formData.area) : 0,
-        // ❌ REMOVIDO: habitaciones, banos, parqueos (van a características)
+        estacionamientos: this.formData.estacionamientos ? parseInt(this.formData.estacionamientos) : null,
         antiguedad: this.formData.antiguedad ? parseInt(this.formData.antiguedad) : null,
         implementacion: this.formData.implementacion ? parseInt(this.formData.implementacion) : null,
 
@@ -3827,20 +3869,27 @@ class PropertyForm {
     const selectElement = document.querySelector('#edificio-padre-select');
     const containerElement = document.querySelector('#edificio-caracteristicas-container');
 
-    if (selectElement && containerElement && !this.selectorEdificio) {
-      this.selectorEdificio = new SelectorEdificio(
-        '#edificio-padre-select',
-        '#edificio-caracteristicas-container'
-      );
+    if (selectElement && containerElement) {
+      if (!this.selectorEdificio) {
+        // Primera vez: crear instancia nueva
+        this.selectorEdificio = new SelectorEdificio(
+          '#edificio-padre-select',
+          '#edificio-caracteristicas-container'
+        );
 
-      // 🆕 Configurar callback para heredar datos del edificio
-      this.selectorEdificio.setOnChangeCallback((edificio) => {
-        this.handleEdificioHerencia(edificio);
-      });
+        // Configurar callback para heredar datos del edificio
+        this.selectorEdificio.setOnChangeCallback((edificio) => {
+          this.handleEdificioHerencia(edificio);
+        });
 
-      // Inicializar y esperar a que cargue las opciones
-      await this.selectorEdificio.init();
-      console.log('✅ SelectorEdificio inicializado');
+        await this.selectorEdificio.init();
+        console.log('✅ SelectorEdificio inicializado (primera vez)');
+      } else {
+        // Ya existe: recargar opciones en el nuevo select del DOM
+        this.selectorEdificio.selectElement = selectElement;
+        await this.selectorEdificio.init();
+        console.log('✅ SelectorEdificio recargado (regreso al paso 2)');
+      }
 
       // Boton para crear edificio rapido
       const btnRapido = document.getElementById('btn-edificio-rapido');
@@ -3848,12 +3897,9 @@ class PropertyForm {
         btnRapido.addEventListener('click', () => this.mostrarModalEdificioRapido());
       }
 
-      // ✅ Si hay un edificio padre en formData, pre-seleccionarlo AHORA
-      console.log('🔍 Verificando padre_registro_cab_id:', this.formData.padre_registro_cab_id);  // ✅ DEBUG
+      // Pre-seleccionar edificio padre si hay uno guardado en formData
       if (this.formData.padre_registro_cab_id) {
-        console.log('🏢 Pre-seleccionando edificio padre después de cargar opciones:', this.formData.padre_registro_cab_id);
-
-        // Usar el método setEdificio del componente
+        console.log('🏢 Pre-seleccionando edificio:', this.formData.padre_registro_cab_id);
         await this.selectorEdificio.setEdificio(this.formData.padre_registro_cab_id);
       }
     }
