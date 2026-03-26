@@ -116,9 +116,11 @@ class BusquedasCards {
 
         <div class="property-info" style="padding: 10px 12px;">
           <!-- Número + Checkbox + Título en una fila -->
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-            <span style="background: var(--azul-corporativo, #0f4761); color: white; min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0;">${number}</span>
-            <input type="checkbox" class="property-select-checkbox" data-property-id="${propId}" id="check-${propId}" style="width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; accent-color: var(--azul-corporativo, #0f4761);">
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+            <span style="background: var(--azul-corporativo, #0f4761); color: white; min-width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0;">${number}</span>
+            <div class="property-checkbox">
+              <input type="checkbox" class="property-select-checkbox" data-property-id="${propId}" id="check-${propId}">
+            </div>
             <h3 class="property-title" style="font-size: 0.85rem; margin: 0; line-height: 1.2; flex: 1;">${prop.titulo || prop.nombre_inmueble || 'Sin título'}</h3>
           </div>
           ${prop.edificio_nombre ? `
@@ -213,8 +215,10 @@ class BusquedasCards {
         <!-- Header sobrio con número + checkbox integrado -->
         <div style="background: white; padding: 10px 12px; border-bottom: 2px solid var(--azul-corporativo, #0f4761);">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-            <span style="background: var(--azul-corporativo, #0f4761); color: white; min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0;">${number}</span>
-            <input type="checkbox" class="property-select-checkbox combination-checkbox" data-combo-id="${comboId}" data-edificio-id="${combo.edificio_id}" id="check-${comboId}" style="width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; accent-color: var(--azul-corporativo, #0f4761);">
+            <span style="background: var(--azul-corporativo, #0f4761); color: white; min-width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0;">${number}</span>
+            <div class="property-checkbox">
+              <input type="checkbox" class="property-select-checkbox combination-checkbox" data-combo-id="${comboId}" data-edificio-id="${combo.edificio_id}" id="check-${comboId}">
+            </div>
             <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 600;">
               🔗 ${combo.cantidad_oficinas} OFICINAS
             </span>

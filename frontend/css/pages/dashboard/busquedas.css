@@ -1090,48 +1090,17 @@
    ======================================== */
 
 .busquedas-tab .property-checkbox {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .busquedas-tab .property-select-checkbox {
-  display: none;
-}
-
-.busquedas-tab .checkbox-label {
-  display: block;
-  width: 28px;
-  height: 28px;
-  border: 2px solid white;
-  background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(5px);
-  border-radius: 6px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-}
-
-.busquedas-tab .checkbox-label:hover {
-  background: rgba(255, 255, 255, 0.5);
-  transform: scale(1.1);
-}
-
-.busquedas-tab .property-select-checkbox:checked + .checkbox-label {
-  background: #0066CC;
-  border-color: #0066CC;
-}
-
-.busquedas-tab .property-select-checkbox:checked + .checkbox-label::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
+  accent-color: var(--azul-corporativo, #0f4761);
+  flex-shrink: 0;
 }
 
 /* ========================================
