@@ -20,6 +20,11 @@ class PropertyForm {
       distrito_id: null,
       nombre_inmueble: '',
       direccion: '',
+      tipo_via: '',
+      nombre_via: '',
+      numero_direccion: '',
+      urbanizacion: '',
+      referencia: '',
       latitud: null,
       longitud: null,
       area: null,
@@ -1323,7 +1328,7 @@ class PropertyForm {
         'latitud': this.formData.latitud || '',
         'longitud': this.formData.longitud || ''
       };
-      
+
       for (const [id, valor] of Object.entries(campos)) {
         const campo = document.getElementById(id);
         if (campo) {
@@ -1333,9 +1338,26 @@ class PropertyForm {
           console.error(`  ❌ Campo ${id} NO ENCONTRADO en el DOM`);
         }
       }
-      
-      // 🆕 Parsear dirección en componentes separados
-      if (this.formData.direccion) {
+
+      // Restaurar campos individuales de dirección desde formData (sin parsear)
+      if (this.formData.tipo_via || this.formData.nombre_via) {
+        // Restaurar directamente — los campos individuales ya están guardados
+        const camposDireccion = {
+          'tipo_via': this.formData.tipo_via || '',
+          'nombre_via': this.formData.nombre_via || '',
+          'numero_direccion': this.formData.numero_direccion || '',
+          'urbanizacion': this.formData.urbanizacion || '',
+          'referencia': this.formData.referencia || ''
+        };
+        for (const [id, valor] of Object.entries(camposDireccion)) {
+          const campo = document.getElementById(id);
+          if (campo) {
+            campo.value = valor;
+            console.log(`  ✅ ${id} = "${valor}"`);
+          }
+        }
+      } else if (this.formData.direccion) {
+        // Fallback: parsear dirección concatenada (modo editar primera carga)
         this.parseDireccion(this.formData.direccion);
       }
       
@@ -2837,6 +2859,12 @@ class PropertyForm {
       this.formData.distrito_id = document.getElementById('distrito_id')?.value || null;
       this.formData.nombre_inmueble = document.getElementById('nombre_inmueble')?.value || '';
       this.formData.direccion = document.getElementById('direccion')?.value || '';
+      // Guardar campos individuales de dirección para restaurar sin parsear
+      this.formData.tipo_via = document.getElementById('tipo_via')?.value || '';
+      this.formData.nombre_via = document.getElementById('nombre_via')?.value || '';
+      this.formData.numero_direccion = document.getElementById('numero_direccion')?.value || '';
+      this.formData.urbanizacion = document.getElementById('urbanizacion')?.value || '';
+      this.formData.referencia = document.getElementById('referencia')?.value || '';
       this.formData.latitud = document.getElementById('latitud')?.value || null;
       this.formData.longitud = document.getElementById('longitud')?.value || null;
 
@@ -3861,13 +3889,15 @@ class PropertyForm {
     }
 
     // 2. Heredar dirección — parsear en campos separados
+    // NO sobreescribir si el usuario ya tiene datos de dirección guardados en formData
     if (edificio.direccion) {
       const direccionInput = document.getElementById('direccion');
       const nombreViaInput = document.getElementById('nombre_via');
       const numeroInput = document.getElementById('numero_direccion');
       const tipoViaSelect = document.getElementById('tipo_via');
 
-      if (direccionInput && (!direccionInput.value || direccionInput.value.trim() === '')) {
+      const yaHayDireccionGuardada = this.formData.nombre_via && this.formData.nombre_via.trim() !== '';
+      if (direccionInput && !yaHayDireccionGuardada && (!direccionInput.value || direccionInput.value.trim() === '')) {
         direccionInput.value = edificio.direccion;
         this.formData.direccion = edificio.direccion;
 

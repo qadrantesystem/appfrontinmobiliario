@@ -1,0 +1,26 @@
+{
+  "name": "qadrante-e2e-tests",
+  "version": "1.0.0",
+  "description": "Pruebas E2E con Playwright para Qadrante System",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:e1": "npx playwright test e1-registrar-oficina",
+    "test:e2": "npx playwright test e2-registrar-edificio",
+    "test:e3": "npx playwright test e3-editar-oficina",
+    "test:e4": "npx playwright test e4-editar-edificio",
+    "test:e5": "npx playwright test e5-busqueda-compartir",
+    "test:headed": "npx playwright test --headed",
+    "pdf": "node scripts/generate-pdf.js",
+    "upload": "node scripts/upload-imagekit.js",
+    "share": "node scripts/share-whatsapp.js",
+    "run:all": "node scripts/run-all.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "imagekit": "^5.2.0",
+    "pdfkit": "^0.15.0"
+  }
+}
