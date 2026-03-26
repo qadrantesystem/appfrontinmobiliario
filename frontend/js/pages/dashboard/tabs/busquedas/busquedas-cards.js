@@ -84,18 +84,8 @@ class BusquedasCards {
 
     return `
       <div class="property-card" data-property-id="${propId}" data-property-number="${number}" title="${tooltipParts.replace(/"/g, '&quot;')}">
-        <div class="property-number">${number}</div>
 
-        <!-- ✅ Checkbox de Selección -->
-        <div class="property-checkbox">
-          <input type="checkbox"
-                 class="property-select-checkbox"
-                 data-property-id="${propId}"
-                 id="check-${propId}">
-          <label for="check-${propId}" class="checkbox-label"></label>
-        </div>
-
-        <!-- ❤️ Botón de Favorito -->
+        <!-- ❤️ Botón de Favorito (sobre imagen) -->
         <button class="favorite-btn-beautiful ${isFavorite ? 'is-favorite' : ''}"
                 data-favorite-property="${propId}"
                 title="${isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}">
@@ -103,11 +93,6 @@ class BusquedasCards {
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
           </svg>
         </button>
-
-        <!-- Badge de Estado -->
-        <div class="property-badge" style="position: absolute; top: 50px; left: 10px; background: ${estadoBadge.color}; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; z-index: 20;">
-          ${estadoBadge.text}
-        </div>
 
         <!-- Carousel de imágenes -->
         <div class="property-image-carousel">
@@ -130,7 +115,12 @@ class BusquedasCards {
         </div>
 
         <div class="property-info" style="padding: 10px 12px;">
-          <h3 class="property-title" style="font-size: 0.9rem; margin: 0 0 4px 0; line-height: 1.2;">${prop.titulo || prop.nombre_inmueble || 'Sin título'}</h3>
+          <!-- Número + Checkbox + Título en una fila -->
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <span style="background: var(--azul-corporativo, #0f4761); color: white; min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0;">${number}</span>
+            <input type="checkbox" class="property-select-checkbox" data-property-id="${propId}" id="check-${propId}" style="width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; accent-color: var(--azul-corporativo, #0f4761);">
+            <h3 class="property-title" style="font-size: 0.85rem; margin: 0; line-height: 1.2; flex: 1;">${prop.titulo || prop.nombre_inmueble || 'Sin título'}</h3>
+          </div>
           ${prop.edificio_nombre ? `
             <div style="color: var(--azul-corporativo, #0f4761); font-size: 0.75rem; font-weight: 600; margin-bottom: 2px;">
               🏢 ${prop.edificio_nombre}
@@ -220,32 +210,22 @@ class BusquedasCards {
            title="${comboTooltip.replace(/"/g, '&quot;')}"
            style="border: 2px solid var(--azul-corporativo, #0f4761); background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
 
-        <div class="property-number" style="background: var(--azul-corporativo, #0f4761);">${number}</div>
-
-        <!-- Checkbox de Selección -->
-        <div class="property-checkbox" style="top: 12px; right: 12px;">
-          <input type="checkbox"
-                 class="property-select-checkbox combination-checkbox"
-                 data-combo-id="${comboId}"
-                 data-edificio-id="${combo.edificio_id}"
-                 id="check-${comboId}">
-          <label for="check-${comboId}" class="checkbox-label" style="border-color: var(--azul-corporativo, #0f4761);"></label>
-        </div>
-
-        <!-- Header sobrio -->
-        <div style="background: white; padding: 14px 16px; border-bottom: 2px solid var(--azul-corporativo, #0f4761);">
-          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-            <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
+        <!-- Header sobrio con número + checkbox integrado -->
+        <div style="background: white; padding: 10px 12px; border-bottom: 2px solid var(--azul-corporativo, #0f4761);">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <span style="background: var(--azul-corporativo, #0f4761); color: white; min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0;">${number}</span>
+            <input type="checkbox" class="property-select-checkbox combination-checkbox" data-combo-id="${comboId}" data-edificio-id="${combo.edificio_id}" id="check-${comboId}" style="width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; accent-color: var(--azul-corporativo, #0f4761);">
+            <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 600;">
               🔗 ${combo.cantidad_oficinas} OFICINAS
             </span>
-            <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
+            <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 600;">
               ${combo.transaccion === 'venta' ? 'VENTA' : 'ALQUILER'}
             </span>
           </div>
-          <h3 style="margin: 0 0 2px 0; font-size: 1rem; font-weight: 700; color: var(--azul-corporativo, #0f4761);">
+          <h3 style="margin: 0 0 2px 0; font-size: 0.9rem; font-weight: 700; color: var(--azul-corporativo, #0f4761);">
             🏢 ${edificioNombre}
           </h3>
-          <div style="font-size: 0.8rem; color: #6b7280;">
+          <div style="font-size: 0.75rem; color: #6b7280;">
             📍 ${combo.distrito} · Piso ${combo.piso}
           </div>
         </div>
