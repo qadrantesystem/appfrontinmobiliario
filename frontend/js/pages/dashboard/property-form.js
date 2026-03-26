@@ -2949,9 +2949,14 @@ class PropertyForm {
         });
       }
     } else if (this.currentStep === 3) {
-      this.formData.area = document.getElementById('area')?.value || null;
-      this.formData.antiguedad = document.getElementById('antiguedad')?.value || null;
-      this.formData.implementacion = document.getElementById('implementacion')?.value || null;
+      // Solo leer area/antiguedad/implementacion si existen en el DOM
+      // (para oficinas tipo 1/3, area ya se guardó en paso 2 y no está en paso 3)
+      const areaEl = document.getElementById('area');
+      if (areaEl) this.formData.area = areaEl.value || null;
+      const antiguedadEl = document.getElementById('antiguedad');
+      if (antiguedadEl) this.formData.antiguedad = antiguedadEl.value || null;
+      const implementacionEl = document.getElementById('implementacion');
+      if (implementacionEl) this.formData.implementacion = implementacionEl.value || null;
       
       // ✅ Recolectar características seleccionadas
       this.formData.caracteristicas = [];
