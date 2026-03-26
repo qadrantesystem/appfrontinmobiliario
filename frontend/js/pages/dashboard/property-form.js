@@ -4122,6 +4122,22 @@ class PropertyForm {
       pisoSelect.addEventListener('change', this._pisoChangeHandler);
     }
 
+    // Restaurar metraje y parqueos desde formData (pueden haberse perdido al re-renderizar)
+    setTimeout(() => {
+      const areaInput = document.getElementById('area');
+      if (areaInput && this.formData.area && !areaInput.value) {
+        areaInput.value = this.formData.area;
+      }
+      const estInput = document.getElementById('estacionamientos');
+      if (estInput && this.formData.estacionamientos && !estInput.value) {
+        estInput.value = this.formData.estacionamientos;
+      }
+      const nombreInput = document.getElementById('nombre_inmueble');
+      if (nombreInput && this.formData.nombre_inmueble && !nombreInput.value) {
+        nombreInput.value = this.formData.nombre_inmueble;
+      }
+    }, 200);
+
     showNotification(`✅ Datos heredados de "${edificio.nombre_inmueble}"`, 'success');
   }
 
