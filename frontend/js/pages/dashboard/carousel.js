@@ -40,8 +40,12 @@
           
           imagenes.forEach((img, i) => img.classList.toggle('active', i === newIndex));
           indicadores.forEach((ind, i) => ind.classList.toggle('active', i === newIndex));
-          
+
           carousel.dataset.current = newIndex;
+
+          // Actualizar contador
+          const counter = card.querySelector('.photo-counter-current');
+          if (counter) counter.textContent = newIndex + 1;
         });
       });
     }
@@ -63,6 +67,10 @@
       indicadores.forEach((ind, i) => ind.classList.toggle('active', i === currentIndex));
 
       carousel.dataset.current = currentIndex;
+
+      // Actualizar contador de fotos (1/5, 2/5, etc.)
+      const counter = card.querySelector('.photo-counter-current');
+      if (counter) counter.textContent = currentIndex + 1;
     }
   }
 
