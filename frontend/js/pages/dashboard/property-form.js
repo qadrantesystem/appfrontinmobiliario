@@ -2584,6 +2584,10 @@ class PropertyForm {
               <input type="number" id="estacionamientos" class="form-control" placeholder="0" min="0" style="padding: 8px 10px; font-size: 0.95rem;">
             </div>
           `;
+          // Restaurar valores desde formData tras re-render del contenedor
+          if (this.formData.nombre_inmueble) document.getElementById('nombre_inmueble').value = this.formData.nombre_inmueble;
+          if (this.formData.area) document.getElementById('area').value = this.formData.area;
+          if (this.formData.estacionamientos) document.getElementById('estacionamientos').value = this.formData.estacionamientos;
         } else {
           // Tipo normal: solo nombre
           nombreContainer.style.display = 'block';
