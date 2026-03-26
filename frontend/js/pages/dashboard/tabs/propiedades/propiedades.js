@@ -354,7 +354,7 @@ class PropiedadesTab {
                 ${imagenes.map((img, i) => `
                   <img src="${img}" alt="${prop.titulo} - ${i+1}"
                        class="carousel-image property-image ${i === 0 ? 'active' : ''}" data-index="${i}"
-                       onerror="this.style.display='none'">
+                       onerror="this.src='https://via.placeholder.com/400x300?text=Error+imagen'">
                 `).join('')}
               </div>
               ${imagenes.length > 1 ? `
