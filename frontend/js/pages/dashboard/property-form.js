@@ -992,14 +992,32 @@ class PropertyForm {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     
     // Inicializar mapa Leaflet
-    setTimeout(() => {
-      // Usar coordenadas iniciales si se proporcionan, sino Lima por defecto
-      const centerLat = latInicial || -12.0464;
-      const centerLng = lonInicial || -77.0428;
-      const zoom = (latInicial && lonInicial) ? 16 : 13;
-      
+    setTimeout(async () => {
+      // Usar coordenadas iniciales si se proporcionan, sino intentar centrar en el distrito
+      let centerLat = latInicial || -12.0464;
+      let centerLng = lonInicial || -77.0428;
+      let zoom = (latInicial && lonInicial) ? 16 : 13;
+
+      // Si no hay coordenadas pero sí hay distrito, geocodificar el distrito para centrar
+      if (!latInicial && !lonInicial && distrito) {
+        try {
+          const query = `${distrito}, Lima, Peru`;
+          const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=pe`;
+          const geoRes = await fetch(geoUrl, { headers: { 'User-Agent': 'QadranteInmobiliaria/1.0' } });
+          const geoData = await geoRes.json();
+          if (geoData && geoData.length > 0) {
+            centerLat = parseFloat(geoData[0].lat);
+            centerLng = parseFloat(geoData[0].lon);
+            zoom = 15;
+            console.log(`📍 Mapa centrado en ${distrito}:`, centerLat, centerLng);
+          }
+        } catch (e) {
+          console.warn('⚠️ No se pudo geocodificar el distrito:', e);
+        }
+      }
+
       const map = L.map('mapContainer').setView([centerLat, centerLng], zoom);
-      
+
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
       }).addTo(map);

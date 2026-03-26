@@ -291,23 +291,38 @@ class PropiedadesTab {
     
     return pageData.items.map((prop, index) => {
       let imagenes = [];
+      const toUrl = (img) => (img.startsWith('http://') || img.startsWith('https://')) ? img : baseUrl + img;
 
+      // Construir array: imagen principal primero, luego galería
+      if (prop.imagen_principal) {
+        imagenes.push(toUrl(prop.imagen_principal));
+      }
       if (prop.imagenes && prop.imagenes.length > 0) {
-        imagenes = prop.imagenes.map(img => {
-          if (img.startsWith('http://') || img.startsWith('https://')) return img;
-          return baseUrl + img;
+        prop.imagenes.forEach(img => {
+          const url = toUrl(img);
+          // Evitar duplicar la imagen principal
+          if (!imagenes.includes(url)) imagenes.push(url);
         });
-      } else if (prop.imagen_principal) {
-        imagenes = [prop.imagen_principal];
-      } else {
+      }
+      if (imagenes.length === 0) {
         imagenes = ['https://via.placeholder.com/400x300?text=Sin+Imagen'];
       }
 
-      const precio = prop.precio_alquiler ?
-        `S/ ${parseFloat(prop.precio_alquiler).toLocaleString('es-PE')}/mes` :
-        prop.precio_venta ?
-        `S/ ${parseFloat(prop.precio_venta).toLocaleString('es-PE')}` :
-        'Precio no disponible';
+      // Moneda dinámica según prop.moneda (USD → $, PEN → S/)
+      const simboloMoneda = (prop.moneda || 'PEN').toUpperCase() === 'USD' ? '$' : 'S/';
+      const formatPrecio = (val) => parseFloat(val).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      // Mostrar ambos precios si existen
+      let precio = '';
+      if (prop.precio_alquiler && prop.precio_venta) {
+        precio = `${simboloMoneda} ${formatPrecio(prop.precio_alquiler)}/mes · ${simboloMoneda} ${formatPrecio(prop.precio_venta)}`;
+      } else if (prop.precio_alquiler) {
+        precio = `${simboloMoneda} ${formatPrecio(prop.precio_alquiler)}/mes`;
+      } else if (prop.precio_venta) {
+        precio = `${simboloMoneda} ${formatPrecio(prop.precio_venta)}`;
+      } else {
+        precio = 'Precio no disponible';
+      }
 
       const estadoBadge = {
         'publicado': { color: 'var(--azul-corporativo)', text: 'PUBLICADO' },
