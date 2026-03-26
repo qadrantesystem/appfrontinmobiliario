@@ -312,16 +312,22 @@ class PropiedadesTab {
       const simboloMoneda = (prop.moneda || 'PEN').toUpperCase() === 'USD' ? '$' : 'S/';
       const formatPrecio = (val) => parseFloat(val).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-      // Mostrar ambos precios si existen
-      let precio = '';
+      // Mostrar precios con etiquetas (uno debajo del otro si hay ambos)
+      let precioHTML = '';
       if (prop.precio_alquiler && prop.precio_venta) {
-        precio = `${simboloMoneda} ${formatPrecio(prop.precio_alquiler)}/mes · ${simboloMoneda} ${formatPrecio(prop.precio_venta)}`;
+        precioHTML = `
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 0.7rem; color: var(--gris-medio); font-weight: 600; text-transform: uppercase;">Alquiler</span>
+            <span style="font-weight: 700; color: var(--azul-corporativo); font-size: 0.95rem;">${simboloMoneda} ${formatPrecio(prop.precio_alquiler)}/mes</span>
+            <span style="font-size: 0.7rem; color: var(--gris-medio); font-weight: 600; text-transform: uppercase; margin-top: 2px;">Venta</span>
+            <span style="font-weight: 700; color: var(--dorado); font-size: 0.95rem;">${simboloMoneda} ${formatPrecio(prop.precio_venta)}</span>
+          </div>`;
       } else if (prop.precio_alquiler) {
-        precio = `${simboloMoneda} ${formatPrecio(prop.precio_alquiler)}/mes`;
+        precioHTML = `<span class="property-price">${simboloMoneda} ${formatPrecio(prop.precio_alquiler)}/mes</span>`;
       } else if (prop.precio_venta) {
-        precio = `${simboloMoneda} ${formatPrecio(prop.precio_venta)}`;
+        precioHTML = `<span class="property-price">${simboloMoneda} ${formatPrecio(prop.precio_venta)}</span>`;
       } else {
-        precio = 'Precio no disponible';
+        precioHTML = `<span class="property-price">Precio no disponible</span>`;
       }
 
       const estadoBadge = {
@@ -393,7 +399,7 @@ class PropiedadesTab {
 
             <!-- Fila 3: precio + features -->
             <div class="prop-row-price">
-              <span class="property-price">${precio}</span>
+              ${precioHTML}
               <div class="property-features">
                 <span class="feature">${prop.area || 0} m2</span>
                 ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
