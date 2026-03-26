@@ -129,60 +129,37 @@ class BusquedasCards {
           ` : ''}
         </div>
 
-        <div class="property-info">
-          <h3 class="property-title">${prop.titulo || prop.nombre_inmueble || 'Sin título'}</h3>
+        <div class="property-info" style="padding: 10px 12px;">
+          <h3 class="property-title" style="font-size: 0.9rem; margin: 0 0 4px 0; line-height: 1.2;">${prop.titulo || prop.nombre_inmueble || 'Sin título'}</h3>
           ${prop.edificio_nombre ? `
-            <div class="property-building" style="color: #0066CC; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">
+            <div style="color: var(--azul-corporativo, #0f4761); font-size: 0.75rem; font-weight: 600; margin-bottom: 2px;">
               🏢 ${prop.edificio_nombre}
             </div>
           ` : ''}
-          <div class="property-location">📍 ${prop.direccion || 'Ubicación no disponible'}</div>
-          <div class="property-price">${precio}</div>
-          <div class="property-features">
-            <span class="feature">📐 ${prop.area || 0} m²</span>
-            ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
-              ${prop.habitaciones ? `<span class="feature">🛏️ ${prop.habitaciones} hab.</span>` : ''}
-              ${prop.banos ? `<span class="feature">🛁 ${prop.banos} baños</span>` : ''}
-              ${prop.estacionamientos ? `<span class="feature">🚗 ${prop.estacionamientos} estac.</span>` : ''}
-            ` : ''}
-            ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
+          <div class="property-location" style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px;">📍 ${prop.direccion || 'Sin ubicación'}</div>
+          <div class="property-price" style="font-size: 0.95rem; margin-bottom: 6px;">${precio}</div>
+          <div class="property-features" style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;">
+            <span class="feature" style="font-size: 0.7rem; padding: 2px 6px; background: #f1f5f9; border-radius: 4px;">📐 ${prop.area || 0} m²</span>
+            ${prop.habitaciones ? `<span class="feature" style="font-size: 0.7rem; padding: 2px 6px; background: #f1f5f9; border-radius: 4px;">🛏️ ${prop.habitaciones}</span>` : ''}
+            ${prop.banos ? `<span class="feature" style="font-size: 0.7rem; padding: 2px 6px; background: #f1f5f9; border-radius: 4px;">🛁 ${prop.banos}</span>` : ''}
+            ${prop.estacionamientos ? `<span class="feature" style="font-size: 0.7rem; padding: 2px 6px; background: #f1f5f9; border-radius: 4px;">🚗 ${prop.estacionamientos}</span>` : ''}
+            ${prop.antiguedad ? `<span class="feature" style="font-size: 0.7rem; padding: 2px 6px; background: #f1f5f9; border-radius: 4px;">⏱️ ${prop.antiguedad}a</span>` : ''}
           </div>
-          <div class="property-stats" style="display: flex; gap: 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--gris-medio); align-items: center; flex-wrap: wrap;">
-            <span>👁️ ${prop.vistas || 0} vistas</span>
-            <span>📞 ${prop.contactos || 0} contactos</span>
-
-            <!-- Badge de Estado CRM -->
-            ${estadoCRMBadge.noBorder ? `
-              <span style="color: ${estadoCRMBadge.color}; font-size: 0.75rem; font-weight: 500;">
-                ${estadoCRMBadge.text}
-              </span>
-            ` : `
-              <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: ${estadoCRMBadge.bg}; color: ${estadoCRMBadge.color}; border: 2px solid ${estadoCRMBadge.border}; border-radius: 6px; font-size: 0.7rem; font-weight: 600;">
-                ${estadoCRMBadge.text}
-              </span>
-            `}
-          </div>
-
-          <!-- Información de Contacto -->
-          ${(prop.telefono || prop.email || prop.propietario_real_telefono || prop.propietario_real_email) ? `
-            <div class="property-contact" style="background: white; border-left: 3px solid #0066CC; border-radius: 6px; padding: 6px 8px; margin: 0.4rem 0;">
-              <div style="font-size: 0.7rem; color: var(--gris-medio); margin-bottom: 3px; font-weight: 600;">👤 Contacto</div>
-              <div style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
-                ${(prop.telefono || prop.propietario_real_telefono) ? `
-                  <a href="tel:${prop.telefono || prop.propietario_real_telefono}" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: #0066CC; border: 2px solid #0066CC; border-radius: 4px; text-decoration: none; font-size: 0.7rem; font-weight: 600;">
-                    📱 ${prop.telefono || prop.propietario_real_telefono}
-                  </a>
-                ` : ''}
-                ${(prop.email || prop.propietario_real_email) ? `
-                  <a href="mailto:${prop.email || prop.propietario_real_email}" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; background: white; color: #0066CC; border: 2px solid #0066CC; border-radius: 4px; text-decoration: none; font-size: 0.7rem; font-weight: 600;">
-                    📧 ${prop.email || prop.propietario_real_email}
-                  </a>
-                ` : ''}
-              </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 6px; align-items: center; font-size: 0.7rem; color: #9ca3af;">
+              <span>👁️ ${prop.vistas || 0}</span>
+              <span>📞 ${prop.contactos || 0}</span>
+              ${!estadoCRMBadge.noBorder ? `
+                <span style="padding: 1px 6px; color: ${estadoCRMBadge.color}; border: 1.5px solid ${estadoCRMBadge.border}; border-radius: 4px; font-size: 0.65rem; font-weight: 600;">
+                  ${estadoCRMBadge.text}
+                </span>
+              ` : ''}
             </div>
-          ` : ''}
-
-          <p class="property-description">${(prop.descripcion || '').substring(0, 120)}...</p>
+            <button class="btn-detalle-prop" data-view-detail="${propId}" style="background: var(--azul-corporativo, #0f4761); color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;"
+                    onclick="event.stopPropagation();">
+              🔍 Detalle
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -207,9 +184,14 @@ class BusquedasCards {
 
     // Lista de oficinas incluidas (compacta)
     const oficinasHTML = oficinas.map(of => `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: white; border-radius: 4px; margin-bottom: 4px;">
-        <span style="font-size: 0.8rem; color: #374151;">${of.nombre}</span>
-        <span style="font-size: 0.8rem; color: var(--azul-corporativo, #0f4761); font-weight: 600;">${of.area} m²</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 3px 6px; background: white; border-radius: 4px; margin-bottom: 3px; border: 1px solid #f1f5f9;">
+        <span style="font-size: 0.75rem; color: #374151;">${of.nombre}</span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 0.75rem; color: var(--azul-corporativo, #0f4761); font-weight: 600;">${of.area} m²</span>
+          <button class="btn-detalle-oficina" data-view-detail="${of.registro_cab_id}" onclick="event.stopPropagation();"
+                  style="background: none; border: 1.5px solid var(--azul-corporativo, #0f4761); color: var(--azul-corporativo, #0f4761); width: 22px; height: 22px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.65rem;"
+                  title="Ver detalle de ${of.nombre}">🔍</button>
+        </div>
       </div>
     `).join('');
 
@@ -220,9 +202,23 @@ class BusquedasCards {
     // Nombre del edificio limpio
     const edificioNombre = combo.edificio_nombre || 'Edificio';
 
+    // Tooltip combinación
+    const comboTooltip = [
+      `Combinación: ${combo.cantidad_oficinas} oficinas`,
+      `Edificio: ${edificioNombre}`,
+      `Piso: ${combo.piso}`,
+      `Área total: ${combo.area_total} m²`,
+      `Transacción: ${combo.transaccion}`,
+      `Distrito: ${combo.distrito}`,
+      precio !== 'Consultar' ? `Precio: ${precio}` : '',
+      '---',
+      ...oficinas.map(of => `${of.nombre}: ${of.area} m²`)
+    ].filter(Boolean).join('\n');
+
     return `
       <div class="property-card combination-card" data-combination="true" data-combo-id="${comboId}" data-edificio-id="${combo.edificio_id}" data-property-number="${number}"
-           style="border: 2px solid var(--azul-corporativo, #0f4761); background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+           title="${comboTooltip.replace(/"/g, '&quot;')}"
+           style="border: 2px solid var(--azul-corporativo, #0f4761); background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
 
         <div class="property-number" style="background: var(--azul-corporativo, #0f4761);">${number}</div>
 

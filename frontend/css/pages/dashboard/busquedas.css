@@ -430,11 +430,16 @@
 
 .busquedas-tab .busquedas-grid {
   display: grid;
-  grid-template-columns: 300px 1fr 400px;
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: 260px 1fr 360px;
+  gap: 16px;
+  padding: 16px;
   min-height: calc(100vh - 200px);
 }
+
+/* Reordenar: Filtros | Mapa | Resultados */
+.busquedas-tab .filters-column { order: 1; }
+.busquedas-tab .map-column { order: 2; }
+.busquedas-tab .results-column { order: 3; }
 
 /* ========================================
    COLUMNA DE FILTROS
@@ -591,8 +596,12 @@
 .busquedas-tab .results-column {
   background: white;
   border-radius: 8px;
-  padding: 20px;
+  padding: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-height: calc(100vh - 240px);
+  overflow-y: auto;
+  position: sticky;
+  top: 20px;
 }
 
 /* ========================================
@@ -619,13 +628,14 @@
 .busquedas-tab .property-card {
   position: relative;
   background: white;
+  border: 1.5px solid #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s;
   cursor: pointer;
-  margin-bottom: 20px;
-  display: block !important; /* ✅ FORZAR display block */
+  margin-bottom: 12px;
+  display: block !important;
 }
 
 .busquedas-tab .property-card:hover {
@@ -663,7 +673,7 @@
 .busquedas-tab .property-image-carousel {
   position: relative;
   width: 100%;
-  height: 250px;
+  height: 160px;
   overflow: hidden;
   background: #f3f4f6;
 }
@@ -1442,17 +1452,25 @@
 @media (max-width: 1200px) {
   .busquedas-tab .busquedas-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: 12px;
   }
 
   .busquedas-tab .filters-column {
     grid-column: 1 / -1;
+    order: 1;
     position: static;
   }
 
   .busquedas-tab .map-column {
+    order: 2;
     position: static;
-    height: 500px;
+    height: 450px;
+  }
+
+  .busquedas-tab .results-column {
+    order: 3;
+    max-height: none;
+    position: static;
   }
 }
 
@@ -1554,24 +1572,29 @@
 
   .busquedas-tab .busquedas-grid {
     grid-template-columns: 1fr;
-    padding: 12px;
-    gap: 12px;
+    padding: 8px;
+    gap: 10px;
   }
 
   .busquedas-tab .filters-column {
-    padding: 16px;
+    order: 1;
+    padding: 12px;
   }
 
   .busquedas-tab .results-column {
-    padding: 16px;
+    order: 2;
+    padding: 12px;
+    max-height: none;
+    position: static;
   }
 
   .busquedas-tab .map-column {
-    height: 400px;
+    order: 3;
+    height: 350px;
   }
 
   .busquedas-tab .property-image-carousel {
-    height: 200px;
+    height: 140px;
   }
 
   .busquedas-tab .saved-search-details {
