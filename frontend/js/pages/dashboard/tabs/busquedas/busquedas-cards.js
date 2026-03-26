@@ -284,34 +284,105 @@ class BusquedasCards {
         }
       });
 
-      // Click en tarjeta
+      // Click en tarjeta (seleccionar en mapa)
       card.addEventListener('click', (e) => {
-        // Evitar si se hizo click en botón de favorito o carrusel
-        if (e.target.closest('.favorite-btn-float') ||
+        // Evitar si se hizo click en checkbox, botón, favorito o carrusel
+        if (e.target.closest('.favorite-btn-beautiful') ||
+            e.target.closest('.favorite-btn-float') ||
             e.target.closest('.carousel-prev') ||
-            e.target.closest('.carousel-next')) {
+            e.target.closest('.carousel-next') ||
+            e.target.closest('.btn-detalle-prop') ||
+            e.target.closest('.btn-detalle-oficina') ||
+            e.target.matches('input[type="checkbox"]')) {
           return;
         }
 
-        const propertyId = card.dataset.propertyId;
         const propertyNumber = card.dataset.propertyNumber;
 
         // Resaltar tarjeta
         this.tab.container.querySelectorAll('.property-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
 
-        // Resaltar marcador en mapa en amarillo (permanente)
+        // Resaltar marcador en mapa
         if (this.tab.mapHandler) {
           this.tab.mapHandler.highlightMarker(parseInt(propertyNumber), false, true);
         }
       });
     });
 
+    // Listeners para botón "Detalle" en cards individuales y lupa en combinaciones
+    this.setupDetalleListeners();
+
     // Carrusel navigation
     this.setupCarouselListeners();
 
     // Favoritos
     this.setupFavoritesListeners();
+  }
+
+  /**
+   * Setup listeners para botones Detalle y Lupa
+   */
+  setupDetalleListeners() {
+    // Handler compartido para botones detalle
+    const showDetalle = async (propId) => {
+      // Buscar en resultados actuales
+      const prop = this.tab.currentResults?.find(r => r.registro_cab_id == propId);
+      if (!prop) {
+        // Si no está en resultados, intentar con PropiedadesTab
+        if (window.propiedadesTabInstance?.showPropertyDetailPopup) {
+          await window.propiedadesTabInstance.showPropertyDetailPopup(parseInt(propId));
+          return;
+        }
+        showNotification('No se encontró detalle', 'warning');
+        return;
+      }
+      // Modal de detalle inline
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+      modal.innerHTML = `
+        <div style="background:white;border-radius:12px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+          <div style="background:var(--azul-corporativo,#0f4761);color:white;padding:14px 20px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;">
+            <h3 style="margin:0;font-size:1rem;">🔍 Detalle de Propiedad</h3>
+            <button onclick="this.closest('div[style*=fixed]').remove()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;">&times;</button>
+          </div>
+          <div style="padding:16px;">
+            <h4 style="margin:0 0 8px;color:var(--azul-corporativo,#0f4761);">${prop.titulo || prop.nombre_inmueble || 'Sin título'}</h4>
+            ${prop.edificio_nombre ? `<p style="margin:2px 0;font-size:0.85rem;">🏢 <strong>${prop.edificio_nombre}</strong></p>` : ''}
+            <p style="margin:2px 0;font-size:0.85rem;color:#6b7280;">📍 ${prop.direccion || 'Sin dirección'}</p>
+            <hr style="border:none;border-top:1px solid #e2e8f0;margin:10px 0;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div style="background:#f8fafc;padding:8px;border-radius:6px;"><strong style="font-size:0.7rem;color:#6b7280;">Área</strong><br><span style="font-weight:700;color:var(--azul-corporativo);">📐 ${prop.area || 0} m²</span></div>
+              <div style="background:#f8fafc;padding:8px;border-radius:6px;"><strong style="font-size:0.7rem;color:#6b7280;">Transacción</strong><br><span style="font-weight:700;color:var(--azul-corporativo);">${prop.transaccion || 'N/A'}</span></div>
+              ${prop.precio_venta ? `<div style="background:#f8fafc;padding:8px;border-radius:6px;"><strong style="font-size:0.7rem;color:#6b7280;">Precio Venta</strong><br><span style="font-weight:700;">USD ${prop.precio_venta}</span></div>` : ''}
+              ${prop.precio_alquiler ? `<div style="background:#f8fafc;padding:8px;border-radius:6px;"><strong style="font-size:0.7rem;color:#6b7280;">Precio Alquiler</strong><br><span style="font-weight:700;">USD ${prop.precio_alquiler}/mes</span></div>` : ''}
+              ${prop.distrito ? `<div style="background:#f8fafc;padding:8px;border-radius:6px;"><strong style="font-size:0.7rem;color:#6b7280;">Distrito</strong><br><span style="font-weight:600;">${prop.distrito}</span></div>` : ''}
+              ${prop.piso ? `<div style="background:#f8fafc;padding:8px;border-radius:6px;"><strong style="font-size:0.7rem;color:#6b7280;">Piso</strong><br><span style="font-weight:600;">${prop.piso}</span></div>` : ''}
+              ${prop.antiguedad ? `<div style="background:#f8fafc;padding:8px;border-radius:6px;"><strong style="font-size:0.7rem;color:#6b7280;">Antigüedad</strong><br><span style="font-weight:600;">${prop.antiguedad} años</span></div>` : ''}
+              ${prop.habitaciones ? `<div style="background:#f8fafc;padding:8px;border-radius:6px;"><strong style="font-size:0.7rem;color:#6b7280;">Habitaciones</strong><br><span style="font-weight:600;">🛏️ ${prop.habitaciones}</span></div>` : ''}
+            </div>
+            ${prop.descripcion ? `<p style="margin:10px 0 0;font-size:0.85rem;color:#4a5568;">${prop.descripcion}</p>` : ''}
+          </div>
+        </div>`;
+      modal.addEventListener('click', (ev) => { if (ev.target === modal) modal.remove(); });
+      document.body.appendChild(modal);
+    };
+
+    // Botón "Detalle" en cards individuales
+    this.tab.container.querySelectorAll('.btn-detalle-prop').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDetalle(parseInt(btn.dataset.viewDetail));
+      });
+    });
+
+    // Botón lupa en oficinas de combinación
+    this.tab.container.querySelectorAll('.btn-detalle-oficina').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDetalle(parseInt(btn.dataset.viewDetail));
+      });
+    });
   }
 
   /**
