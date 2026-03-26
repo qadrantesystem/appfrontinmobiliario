@@ -64,8 +64,26 @@ class BusquedasCards {
       'cerrado_perdido': { bg: 'white', border: '#ef4444', color: '#ef4444', text: '❌ Perdido' }
     }[prop.estado_crm] || { bg: 'transparent', border: 'transparent', color: '#6b7280', text: '', noBorder: true };
 
+    // Tooltip con detalles principales
+    const tooltipParts = [
+      prop.titulo || prop.nombre_inmueble || '',
+      prop.edificio_nombre ? `Edificio: ${prop.edificio_nombre}` : '',
+      prop.direccion ? `Dirección: ${prop.direccion}` : '',
+      `Área: ${prop.area || 0} m²`,
+      prop.transaccion ? `Transacción: ${prop.transaccion}` : '',
+      prop.precio_venta ? `Precio Venta: USD ${this.formatNumber(prop.precio_venta)}` : '',
+      prop.precio_alquiler ? `Precio Alquiler: USD ${this.formatNumber(prop.precio_alquiler)}/mes` : '',
+      prop.habitaciones ? `Habitaciones: ${prop.habitaciones}` : '',
+      prop.banos ? `Baños: ${prop.banos}` : '',
+      prop.estacionamientos ? `Estacionamientos: ${prop.estacionamientos}` : '',
+      prop.antiguedad ? `Antigüedad: ${prop.antiguedad} años` : '',
+      prop.implementacion ? `Implementación: ${prop.implementacion}` : '',
+      prop.distrito ? `Distrito: ${prop.distrito}` : '',
+      prop.piso ? `Piso: ${prop.piso}` : '',
+    ].filter(Boolean).join('\n');
+
     return `
-      <div class="property-card" data-property-id="${propId}" data-property-number="${number}">
+      <div class="property-card" data-property-id="${propId}" data-property-number="${number}" title="${tooltipParts.replace(/"/g, '&quot;')}">
         <div class="property-number">${number}</div>
 
         <!-- ✅ Checkbox de Selección -->
@@ -175,7 +193,7 @@ class BusquedasCards {
    */
   renderCombinacion(combo, number) {
     const oficinas = combo.oficinas || [];
-    const primeraImagen = oficinas[0]?.imagen_principal || 'https://placehold.co/800x600/059669/ffffff?text=Combinación';
+    const primeraImagen = oficinas[0]?.imagen_principal || 'https://placehold.co/800x600/0f4761/ffffff?text=Combinación';
 
     // Precio total
     let precio = '';
@@ -191,7 +209,7 @@ class BusquedasCards {
     const oficinasHTML = oficinas.map(of => `
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: white; border-radius: 4px; margin-bottom: 4px;">
         <span style="font-size: 0.8rem; color: #374151;">${of.nombre}</span>
-        <span style="font-size: 0.8rem; color: #059669; font-weight: 600;">${of.area} m²</span>
+        <span style="font-size: 0.8rem; color: var(--azul-corporativo, #0f4761); font-weight: 600;">${of.area} m²</span>
       </div>
     `).join('');
 
@@ -204,62 +222,55 @@ class BusquedasCards {
 
     return `
       <div class="property-card combination-card" data-combination="true" data-combo-id="${comboId}" data-edificio-id="${combo.edificio_id}" data-property-number="${number}"
-           style="border: 2px solid #059669; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);">
+           style="border: 2px solid var(--azul-corporativo, #0f4761); background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
 
-        <div class="property-number" style="background: #059669;">${number}</div>
+        <div class="property-number" style="background: var(--azul-corporativo, #0f4761);">${number}</div>
 
-        <!-- ✅ Checkbox de Selección -->
+        <!-- Checkbox de Selección -->
         <div class="property-checkbox" style="top: 12px; right: 12px;">
           <input type="checkbox"
                  class="property-select-checkbox combination-checkbox"
                  data-combo-id="${comboId}"
                  data-edificio-id="${combo.edificio_id}"
                  id="check-${comboId}">
-          <label for="check-${comboId}" class="checkbox-label" style="border-color: #059669;"></label>
+          <label for="check-${comboId}" class="checkbox-label" style="border-color: var(--azul-corporativo, #0f4761);"></label>
         </div>
 
-        <!-- Header verde con info principal -->
-        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 16px;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;">
+        <!-- Header sobrio -->
+        <div style="background: white; padding: 14px 16px; border-bottom: 2px solid var(--azul-corporativo, #0f4761);">
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+            <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
               🔗 ${combo.cantidad_oficinas} OFICINAS
             </span>
-            <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;">
-              ${combo.transaccion === 'venta' ? '💰 VENTA' : '🔄 ALQUILER'}
+            <span style="background: white; color: var(--azul-corporativo, #0f4761); border: 1.5px solid var(--azul-corporativo, #0f4761); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
+              ${combo.transaccion === 'venta' ? 'VENTA' : 'ALQUILER'}
             </span>
           </div>
-          <h3 style="margin: 0 0 4px 0; font-size: 1.1rem; font-weight: 700;">
+          <h3 style="margin: 0 0 2px 0; font-size: 1rem; font-weight: 700; color: var(--azul-corporativo, #0f4761);">
             🏢 ${edificioNombre}
           </h3>
-          <div style="opacity: 0.9; font-size: 0.85rem;">
+          <div style="font-size: 0.8rem; color: #6b7280;">
             📍 ${combo.distrito} · Piso ${combo.piso}
           </div>
         </div>
 
-        <!-- Imagen -->
-        <div style="height: 140px; overflow: hidden;">
-          <img src="${primeraImagen}" alt="${edificioNombre}"
-               style="width: 100%; height: 100%; object-fit: cover;"
-               onerror="this.src='https://placehold.co/800x400/059669/ffffff?text=Oficinas'">
-        </div>
-
-        <!-- Contenido -->
-        <div style="padding: 16px;">
-          <!-- Área y Precio destacados -->
-          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
-            <div style="flex: 1; background: #ecfdf5; border-radius: 8px; padding: 12px; text-align: center;">
-              <div style="font-size: 0.7rem; color: #059669; font-weight: 600;">ÁREA TOTAL</div>
-              <div style="font-size: 1.3rem; font-weight: 700; color: #047857;">📐 ${combo.area_total} m²</div>
+        <!-- Contenido compacto -->
+        <div style="padding: 12px 16px;">
+          <!-- Área y Precio en fila -->
+          <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <div style="flex: 1; background: white; border: 1.5px solid var(--azul-corporativo, #0f4761); border-radius: 6px; padding: 8px; text-align: center;">
+              <div style="font-size: 0.65rem; color: #6b7280; font-weight: 600;">ÁREA TOTAL</div>
+              <div style="font-size: 1.1rem; font-weight: 700; color: var(--azul-corporativo, #0f4761);">📐 ${combo.area_total} m²</div>
             </div>
-            <div style="flex: 1; background: #f0fdf4; border-radius: 8px; padding: 12px; text-align: center;">
-              <div style="font-size: 0.7rem; color: #059669; font-weight: 600;">PRECIO TOTAL</div>
-              <div style="font-size: 1rem; font-weight: 700; color: #047857;">💵 ${precio}</div>
+            <div style="flex: 1; background: white; border: 1.5px solid var(--azul-corporativo, #0f4761); border-radius: 6px; padding: 8px; text-align: center;">
+              <div style="font-size: 0.65rem; color: #6b7280; font-weight: 600;">PRECIO TOTAL</div>
+              <div style="font-size: 1rem; font-weight: 700; color: var(--azul-corporativo, #0f4761);">💵 ${precio}</div>
             </div>
           </div>
 
           <!-- Oficinas incluidas -->
-          <div style="background: #f0fdf4; border-radius: 8px; padding: 10px;">
-            <div style="font-size: 0.7rem; color: #059669; font-weight: 600; margin-bottom: 6px;">
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px;">
+            <div style="font-size: 0.65rem; color: var(--azul-corporativo, #0f4761); font-weight: 600; margin-bottom: 4px;">
               📋 OFICINAS INCLUIDAS
             </div>
             ${oficinasHTML}
