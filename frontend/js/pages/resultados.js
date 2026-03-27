@@ -1853,13 +1853,9 @@ class ResultadosPage {
       }
     }
 
-    // Mostrar cards SOLO si Filtro Básico está abierto
-    if (basicoAbierto) {
-      if (propertiesList) propertiesList.style.display = 'flex';
-      this.renderResultados();
-    } else {
-      if (propertiesList) propertiesList.style.display = 'none';
-    }
+    // Mostrar cards siempre que haya resultados
+    if (propertiesList) propertiesList.style.display = 'flex';
+    this.renderResultados();
   }
 
   setupHamburgerMenu() {
