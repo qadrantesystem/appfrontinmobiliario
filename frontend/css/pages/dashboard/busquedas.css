@@ -1085,21 +1085,35 @@
   z-index: 2000;
 }
 
-.busquedas-tab .combination-marker {
-  width: 44px;
-  height: 44px;
-  margin-left: -22px;
-  margin-top: -22px;
+.busquedas-tab .custom-number-marker.combination-marker {
+  width: 44px !important;
+  height: 44px !important;
+  margin-left: -22px !important;
+  margin-top: -22px !important;
   z-index: 1500 !important;
 }
 
-.busquedas-tab .combination-marker > div {
+.busquedas-tab .custom-number-marker.combination-marker > div,
+.custom-number-marker.combination-marker > div {
   background: #4CAF50 !important;
   border: 3px solid #2e7d32 !important;
-  width: 44px;
-  height: 44px;
-  font-size: 12px;
-  z-index: 1500;
+  width: 44px !important;
+  height: 44px !important;
+  font-size: 12px !important;
+  z-index: 1500 !important;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 3px 12px rgba(76, 175, 80, 0.5);
+}
+
+.custom-number-marker.combination-marker {
+  width: 44px !important;
+  height: 44px !important;
+  z-index: 1500 !important;
 }
 
 /* ========================================
