@@ -2143,7 +2143,7 @@ class PropertyForm {
         </div>
 
         <!-- Precio Venta -->
-        <div id="precioVentaGroup" style="display: ${this.formData.transaccion === 'venta' ? 'block' : 'none'};">
+        <div id="precioVentaGroup" style="display: ${this.formData.transaccion === 'venta' || this.formData.transaccion === 'ambos' ? 'block' : 'none'};">
           <label class="form-label">Precio de Venta <span style="color: red;">*</span></label>
           <div style="display: flex; gap: var(--spacing-sm);">
             <select id="moneda_venta" class="form-select" style="flex: 0 0 100px;">
@@ -2155,7 +2155,7 @@ class PropertyForm {
         </div>
 
         <!-- Precio Alquiler -->
-        <div id="precioAlquilerGroup" style="display: ${this.formData.transaccion === 'alquiler' ? 'block' : 'none'};">
+        <div id="precioAlquilerGroup" style="display: ${this.formData.transaccion === 'alquiler' || this.formData.transaccion === 'ambos' ? 'block' : 'none'};">
           <label class="form-label">Precio de Alquiler (mensual) <span style="color: red;">*</span></label>
           <div style="display: flex; gap: var(--spacing-sm);">
             <select id="moneda_alquiler" class="form-select" style="flex: 0 0 100px;">
@@ -2486,8 +2486,12 @@ class PropertyForm {
         if (transaccion === 'venta') {
           precioVenta.style.display = 'block';
           precioAlquiler.style.display = 'none';
-        } else {
+        } else if (transaccion === 'alquiler') {
           precioVenta.style.display = 'none';
+          precioAlquiler.style.display = 'block';
+        } else {
+          // ambos
+          precioVenta.style.display = 'block';
           precioAlquiler.style.display = 'block';
         }
       });
@@ -3102,7 +3106,7 @@ class PropertyForm {
       this.formData.transaccion = transaccion;
       this.formData.precio_venta = document.getElementById('precio_venta')?.value || null;
       this.formData.precio_alquiler = document.getElementById('precio_alquiler')?.value || null;
-      this.formData.moneda = document.getElementById(`moneda_${transaccion}`)?.value || 'PEN';
+      this.formData.moneda = document.getElementById('moneda_venta')?.value || document.getElementById('moneda_alquiler')?.value || 'PEN';
       this.formData.titulo = document.getElementById('titulo')?.value || '';
       this.formData.descripcion = document.getElementById('descripcion')?.value || '';
     }
@@ -3461,8 +3465,8 @@ class PropertyForm {
         implementacion: this.formData.implementacion ? parseInt(this.formData.implementacion) : null,
 
         transaccion: this.formData.transaccion,
-        precio_venta: this.formData.transaccion === 'venta' && this.formData.precio_venta ? parseFloat(this.formData.precio_venta) : null,
-        precio_alquiler: this.formData.transaccion === 'alquiler' && this.formData.precio_alquiler ? parseFloat(this.formData.precio_alquiler) : null,
+        precio_venta: this.formData.precio_venta ? parseFloat(this.formData.precio_venta) : null,
+        precio_alquiler: this.formData.precio_alquiler ? parseFloat(this.formData.precio_alquiler) : null,
         moneda: this.formData.moneda,
 
         titulo: this.formData.titulo,
@@ -7211,8 +7215,8 @@ class PropertyForm {
         antiguedad: this.formData.antiguedad ? parseInt(this.formData.antiguedad) : null,
         implementacion: this.formData.implementacion ? parseInt(this.formData.implementacion) : null,
         transaccion: this.formData.transaccion,
-        precio_venta: this.formData.transaccion === 'venta' && this.formData.precio_venta ? parseFloat(this.formData.precio_venta) : null,
-        precio_alquiler: this.formData.transaccion === 'alquiler' && this.formData.precio_alquiler ? parseFloat(this.formData.precio_alquiler) : null,
+        precio_venta: this.formData.precio_venta ? parseFloat(this.formData.precio_venta) : null,
+        precio_alquiler: this.formData.precio_alquiler ? parseFloat(this.formData.precio_alquiler) : null,
         moneda: this.formData.moneda,
         titulo: this.formData.titulo,
         descripcion: this.formData.descripcion || '',
