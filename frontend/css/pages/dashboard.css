@@ -2173,9 +2173,7 @@
     flex-shrink: 0;
     font-size: 0.65rem;
     padding: 2px 5px;
-    max-width: 180px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: none;
   }
 
   .admin-actions-simple {
