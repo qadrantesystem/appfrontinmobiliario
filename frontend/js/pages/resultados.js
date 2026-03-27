@@ -2762,10 +2762,15 @@ class ResultadosPage {
 
     container.innerHTML = html;
     this.setupCardListeners();
-    
-    // ❤️ Configurar favoritos
+
+    // Configurar favoritos
     this.setupFavoriteButtons();
     this.loadFavoritesState();
+
+    // Re-inicializar image viewer para nuevas cards
+    if (window.imageViewer) {
+      window.imageViewer.attachToImages('.search-result-image');
+    }
 
     // Renderizar paginador
     this.renderPaginador(totalPages, startIndex + 1, endIndex, totalPropiedades);
