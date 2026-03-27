@@ -188,6 +188,7 @@ class DashboardRouter {
     if (window.PropiedadesTab) {
       const module = new PropiedadesTab(this.app);
       this.currentModule = module;
+      window.propiedadesTabInstance = module;
       return await module.render();
     }
     return '<p>Módulo Propiedades no disponible</p>';
