@@ -41,22 +41,40 @@ class FavoritosTab {
    * Configurar event listeners después del render
    */
   async afterRender() {
-    // Setup de carousel (usa módulo existente)
+    // Setup de carousel
     if (this.app.carousel) {
       this.app.carousel.setup();
     }
 
-    // ❤️ CRÍTICO: Inicializar handler de favoritos SI aún no está
+    // Inicializar handler de favoritos
     if (window.favoritesHandler && !window.favoritesHandler.initialized) {
       await window.favoritesHandler.init();
     }
-
-    // ✅ NUEVO: Refrescar botones con el estado correcto
     if (window.favoritesHandler && window.favoritesHandler.initialized) {
       window.favoritesHandler.refreshAllButtons();
     }
 
-    // 🔄 CRÍTICO: Listener para auto-refresh cuando se quite un favorito
+    // Image viewer (click para previsualizar)
+    if (window.imageViewer) {
+      window.imageViewer.attachToImages('.search-result-image');
+    }
+
+    // Botón detalle → usa showPropertyDetailPopup
+    document.querySelectorAll('.btn-detalle-fav').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const propId = parseInt(btn.dataset.viewDetail);
+        if (window.propiedadesTabInstance?.showPropertyDetailPopup) {
+          await window.propiedadesTabInstance.showPropertyDetailPopup(propId);
+        } else if (window.PropiedadesTab) {
+          const temp = new PropiedadesTab(this.app);
+          window.propiedadesTabInstance = temp;
+          await temp.showPropertyDetailPopup(propId);
+        }
+      });
+    });
+
+    // Auto-refresh cuando se quite un favorito
     this.setupAutoRefreshListener();
   }
 
@@ -148,11 +166,18 @@ class FavoritosTab {
    * Renderizar card individual de propiedad
    */
   renderPropertyCard(prop, index) {
-    // Preparar imágenes para carousel
-    const imagenPrincipal = prop.imagen_principal || 'https://via.placeholder.com/400x300?text=Sin+Imagen';
-    const imagenes = prop.imagenes_galeria && prop.imagenes_galeria.length > 0 ?
-      [imagenPrincipal, ...prop.imagenes_galeria] :
-      [imagenPrincipal];
+    // Preparar imágenes para carousel (misma lógica que propiedades.js)
+    const baseUrl = 'https://ik.imagekit.io/quadrante/';
+    const toUrl = (img) => (img.startsWith('http://') || img.startsWith('https://')) ? img : baseUrl + img;
+    const imagenes = [];
+    if (prop.imagen_principal) imagenes.push(toUrl(prop.imagen_principal));
+    if (Array.isArray(prop.imagenes) && prop.imagenes.length > 0) {
+      prop.imagenes.forEach(img => {
+        const url = toUrl(img);
+        if (!imagenes.includes(url)) imagenes.push(url);
+      });
+    }
+    if (imagenes.length === 0) imagenes.push('https://placehold.co/800x600/e5e7eb/6b7280?text=Sin+Imagen');
 
     // Formatear precio
     const precio = prop.transaccion === 'alquiler' && prop.precio_alquiler ?
@@ -185,29 +210,36 @@ class FavoritosTab {
           </svg>
         </button>
 
-        <!-- 🖼️ Carousel de Imágenes -->
+        <!-- Carousel de Imágenes -->
         <div class="property-image-carousel">
           <div class="carousel-images" data-current="0">
             ${imagenes.map((img, i) => `
               <img src="${img}" alt="${prop.titulo}"
-                   class="carousel-image ${i === 0 ? 'active' : ''}"
+                   class="carousel-image search-result-image ${i === 0 ? 'active' : ''}"
                    data-index="${i}"
-                   onerror="this.src='https://via.placeholder.com/400x300?text=Sin+Imagen'">
+                   onerror="this.src='https://placehold.co/800x600/e5e7eb/6b7280?text=Sin+Imagen'">
             `).join('')}
           </div>
           ${imagenes.length > 1 ? `
-            <button class="carousel-prev" data-property-id="${prop.registro_cab_id}">‹</button>
-            <button class="carousel-next" data-property-id="${prop.registro_cab_id}">›</button>
+            <button class="carousel-prev" data-property-id="${prop.registro_cab_id}">&#8249;</button>
+            <button class="carousel-next" data-property-id="${prop.registro_cab_id}">&#8250;</button>
             <div class="carousel-indicators">
               ${imagenes.map((_, i) => `
                 <span class="indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
               `).join('')}
             </div>
+            <div class="photo-counter"><span class="photo-counter-current">1</span>/${imagenes.length}</div>
           ` : ''}
         </div>
 
         <div class="property-info">
           <h3 class="property-title">${prop.titulo}</h3>
+          ${prop.edificio_nombre ? `
+            <div style="color: var(--azul-corporativo); font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+              <span>🏢 ${prop.edificio_nombre}</span>
+              ${prop.piso ? `<span style="background: #f1f5f9; padding: 1px 6px; border-radius: 3px; font-size: 0.7rem;">Piso ${prop.piso}</span>` : ''}
+            </div>
+          ` : ''}
           <p class="property-location">📍 ${prop.direccion}</p>
           <div class="property-price">${precio}</div>
           <div class="property-features">
@@ -248,7 +280,15 @@ class FavoritosTab {
             </div>
           ` : ''}
 
-          <p class="property-description">${(prop.descripcion || '').substring(0, 120)}...</p>
+          ${prop.descripcion ? `<p class="property-description">${prop.descripcion.substring(0, 120)}${prop.descripcion.length > 120 ? '...' : ''}</p>` : ''}
+          <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+            <button class="btn-detalle-fav" data-view-detail="${prop.registro_cab_id}" onclick="event.stopPropagation();"
+                    style="background: var(--azul-corporativo, #0f4761); color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;"
+                    onmouseover="this.style.background='var(--dorado, #ff9700)'"
+                    onmouseout="this.style.background='var(--azul-corporativo, #0f4761)'">
+              🔍 Detalle
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -289,44 +329,51 @@ class FavoritosTab {
    * Usa event delegation para detectar clicks en favoritos
    */
   setupAutoRefreshListener() {
-    // Event delegation para detectar clicks en botones de favorito
-    document.addEventListener('click', async (e) => {
+    const container = document.getElementById('tabContent');
+    if (!container) return;
+
+    container.addEventListener('click', async (e) => {
       const btn = e.target.closest('[data-favorite-property]');
       if (!btn) return;
 
       // Solo procesar si estamos en el tab favoritos
-      const favoritosContainer = document.querySelector('.favoritos-header');
-      if (!favoritosContainer) return;
+      if (!document.querySelector('.favoritos-header')) return;
 
-      // Esperar a que favorites-handler.js procese el click
       const propId = parseInt(btn.dataset.favoriteProperty);
-      const wasRed = btn.classList.contains('is-favorite');
+      const card = btn.closest('.property-card');
+      if (!card) return;
 
-      // Si era rojo (favorito), esperamos que se quite
-      if (wasRed) {
-        // Esperar 500ms para que el handler procese
-        setTimeout(async () => {
-          // Verificar si realmente se quitó del cache
-          const stillFavorite = window.favoritesHandler?.isFavorite(propId);
+      // Esperar a que el handler procese el API call
+      const checkAndRemove = (attempts = 0) => {
+        if (attempts > 10) return; // Max 2.5 segundos
+        const stillFavorite = window.favoritesHandler?.isFavorite(propId);
+        if (!stillFavorite) {
+          // Animar salida del card
+          card.style.transition = 'all 0.3s ease';
+          card.style.opacity = '0';
+          card.style.transform = 'scale(0.9)';
+          setTimeout(() => card.remove(), 300);
 
-          if (!stillFavorite) {
-            // Animar salida del card
-            const card = btn.closest('.property-card');
-            if (card) {
-              card.style.transition = 'all 0.3s ease';
-              card.style.opacity = '0';
-              card.style.transform = 'scale(0.9)';
+          // Actualizar contador
+          const header = document.querySelector('.favoritos-header h2');
+          const remaining = document.querySelectorAll('.property-card').length - 1;
+          if (header) header.textContent = `❤️ Mis Favoritos (${remaining})`;
 
-              setTimeout(async () => {
-                // Recargar el tab completo
-                const html = await this.render();
-                document.getElementById('tabContent').innerHTML = html;
-                await this.afterRender();
-              }, 300);
-            }
+          // Si no quedan favoritos, recargar tab completo
+          if (remaining <= 0) {
+            setTimeout(async () => {
+              const html = await this.render();
+              document.getElementById('tabContent').innerHTML = html;
+              await this.afterRender();
+            }, 400);
           }
-        }, 500);
-      }
+        } else {
+          setTimeout(() => checkAndRemove(attempts + 1), 250);
+        }
+      };
+
+      // Empezar a verificar después de 250ms
+      setTimeout(() => checkAndRemove(0), 250);
     });
   }
 }
