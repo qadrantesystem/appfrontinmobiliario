@@ -57,11 +57,29 @@ class PropiedadesTab {
         }
       }
 
-      // Ordenar: Última creada primero
+      // Ordenar: Edificios primero, luego oficinas por edificio y piso
       this.allProperties = propiedades.sort((a, b) => {
-        const idA = a.registro_cab_id || 0;
-        const idB = b.registro_cab_id || 0;
-        return idB - idA;
+        // 1. Tipo inmueble: edificios (12,13) primero
+        const tipoA = (a.tipo_inmueble_id >= 12) ? 0 : 1;
+        const tipoB = (b.tipo_inmueble_id >= 12) ? 0 : 1;
+        if (tipoA !== tipoB) return tipoA - tipoB;
+
+        // 2. Agrupar por edificio padre (mismo edificio juntos)
+        const padreA = a.padre_registro_cab_id || a.registro_cab_id;
+        const padreB = b.padre_registro_cab_id || b.registro_cab_id;
+        if (padreA !== padreB) return padreA - padreB;
+
+        // 3. Edificio padre antes que sus oficinas
+        if (!a.padre_registro_cab_id && b.padre_registro_cab_id) return -1;
+        if (a.padre_registro_cab_id && !b.padre_registro_cab_id) return 1;
+
+        // 4. Piso menor a mayor
+        const pisoA = a.piso || 0;
+        const pisoB = b.piso || 0;
+        if (pisoA !== pisoB) return pisoA - pisoB;
+
+        // 5. Nombre alfabético dentro del mismo piso
+        return (a.nombre_inmueble || '').localeCompare(b.nombre_inmueble || '');
       });
 
       this.app.pagination.updateItemsPerPage();
