@@ -394,6 +394,14 @@ class PropiedadesTab {
               ${tipoLabel ? `<span class="prop-tipo-badge">${tipoLabel}</span>` : ''}
             </div>
 
+            <!-- Edificio + Piso (para oficinas) -->
+            ${prop.edificio_nombre ? `
+              <div style="color: var(--azul-corporativo); font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                <span>🏢 ${prop.edificio_nombre}</span>
+                ${prop.piso ? `<span style="background: #f1f5f9; padding: 1px 6px; border-radius: 3px; font-size: 0.7rem;">Piso ${prop.piso}</span>` : ''}
+              </div>
+            ` : ''}
+
             <!-- Fila 2: ubicacion -->
             <div class="property-location">${prop.direccion || 'Ubicacion no disponible'}</div>
 
