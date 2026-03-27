@@ -3069,41 +3069,38 @@ class ResultadosPage {
   }
 
   setupCardListeners() {
-    // Hover sobre cards
-    document.querySelectorAll('.property-card').forEach(card => {
-      card.addEventListener('mouseenter', (e) => {
-        const propId = e.currentTarget.dataset.propertyId;
-        this.activarPropiedad(propId);
-      });
+    const container = document.getElementById('propertiesList');
+    if (!container) return;
 
-      card.addEventListener('mouseleave', () => {
-        this.desactivarTodo();
-      });
-    });
+    // Remover listener anterior si existe
+    if (this._cardDelegateListener) {
+      container.removeEventListener('click', this._cardDelegateListener);
+    }
 
-    // Carruseles
-    document.querySelectorAll('.carousel-prev').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    // Event delegation: un solo listener para todo
+    this._cardDelegateListener = (e) => {
+      // Carrusel prev
+      const prevBtn = e.target.closest('.carousel-prev');
+      if (prevBtn) {
         e.stopPropagation();
-        const propId = e.currentTarget.dataset.propertyId;
-        this.cambiarImagen(propId, -1);
-      });
-    });
+        this.cambiarImagen(prevBtn.dataset.propertyId, -1);
+        return;
+      }
 
-    document.querySelectorAll('.carousel-next').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      // Carrusel next
+      const nextBtn = e.target.closest('.carousel-next');
+      if (nextBtn) {
         e.stopPropagation();
-        const propId = e.currentTarget.dataset.propertyId;
-        this.cambiarImagen(propId, 1);
-      });
-    });
+        this.cambiarImagen(nextBtn.dataset.propertyId, 1);
+        return;
+      }
 
-    // Indicadores del carrusel
-    document.querySelectorAll('.carousel-indicators .indicator').forEach(indicator => {
-      indicator.addEventListener('click', (e) => {
+      // Indicador
+      const indicator = e.target.closest('.indicator');
+      if (indicator) {
         e.stopPropagation();
-        const newIndex = parseInt(e.currentTarget.dataset.index);
-        const card = e.currentTarget.closest('.property-card');
+        const newIndex = parseInt(indicator.dataset.index);
+        const card = indicator.closest('.property-card');
         if (!card) return;
         const carousel = card.querySelector('.carousel-images');
         const imagenes = carousel.querySelectorAll('.carousel-image');
@@ -3113,15 +3110,27 @@ class ResultadosPage {
         carousel.dataset.current = newIndex;
         const counter = card.querySelector('.photo-counter-current');
         if (counter) counter.textContent = newIndex + 1;
-      });
-    });
+        return;
+      }
 
-    // Botón Detalle de propiedad
-    document.querySelectorAll('.btn-detalle-resultado').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      // Botón Detalle
+      const detalleBtn = e.target.closest('.btn-detalle-resultado');
+      if (detalleBtn) {
         e.stopPropagation();
-        const propId = parseInt(btn.dataset.viewDetail);
-        this.showPropertyDetail(propId);
+        this.showPropertyDetail(parseInt(detalleBtn.dataset.viewDetail));
+        return;
+      }
+    };
+
+    container.addEventListener('click', this._cardDelegateListener);
+
+    // Hover sobre cards
+    container.querySelectorAll('.property-card').forEach(card => {
+      card.addEventListener('mouseenter', (e) => {
+        this.activarPropiedad(e.currentTarget.dataset.propertyId);
+      });
+      card.addEventListener('mouseleave', () => {
+        this.desactivarTodo();
       });
     });
 
