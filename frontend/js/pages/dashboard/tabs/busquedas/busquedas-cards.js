@@ -20,20 +20,26 @@ class BusquedasCards {
 
     const propId = prop.registro_cab_id;
 
-    // El API devuelve "imagenes" (array de strings) y/o "imagen_principal" (string)
-    let imagenesAPI = Array.isArray(prop.imagenes) ? prop.imagenes : [];
+    // Preparar imágenes: imagen_principal primero, luego las demás (sin duplicar)
+    const baseUrl = 'https://ik.imagekit.io/quadrante/';
+    const toUrl = (img) => (img.startsWith('http://') || img.startsWith('https://')) ? img : baseUrl + img;
 
-    if (imagenesAPI.length === 0 && prop.imagen_principal) {
-      imagenesAPI = [prop.imagen_principal];
+    const imagenes = [];
+    if (prop.imagen_principal) {
+      imagenes.push(toUrl(prop.imagen_principal));
+    }
+    if (Array.isArray(prop.imagenes) && prop.imagenes.length > 0) {
+      prop.imagenes.forEach(img => {
+        const url = toUrl(img);
+        if (!imagenes.includes(url)) imagenes.push(url);
+      });
+    }
+    if (imagenes.length === 0) {
+      imagenes.push('https://placehold.co/800x600/e5e7eb/6b7280?text=Sin+Imagen');
     }
 
-    // ✅ Consultar estado de favorito dinámicamente
+    // Consultar estado de favorito dinámicamente
     const isFavorite = window.favoritesHandler?.isFavorite(propId);
-
-    // Preparar imágenes (ya vienen como URLs completas, solo agregar transformación)
-    const imagenes = imagenesAPI.length > 0
-      ? imagenesAPI.map(url => `${url}?tr=w-800,h-600,fo-auto`)
-      : ['https://placehold.co/800x600/e5e7eb/6b7280?text=Sin+Imagen'];
 
     // Precio
     let precio = '';
