@@ -3288,9 +3288,9 @@ class ResultadosPage {
           boxZoom: false,          // Deshabilitar zoom con caja
           dragging: true,          // Permitir arrastrar el mapa
           zoomControl: true,       // Mostrar controles de zoom
-          minZoom: 11,             // Zoom mínimo (más alejado para ver más área)
-          maxZoom: 15              // Zoom máximo (no permite ver direcciones exactas)
-        }).setView([-12.0464, -77.0428], 12); // Zoom inicial 12 para ver más propiedades
+          minZoom: 11,
+          maxZoom: 18
+        }).setView([-12.0464, -77.0428], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
@@ -3303,8 +3303,8 @@ class ResultadosPage {
           const currentZoom = this.map.getZoom();
           const tiles = document.querySelector('.leaflet-tile-pane');
 
-          // Solo aplicar blur si NO está logueado Y el zoom es >= 15
-          if (!this.usuarioLogueado && currentZoom >= 15) {
+          // Solo aplicar blur si NO está logueado Y el zoom es >= 17 (muy cerca)
+          if (!this.usuarioLogueado && currentZoom >= 17) {
             if (tiles) {
               tiles.style.filter = 'blur(3px) saturate(50%)';
               tiles.style.transition = 'filter 0.3s ease';
@@ -3397,7 +3397,7 @@ class ResultadosPage {
     if (this.markers.length > 0) {
       const group = L.featureGroup(this.markers);
       this.map.fitBounds(group.getBounds().pad(0.1), {
-        maxZoom: 15,  // Limitar el zoom máximo para que no se aleje demasiado
+        maxZoom: 16,
         animate: true
       });
     }
