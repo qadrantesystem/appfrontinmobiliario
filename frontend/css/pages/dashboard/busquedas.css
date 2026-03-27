@@ -1085,6 +1085,23 @@
   z-index: 2000;
 }
 
+.busquedas-tab .combination-marker {
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  margin-top: -22px;
+  z-index: 1500 !important;
+}
+
+.busquedas-tab .combination-marker > div {
+  background: #4CAF50 !important;
+  border: 3px solid #2e7d32 !important;
+  width: 44px;
+  height: 44px;
+  font-size: 12px;
+  z-index: 1500;
+}
+
 /* ========================================
    CHECKBOX DE SELECCIÓN
    ======================================== */
