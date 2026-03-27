@@ -415,6 +415,16 @@ class ResultadosPage {
     // 5. Mostrar layout de 3 columnas
     this.mostrarLayoutTresColumnas();
 
+    // 5.1 Re-asegurar cards visibles y listeners del carrusel
+    setTimeout(() => {
+      const propertiesList = document.getElementById('propertiesList');
+      if (propertiesList) propertiesList.style.display = 'flex';
+      this.renderResultados();
+      if (window.imageViewer) {
+        window.imageViewer.attachToImages('.search-result-image');
+      }
+    }, 200);
+
     // 6. Configurar drawer móvil
     this.setupMobileFilters();
 
