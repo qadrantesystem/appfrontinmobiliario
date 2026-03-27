@@ -584,6 +584,19 @@ class ResultadosPage {
         this.metadata = {};
       }
 
+      // Normalizar imagenes de cada propiedad
+      this.propiedades.forEach(prop => {
+        if (prop.tipo === 'combinacion') return;
+        let imgs = Array.isArray(prop.imagenes) ? prop.imagenes : [];
+        if (imgs.length === 0 && prop.imagen_principal) {
+          imgs = [prop.imagen_principal];
+        }
+        if (imgs.length === 0) {
+          imgs = ['https://placehold.co/800x600/e5e7eb/6b7280?text=Sin+Imagen'];
+        }
+        prop.imagenes = imgs;
+      });
+
       // Mapear características
       this.caracteristicas = caracteristicasData.map(c => ({
         id: c.caracteristica_id,
@@ -2892,29 +2905,32 @@ class ResultadosPage {
    */
   renderPropertyCard(prop, number) {
     const propId = prop.registro_cab_id || prop.id;
+    const imagenes = prop.imagenes;
     return `
       <div class="property-card" data-property-id="${propId}">
         <div class="property-number">${number}</div>
 
-        <!-- ❤️ Botón de Favorito -->
+        <!-- Botón de Favorito -->
         <button class="favorite-btn-float" data-favorite-property="${propId}" title="Agregar a favoritos" style="position: absolute; top: 10px; right: 10px; background: white; border: 2px solid #333; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; z-index: 30; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
           ♡
         </button>
 
         <div class="property-image-carousel">
           <div class="carousel-images" data-current="0">
-            ${prop.imagenes.map((img, i) => `
-              <img src="${img}" alt="${prop.titulo} - imagen ${i + 1}" class="carousel-image search-result-image ${i === 0 ? 'active' : ''}" data-index="${i}">
+            ${imagenes.map((img, i) => `
+              <img src="${img}" alt="${prop.titulo} - imagen ${i + 1}" class="carousel-image search-result-image ${i === 0 ? 'active' : ''}" data-index="${i}"
+                   onerror="this.src='https://placehold.co/800x600/e5e7eb/6b7280?text=Sin+Imagen'">
             `).join('')}
           </div>
-          ${prop.imagenes.length > 1 ? `
+          ${imagenes.length > 1 ? `
             <button class="carousel-prev" data-property-id="${propId}">‹</button>
             <button class="carousel-next" data-property-id="${propId}">›</button>
             <div class="carousel-indicators">
-              ${prop.imagenes.map((_, i) => `
+              ${imagenes.map((_, i) => `
                 <span class="indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
               `).join('')}
             </div>
+            <div class="photo-counter"><span class="photo-counter-current">1</span>/${imagenes.length}</div>
           ` : ''}
         </div>
         <div class="property-info">
@@ -2931,16 +2947,24 @@ class ResultadosPage {
             ${prop.implementacion ? `<span class="feature">🔧 ${prop.implementacion}</span>` : ''}
           </div>
           ${prop.descripcion ? `<p class="property-description">${prop.descripcion}</p>` : ''}
-          ${!this.usuarioLogueado ? `
-            <div class="contact-locked">
-              🔒 <a href="#" class="login-link" data-property-id="${prop.id}">Inicia sesión para ver contacto</a>
-            </div>
-          ` : `
-            <div class="contact-info">
-              <div class="contact-item">📱 +51 999457538</div>
-              <div class="contact-item">📧 info@match.pe</div>
-            </div>
-          `}
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+            ${!this.usuarioLogueado ? `
+              <div class="contact-locked">
+                🔒 <a href="#" class="login-link" data-property-id="${prop.id}">Inicia sesión para ver contacto</a>
+              </div>
+            ` : `
+              <div class="contact-info" style="margin: 0;">
+                <div class="contact-item">📱 +51 999457538</div>
+                <div class="contact-item">📧 info@match.pe</div>
+              </div>
+            `}
+            <button class="btn-detalle-resultado" data-view-detail="${propId}" onclick="event.stopPropagation();"
+                    style="background: var(--azul-corporativo, #0f4761); color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; flex-shrink: 0; transition: all 0.2s;"
+                    onmouseover="this.style.background='var(--dorado, #ff9700)'"
+                    onmouseout="this.style.background='var(--azul-corporativo, #0f4761)'">
+              🔍 Detalle
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -3060,6 +3084,33 @@ class ResultadosPage {
         e.stopPropagation();
         const propId = e.currentTarget.dataset.propertyId;
         this.cambiarImagen(propId, 1);
+      });
+    });
+
+    // Indicadores del carrusel
+    document.querySelectorAll('.carousel-indicators .indicator').forEach(indicator => {
+      indicator.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const newIndex = parseInt(e.currentTarget.dataset.index);
+        const card = e.currentTarget.closest('.property-card');
+        if (!card) return;
+        const carousel = card.querySelector('.carousel-images');
+        const imagenes = carousel.querySelectorAll('.carousel-image');
+        const indicadores = card.querySelectorAll('.indicator');
+        imagenes.forEach((img, i) => img.classList.toggle('active', i === newIndex));
+        indicadores.forEach((ind, i) => ind.classList.toggle('active', i === newIndex));
+        carousel.dataset.current = newIndex;
+        const counter = card.querySelector('.photo-counter-current');
+        if (counter) counter.textContent = newIndex + 1;
+      });
+    });
+
+    // Botón Detalle de propiedad
+    document.querySelectorAll('.btn-detalle-resultado').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const propId = parseInt(btn.dataset.viewDetail);
+        this.showPropertyDetail(propId);
       });
     });
 
@@ -3368,6 +3419,7 @@ class ResultadosPage {
 
   cambiarImagen(propId, direccion) {
     const card = document.querySelector(`.property-card[data-property-id="${propId}"]`);
+    if (!card) return;
     const carousel = card.querySelector('.carousel-images');
     const imagenes = carousel.querySelectorAll('.carousel-image');
     const indicadores = card.querySelectorAll('.indicator');
@@ -3381,6 +3433,218 @@ class ResultadosPage {
     indicadores.forEach((ind, i) => ind.classList.toggle('active', i === currentIndex));
 
     carousel.dataset.current = currentIndex;
+
+    // Actualizar contador de fotos
+    const counter = card.querySelector('.photo-counter-current');
+    if (counter) counter.textContent = currentIndex + 1;
+  }
+
+  /**
+   * Mostrar detalle de propiedad con características (modal full-screen)
+   */
+  async showPropertyDetail(propId) {
+    try {
+      // Buscar propiedad en resultados locales
+      const propLocal = this.propiedades.find(p => (p.registro_cab_id || p.id) == propId);
+
+      // Fetch detalle completo del API (incluye características)
+      let prop = propLocal;
+      try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}`, { headers });
+        if (response.ok) {
+          const data = await response.json();
+          prop = data.data || data;
+        }
+      } catch (e) {
+        console.warn('No se pudo cargar detalle completo, usando datos locales');
+      }
+
+      if (!prop) {
+        this.showToast('No se encontró la propiedad', 'warning');
+        return;
+      }
+
+      const isMobile = window.innerWidth <= 768;
+
+      // Mapear implementación
+      const implementacionMap = { '1': 'Implementado', '2': 'Semi-implementado', '3': 'Sin implementar' };
+      const implementacionTexto = implementacionMap[prop.implementacion] || prop.implementacion || 'Sin especificar';
+      const antiguedad = prop.antiguedad || 0;
+
+      // Imágenes para carrusel en modal
+      let modalImagenes = Array.isArray(prop.imagenes) ? prop.imagenes : [];
+      if (modalImagenes.length === 0 && prop.imagen_principal) modalImagenes = [prop.imagen_principal];
+
+      const resumenNarrativo = `${prop.tipo_inmueble || 'Propiedad'} ubicada en ${prop.distrito || 'Lima'}, ${prop.direccion || ''}. ${prop.area ? prop.area + ' m²' : ''}${antiguedad > 0 ? ', ' + antiguedad + ' años' : ''}${implementacionTexto !== 'Sin especificar' ? ', ' + implementacionTexto.toLowerCase() : ''}.`;
+
+      // Crear modal
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 0;';
+
+      const modalContent = document.createElement('div');
+      modalContent.style.cssText = 'background: white; width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column;';
+
+      modalContent.innerHTML = `
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, var(--azul-corporativo, #0f4761) 0%, #1a6b8a 100%); color: white; padding: 12px; flex-shrink: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+            <h2 style="margin: 0; color: white; font-size: 1.2rem; font-weight: 700; flex: 1; line-height: 1.2;">${prop.titulo || 'Propiedad'}</h2>
+            <button class="btn-close-detail" style="background: rgba(255,255,255,0.2); border: none; font-size: 20px; cursor: pointer; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 8px;">&times;</button>
+          </div>
+          <p style="margin: 0; color: rgba(255,255,255,0.95); font-size: 0.85rem; line-height: 1.4;">${resumenNarrativo}</p>
+        </div>
+
+        <!-- Contenido scrolleable -->
+        <div style="flex: 1; overflow-y: auto; overflow-x: hidden;">
+
+          ${modalImagenes.length > 0 ? `
+          <!-- Galería de imágenes -->
+          <div style="position: relative; width: 100%; height: ${isMobile ? '200px' : '300px'}; background: #111;">
+            <div class="modal-carousel" style="width: 100%; height: 100%; position: relative;">
+              ${modalImagenes.map((img, i) => `
+                <img src="${img}" alt="Imagen ${i+1}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; opacity: ${i === 0 ? '1' : '0'}; transition: opacity 0.3s;" class="modal-carousel-img ${i === 0 ? 'active' : ''}" data-index="${i}">
+              `).join('')}
+            </div>
+            ${modalImagenes.length > 1 ? `
+              <button class="modal-carousel-prev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.4rem; cursor: pointer; z-index: 5;">&#8249;</button>
+              <button class="modal-carousel-next" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.4rem; cursor: pointer; z-index: 5;">&#8250;</button>
+              <div style="position: absolute; bottom: 8px; right: 10px; background: rgba(0,0,0,0.6); color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;"><span class="modal-counter-current">1</span>/${modalImagenes.length}</div>
+            ` : ''}
+          </div>
+          ` : ''}
+
+          <!-- Info básica -->
+          <div style="padding: 10px 12px; background: #f8f9fa; border-bottom: 1px solid #e2e8f0;">
+            <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 0.85rem;">
+              ${prop.area ? `<span style="font-weight: 600; color: #ff9800;">📐 ${prop.area} m²</span>` : ''}
+              ${antiguedad > 0 ? `<span style="font-weight: 600; color: #6c757d;">⏱️ ${antiguedad} años</span>` : ''}
+              ${implementacionTexto !== 'Sin especificar' ? `<span style="font-weight: 600; color: #17a2b8;">🏗️ ${implementacionTexto}</span>` : ''}
+              ${prop.habitaciones ? `<span style="font-weight: 600;">🛏️ ${prop.habitaciones} hab.</span>` : ''}
+              ${prop.banos ? `<span style="font-weight: 600;">🛁 ${prop.banos} baños</span>` : ''}
+              ${prop.estacionamientos ? `<span style="font-weight: 600;">🚗 ${prop.estacionamientos} estac.</span>` : ''}
+            </div>
+          </div>
+
+          <!-- Precios -->
+          <div style="padding: 10px 12px; display: flex; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid #e2e8f0;">
+            ${prop.precio_venta ? `<div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 12px; border-radius: 6px; flex: 1; min-width: 140px;"><div style="font-size: 0.7rem; color: #6b7280; font-weight: 600;">VENTA</div><div style="font-size: 1.1rem; font-weight: 700; color: #166534;">USD ${Number(prop.precio_venta).toLocaleString()}</div></div>` : ''}
+            ${prop.precio_alquiler ? `<div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px 12px; border-radius: 6px; flex: 1; min-width: 140px;"><div style="font-size: 0.7rem; color: #6b7280; font-weight: 600;">ALQUILER</div><div style="font-size: 1.1rem; font-weight: 700; color: #1e40af;">USD ${Number(prop.precio_alquiler).toLocaleString()}/mes</div></div>` : ''}
+          </div>
+
+          <!-- Descripción -->
+          ${prop.descripcion ? `
+          <div style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
+            <h3 style="margin: 0 0 8px 0; color: var(--azul-corporativo, #0f4761); font-size: 0.9rem; font-weight: 700;">📄 Descripción</h3>
+            <p style="margin: 0; line-height: 1.5; color: #4a5568; font-size: 0.85rem;">${prop.descripcion}</p>
+          </div>
+          ` : ''}
+
+          <!-- Características -->
+          <div id="detail-caracteristicas" style="padding: 12px; background: #f8f9fa;"></div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: white; padding: 8px 12px; flex-shrink: 0; display: flex; justify-content: center; border-top: 1px solid rgba(0,0,0,0.08);">
+          <small style="color: #9ca3af; font-size: 0.7rem;">Presiona <kbd style="background: #f3f4f6; border: 1px solid #ddd; padding: 2px 5px; border-radius: 3px; font-family: monospace;">ESC</kbd> para cerrar</small>
+        </div>
+      `;
+
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+
+      // Renderizar características agrupadas
+      const caracContainer = modalContent.querySelector('#detail-caracteristicas');
+      if (prop.caracteristicas && prop.caracteristicas.length > 0) {
+        const grouped = {};
+        prop.caracteristicas.forEach(car => {
+          const cat = car.categoria || 'Otras';
+          if (!grouped[cat]) grouped[cat] = [];
+          grouped[cat].push(car);
+        });
+
+        const ordenCategorias = [
+          'Generales del Edificio', 'Soporte del Edificio', 'De la Oficina',
+          'Equipamiento de Oficina', 'Condición Comercial', 'Vista de la Oficina',
+          'Información de Áreas', 'Valorización Edificio', 'Soporte Urbano'
+        ];
+        const categoriasOrdenadas = ordenCategorias.filter(c => grouped[c]);
+        const categoriasRestantes = Object.keys(grouped).filter(c => !ordenCategorias.includes(c));
+        const todasCategorias = [...categoriasOrdenadas, ...categoriasRestantes];
+
+        let html = '<h3 style="margin: 0 0 8px 0; color: var(--azul-corporativo, #0f4761); font-size: 0.9rem; font-weight: 700;">✅ Características</h3>';
+        todasCategorias.forEach((cat, index) => {
+          const items = grouped[cat];
+          const isOpen = index === 0;
+          html += `
+            <div style="margin-bottom: 6px; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; background: white;">
+              <button class="cat-toggle" style="width: 100%; padding: 10px 14px; background: #f8f9fa; border: none; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; color: var(--azul-corporativo, #0f4761); text-align: left;">
+                <span style="font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                  📋 ${cat}
+                  <span style="background: var(--azul-corporativo, #0f4761); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">${items.length}</span>
+                </span>
+                <span class="toggle-icon" style="font-size: 1rem;">${isOpen ? '▼' : '▶'}</span>
+              </button>
+              <div class="cat-content" style="display: ${isOpen ? 'block' : 'none'}; padding: 10px 14px; border-top: 1px solid #e2e8f0;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px;">
+                  ${items.map(c => `
+                    <div style="display: flex; align-items: center; gap: 5px; padding: 5px 8px; background: #f0f9ff; border-radius: 5px; font-size: 0.8rem; border: 1px solid #bae6fd;">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      <span style="color: #0369a1; font-weight: 500;">${c.nombre || c}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>`;
+        });
+        caracContainer.innerHTML = html;
+
+        // Toggle acordeones
+        modalContent.querySelectorAll('.cat-toggle').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const content = btn.nextElementSibling;
+            const icon = btn.querySelector('.toggle-icon');
+            const isOpen = content.style.display === 'block';
+            content.style.display = isOpen ? 'none' : 'block';
+            icon.textContent = isOpen ? '▶' : '▼';
+          });
+        });
+      } else {
+        caracContainer.innerHTML = '<p style="color: #9ca3af; font-style: italic; text-align: center; padding: 20px;">No hay características registradas</p>';
+      }
+
+      // Carrusel del modal
+      if (modalImagenes.length > 1) {
+        let modalIdx = 0;
+        const imgs = modalContent.querySelectorAll('.modal-carousel-img');
+        const counterEl = modalContent.querySelector('.modal-counter-current');
+        const updateModalCarousel = (newIdx) => {
+          imgs.forEach((img, i) => { img.style.opacity = i === newIdx ? '1' : '0'; img.classList.toggle('active', i === newIdx); });
+          modalIdx = newIdx;
+          if (counterEl) counterEl.textContent = newIdx + 1;
+        };
+        modalContent.querySelector('.modal-carousel-prev')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          updateModalCarousel((modalIdx - 1 + modalImagenes.length) % modalImagenes.length);
+        });
+        modalContent.querySelector('.modal-carousel-next')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          updateModalCarousel((modalIdx + 1) % modalImagenes.length);
+        });
+      }
+
+      // Cerrar modal
+      const closeModal = () => { modal.remove(); document.removeEventListener('keydown', escHandler); };
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+      modalContent.querySelector('.btn-close-detail')?.addEventListener('click', closeModal);
+      const escHandler = (e) => { if (e.key === 'Escape') closeModal(); };
+      document.addEventListener('keydown', escHandler);
+
+    } catch (error) {
+      console.error('Error mostrando detalle:', error);
+      this.showToast('Error al cargar detalles', 'error');
+    }
   }
 
   showToast(mensaje, tipo = 'info') {
