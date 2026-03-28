@@ -2778,8 +2778,33 @@ class ResultadosPage {
       window.imageViewer.attachToImages('.search-result-image');
     }
 
+    // Registrar vistas de las propiedades mostradas en esta página
+    this.registrarVistas(propiedadesPagina);
+
     // Renderizar paginador
     this.renderPaginador(totalPages, startIndex + 1, endIndex, totalPropiedades);
+  }
+
+  registrarVistas(propiedades) {
+    // Registrar vista de cada propiedad mostrada (sin bloquear UI)
+    const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    propiedades.forEach(prop => {
+      if (prop.tipo === 'combinacion') return;
+      const propId = prop.registro_cab_id || prop.id;
+      if (!propId) return;
+
+      // Evitar duplicar vistas en la misma sesión
+      const key = `vista_${propId}`;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+
+      fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/vista`, {
+        method: 'POST',
+        headers
+      }).catch(() => {}); // Silencioso, no bloquea
+    });
   }
 
   renderPaginador(totalPages, startIndex, endIndex, totalPropiedades) {

@@ -512,11 +512,35 @@ class BusquedasTab {
     // Setup listeners de cards
     this.cardsHandler.setupCardListeners();
 
+    // Registrar vistas
+    this.registrarVistas(pageResults);
+
     // Renderizar paginación
     this.renderPagination();
 
     // Actualizar contador
     this.updateResultsCounter();
+  }
+
+  registrarVistas(propiedades) {
+    const token = authService.getToken();
+    if (!token) return;
+    const headers = { 'Authorization': `Bearer ${token}` };
+
+    propiedades.forEach(prop => {
+      if (prop.tipo === 'combinacion') return;
+      const propId = prop.registro_cab_id || prop.id;
+      if (!propId) return;
+
+      const key = `vista_${propId}`;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+
+      fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/vista`, {
+        method: 'POST',
+        headers
+      }).catch(() => {});
+    });
   }
 
   /**
