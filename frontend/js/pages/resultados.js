@@ -3071,66 +3071,59 @@ class ResultadosPage {
   setupCardListeners() {
     const container = document.getElementById('propertiesList');
     if (!container) return;
+    const self = this;
 
-    // Remover listener anterior si existe
-    if (this._cardDelegateListener) {
-      container.removeEventListener('click', this._cardDelegateListener);
-    }
-
-    // Event delegation: un solo listener para todo
-    this._cardDelegateListener = (e) => {
-      // Carrusel prev
-      const prevBtn = e.target.closest('.carousel-prev');
-      if (prevBtn) {
+    // Carrusel prev - listeners directos en cada botón
+    container.querySelectorAll('.carousel-prev').forEach(btn => {
+      btn.onclick = function(e) {
         e.stopPropagation();
-        this.cambiarImagen(prevBtn.dataset.propertyId, -1);
-        return;
-      }
+        e.preventDefault();
+        self.cambiarImagen(this.dataset.propertyId, -1);
+      };
+    });
 
-      // Carrusel next
-      const nextBtn = e.target.closest('.carousel-next');
-      if (nextBtn) {
+    // Carrusel next
+    container.querySelectorAll('.carousel-next').forEach(btn => {
+      btn.onclick = function(e) {
         e.stopPropagation();
-        this.cambiarImagen(nextBtn.dataset.propertyId, 1);
-        return;
-      }
+        e.preventDefault();
+        self.cambiarImagen(this.dataset.propertyId, 1);
+      };
+    });
 
-      // Indicador
-      const indicator = e.target.closest('.indicator');
-      if (indicator) {
+    // Indicadores
+    container.querySelectorAll('.carousel-indicators .indicator').forEach(indicator => {
+      indicator.onclick = function(e) {
         e.stopPropagation();
-        const newIndex = parseInt(indicator.dataset.index);
-        const card = indicator.closest('.property-card');
+        e.preventDefault();
+        const newIndex = parseInt(this.dataset.index);
+        const card = this.closest('.property-card');
         if (!card) return;
         const carousel = card.querySelector('.carousel-images');
-        const imagenes = carousel.querySelectorAll('.carousel-image');
-        const indicadores = card.querySelectorAll('.indicator');
-        imagenes.forEach((img, i) => img.classList.toggle('active', i === newIndex));
-        indicadores.forEach((ind, i) => ind.classList.toggle('active', i === newIndex));
+        carousel.querySelectorAll('.carousel-image').forEach((img, i) => img.classList.toggle('active', i === newIndex));
+        card.querySelectorAll('.indicator').forEach((ind, i) => ind.classList.toggle('active', i === newIndex));
         carousel.dataset.current = newIndex;
         const counter = card.querySelector('.photo-counter-current');
         if (counter) counter.textContent = newIndex + 1;
-        return;
-      }
+      };
+    });
 
-      // Botón Detalle
-      const detalleBtn = e.target.closest('.btn-detalle-resultado');
-      if (detalleBtn) {
+    // Botón Detalle
+    container.querySelectorAll('.btn-detalle-resultado').forEach(btn => {
+      btn.onclick = function(e) {
         e.stopPropagation();
-        this.showPropertyDetail(parseInt(detalleBtn.dataset.viewDetail));
-        return;
-      }
-    };
-
-    container.addEventListener('click', this._cardDelegateListener);
+        e.preventDefault();
+        self.showPropertyDetail(parseInt(this.dataset.viewDetail));
+      };
+    });
 
     // Hover sobre cards
     container.querySelectorAll('.property-card').forEach(card => {
       card.addEventListener('mouseenter', (e) => {
-        this.activarPropiedad(e.currentTarget.dataset.propertyId);
+        self.activarPropiedad(e.currentTarget.dataset.propertyId);
       });
       card.addEventListener('mouseleave', () => {
-        this.desactivarTodo();
+        self.desactivarTodo();
       });
     });
 
