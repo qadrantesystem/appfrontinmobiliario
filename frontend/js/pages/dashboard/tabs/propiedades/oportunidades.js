@@ -1,6 +1,7 @@
 /**
- * Oportunidades - Sub-tab de leads/contactos entrantes
+ * Oportunidades - Bandeja de leads/contactos entrantes
  * Solo visible para Corredor (perfil 3) y Admin (perfil 4)
+ * Simple: Nuevo (sin leer) o Atendido (leido)
  */
 class OportunidadesTab {
   constructor(app) {
@@ -39,22 +40,22 @@ class OportunidadesTab {
   }
 
   renderHTML() {
+    const totalNuevos = this.totales.nuevo || 0;
+    const totalAtendidos = (this.totales.atendido || 0) + (this.totales.en_negociacion || 0) + (this.totales.cerrado || 0);
     const total = this.totales.total || 0;
 
     return `
       <div class="oportunidades-container">
-        <!-- Contadores por estado -->
+        <!-- Filtros simples -->
         <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
           ${this.renderBadge('todos', 'Todos', total, null)}
-          ${this.renderBadge('nuevo', 'Nuevos', this.totales.nuevo || 0, '#ef4444')}
-          ${this.renderBadge('atendido', 'Atendidos', this.totales.atendido || 0, '#f59e0b')}
-          ${this.renderBadge('en_negociacion', 'Negociando', this.totales.en_negociacion || 0, '#3b82f6')}
-          ${this.renderBadge('cerrado', 'Cerrados', this.totales.cerrado || 0, '#10b981')}
+          ${this.renderBadge('nuevo', 'Sin leer', totalNuevos, '#ef4444')}
+          ${this.renderBadge('atendido', 'Leidos', totalAtendidos, '#10b981')}
         </div>
 
-        <!-- Lista de leads -->
+        <!-- Lista -->
         ${total === 0 ? this.renderEmpty() : ''}
-        <div class="oportunidades-list" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="oportunidades-list" style="display: flex; flex-direction: column; gap: 10px;">
           ${this.contactos.map(c => this.renderCard(c)).join('')}
         </div>
       </div>
@@ -71,7 +72,7 @@ class OportunidadesTab {
               style="padding: 6px 14px; border-radius: 20px; border: none; cursor: pointer;
                      background: ${bgColor}; color: ${textColor}; font-size: 0.75rem;
                      font-weight: 600; display: flex; align-items: center; gap: 4px;
-                     transition: all 0.2s; min-width: fit-content;">
+                     transition: all 0.2s;">
         ${label} <span style="background: ${isActive ? 'rgba(255,255,255,0.3)' : '#e2e8f0'};
                               padding: 1px 6px; border-radius: 10px; font-size: 0.7rem;">${count}</span>
       </button>
@@ -79,87 +80,70 @@ class OportunidadesTab {
   }
 
   renderCard(c) {
-    const estadoConfig = {
-      'nuevo': { color: '#ef4444', bg: '#fef2f2', icon: '🔴', label: 'Nuevo' },
-      'atendido': { color: '#f59e0b', bg: '#fffbeb', icon: '🟡', label: 'Atendido' },
-      'en_negociacion': { color: '#3b82f6', bg: '#eff6ff', icon: '🔵', label: 'Negociando' },
-      'cerrado': { color: '#10b981', bg: '#ecfdf5', icon: '🟢', label: 'Cerrado' }
-    }[c.estado] || { color: '#6b7280', bg: '#f9fafb', icon: '⚪', label: c.estado };
-
+    const esNuevo = c.estado === 'nuevo';
     const tiempoAtras = this.tiempoRelativo(c.created_at);
 
     return `
       <div class="oportunidad-card" data-contacto-id="${c.contacto_id}"
-           style="background: white; border: 1px solid #e2e8f0; border-radius: 10px;
-                  border-left: 4px solid ${estadoConfig.color}; padding: 12px;
-                  transition: all 0.2s; cursor: pointer;"
-           onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'; this.style.transform='translateY(-1px)'"
-           onmouseout="this.style.boxShadow='none'; this.style.transform='none'">
+           style="background: ${esNuevo ? '#fffbeb' : 'white'}; border: 1px solid ${esNuevo ? '#fbbf24' : '#e2e8f0'};
+                  border-radius: 10px; border-left: 4px solid ${esNuevo ? '#ef4444' : '#10b981'};
+                  padding: 12px; transition: all 0.2s;">
 
-        <!-- Header: nombre + estado + tiempo -->
+        <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 0;">
-            <div style="font-weight: 700; color: var(--azul-corporativo); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              ${c.nombre}
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 1rem;">${esNuevo ? '🔴' : '✅'}</span>
+              <span style="font-weight: 700; color: var(--azul-corporativo); font-size: 0.9rem;">${c.nombre}</span>
             </div>
-            <div style="font-size: 0.75rem; color: #9ca3af;">${tiempoAtras}</div>
+            <div style="font-size: 0.72rem; color: #9ca3af; margin-top: 2px;">${tiempoAtras}</div>
           </div>
-          <span style="background: ${estadoConfig.bg}; color: ${estadoConfig.color}; padding: 2px 8px;
-                       border-radius: 4px; font-size: 0.65rem; font-weight: 600; flex-shrink: 0;">
-            ${estadoConfig.icon} ${estadoConfig.label}
-          </span>
+          ${esNuevo ? `
+            <button class="btn-atender-lead" data-contacto-id="${c.contacto_id}"
+                    style="padding: 5px 12px; background: var(--azul-corporativo); color: white;
+                           border: none; border-radius: 6px; font-size: 0.72rem; font-weight: 600;
+                           cursor: pointer; flex-shrink: 0;">
+              Marcar leido
+            </button>
+          ` : `
+            <span style="padding: 3px 8px; background: #ecfdf5; color: #10b981; border-radius: 4px;
+                         font-size: 0.65rem; font-weight: 600; flex-shrink: 0;">Leido</span>
+          `}
         </div>
 
         <!-- Propiedad -->
         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; padding: 6px 8px;
                     background: #f8fafc; border-radius: 6px; font-size: 0.78rem;">
-          ${c.propiedad_imagen ? `<img src="${c.propiedad_imagen}" style="width: 36px; height: 36px; border-radius: 4px; object-fit: cover; flex-shrink: 0;">` : ''}
+          ${c.propiedad_imagen ? `<img src="${c.propiedad_imagen}" style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover; flex-shrink: 0;">` : ''}
           <div style="min-width: 0; flex: 1;">
             <div style="font-weight: 600; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.propiedad_titulo}</div>
-            ${c.propiedad_direccion ? `<div style="font-size: 0.7rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.propiedad_direccion}</div>` : ''}
           </div>
         </div>
 
         <!-- Mensaje -->
         ${c.mensaje ? `
           <div style="font-size: 0.78rem; color: #4b5563; line-height: 1.4; margin-bottom: 8px;
-                      padding: 6px 8px; background: #fefce8; border-radius: 6px; border-left: 3px solid #fbbf24;">
-            "${c.mensaje.substring(0, 120)}${c.mensaje.length > 120 ? '...' : ''}"
+                      padding: 6px 8px; background: white; border-radius: 6px; border: 1px solid #e2e8f0;">
+            "${c.mensaje.substring(0, 150)}${c.mensaje.length > 150 ? '...' : ''}"
           </div>
         ` : ''}
 
-        <!-- Acciones -->
+        <!-- Contacto -->
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
           ${c.telefono ? `
             <a href="tel:${c.telefono}" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
-                  background: #ecfdf5; color: #059669; border-radius: 4px; font-size: 0.7rem; font-weight: 600;
+                  background: #ecfdf5; color: #059669; border-radius: 4px; font-size: 0.72rem; font-weight: 600;
                   text-decoration: none; border: 1px solid #a7f3d0;">
               📞 ${c.telefono}
             </a>
           ` : ''}
           ${c.email ? `
             <a href="mailto:${c.email}" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
-                  background: #eff6ff; color: #2563eb; border-radius: 4px; font-size: 0.7rem; font-weight: 600;
-                  text-decoration: none; border: 1px solid #bfdbfe;">
-              📧 Email
+                  background: #eff6ff; color: #2563eb; border-radius: 4px; font-size: 0.72rem; font-weight: 600;
+                  text-decoration: none; border: 1px solid #bfdbfe; max-width: 100%; overflow: hidden; text-overflow: ellipsis;">
+              📧 ${c.email}
             </a>
           ` : ''}
-          ${c.estado === 'nuevo' ? `
-            <button class="btn-atender-lead" data-contacto-id="${c.contacto_id}"
-                    style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
-                           background: var(--azul-corporativo); color: white; border: none; border-radius: 4px;
-                           font-size: 0.7rem; font-weight: 600; cursor: pointer;">
-              ✅ Marcar Atendido
-            </button>
-          ` : ''}
-          <select class="select-estado-lead" data-contacto-id="${c.contacto_id}"
-                  style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px;
-                         font-size: 0.7rem; color: #374151; cursor: pointer; background: white;">
-            <option value="nuevo" ${c.estado === 'nuevo' ? 'selected' : ''}>Nuevo</option>
-            <option value="atendido" ${c.estado === 'atendido' ? 'selected' : ''}>Atendido</option>
-            <option value="en_negociacion" ${c.estado === 'en_negociacion' ? 'selected' : ''}>Negociando</option>
-            <option value="cerrado" ${c.estado === 'cerrado' ? 'selected' : ''}>Cerrado</option>
-          </select>
         </div>
       </div>
     `;
@@ -176,7 +160,7 @@ class OportunidadesTab {
   }
 
   setupListeners() {
-    // Filtros por estado
+    // Filtros
     document.querySelectorAll('.oportunidad-filtro').forEach(btn => {
       btn.addEventListener('click', async () => {
         const estado = btn.dataset.filtroEstado;
@@ -186,37 +170,38 @@ class OportunidadesTab {
       });
     });
 
-    // Boton atender
+    // Boton marcar leido
     document.querySelectorAll('.btn-atender-lead').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        await this.cambiarEstado(parseInt(btn.dataset.contactoId), 'atendido');
-      });
-    });
-
-    // Select cambiar estado
-    document.querySelectorAll('.select-estado-lead').forEach(select => {
-      select.addEventListener('change', async (e) => {
-        e.stopPropagation();
-        await this.cambiarEstado(parseInt(select.dataset.contactoId), select.value);
+        await this.marcarLeido(parseInt(btn.dataset.contactoId));
       });
     });
   }
 
-  async cambiarEstado(contactoId, estado) {
+  async marcarLeido(contactoId) {
     try {
       const token = authService.getToken();
-      const response = await fetch(`${API_CONFIG.BASE_URL}/contactos/${contactoId}/estado?estado=${estado}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/contactos/${contactoId}/estado?estado=atendido`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (response.ok) {
-        showNotification(`Lead actualizado a "${estado}"`, 'success');
         await this.refresh();
+        // Actualizar badge
+        const badge = document.getElementById('badgeOportunidades');
+        if (badge) {
+          const nuevos = Math.max(0, (this.totales.nuevo || 0));
+          if (nuevos > 0) {
+            badge.textContent = nuevos;
+          } else {
+            badge.style.display = 'none';
+          }
+        }
       }
     } catch (error) {
-      console.error('Error cambiando estado:', error);
+      console.error('Error marcando leido:', error);
     }
   }
 
