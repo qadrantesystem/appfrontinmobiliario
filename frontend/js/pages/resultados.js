@@ -2927,16 +2927,16 @@ class ResultadosPage {
         </button>
 
         <div class="property-image-carousel">
-          <div class="carousel-images" data-current="0">
+          <div class="carousel-images" data-carousel="carousel-${propId}" data-current="0">
             ${imagenes.map((img, i) => `
               <img src="${img}" alt="${prop.titulo} - imagen ${i + 1}" class="carousel-image search-result-image ${i === 0 ? 'active' : ''}" data-index="${i}"
                    onerror="this.src='https://placehold.co/800x600/e5e7eb/6b7280?text=Sin+Imagen'">
             `).join('')}
           </div>
           ${imagenes.length > 1 ? `
-            <button class="carousel-prev" data-property-id="${propId}">‹</button>
-            <button class="carousel-next" data-property-id="${propId}">›</button>
-            <div class="carousel-indicators">
+            <button class="carousel-prev" data-carousel="carousel-${propId}">&#8249;</button>
+            <button class="carousel-next" data-carousel="carousel-${propId}">&#8250;</button>
+            <div class="carousel-indicators" data-carousel="carousel-${propId}">
               ${imagenes.map((_, i) => `
                 <span class="indicator ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
               `).join('')}
@@ -3071,59 +3071,42 @@ class ResultadosPage {
   setupCardListeners() {
     const container = document.getElementById('propertiesList');
     if (!container) return;
-    const self = this;
 
-    // Carrusel prev - listeners directos en cada botón
-    container.querySelectorAll('.carousel-prev').forEach(btn => {
-      btn.onclick = function(e) {
+    // Carrusel prev/next (misma lógica que busquedas-cards.js)
+    container.querySelectorAll('.carousel-prev, .carousel-next').forEach(btn => {
+      btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        e.preventDefault();
-        self.cambiarImagen(this.dataset.propertyId, -1);
-      };
+        const carouselId = btn.dataset.carousel;
+        const direction = btn.classList.contains('carousel-prev') ? -1 : 1;
+        this.navigateCarousel(carouselId, direction);
+      });
     });
 
-    // Carrusel next
-    container.querySelectorAll('.carousel-next').forEach(btn => {
-      btn.onclick = function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        self.cambiarImagen(this.dataset.propertyId, 1);
-      };
-    });
-
-    // Indicadores
+    // Indicadores (misma lógica que busquedas-cards.js)
     container.querySelectorAll('.carousel-indicators .indicator').forEach(indicator => {
-      indicator.onclick = function(e) {
+      indicator.addEventListener('click', (e) => {
         e.stopPropagation();
-        e.preventDefault();
-        const newIndex = parseInt(this.dataset.index);
-        const card = this.closest('.property-card');
-        if (!card) return;
-        const carousel = card.querySelector('.carousel-images');
-        carousel.querySelectorAll('.carousel-image').forEach((img, i) => img.classList.toggle('active', i === newIndex));
-        card.querySelectorAll('.indicator').forEach((ind, i) => ind.classList.toggle('active', i === newIndex));
-        carousel.dataset.current = newIndex;
-        const counter = card.querySelector('.photo-counter-current');
-        if (counter) counter.textContent = newIndex + 1;
-      };
+        const index = parseInt(indicator.dataset.index);
+        const carouselId = indicator.closest('.carousel-indicators').dataset.carousel;
+        this.goToSlide(carouselId, index);
+      });
     });
 
     // Botón Detalle
     container.querySelectorAll('.btn-detalle-resultado').forEach(btn => {
-      btn.onclick = function(e) {
+      btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        e.preventDefault();
-        self.showPropertyDetail(parseInt(this.dataset.viewDetail));
-      };
+        this.showPropertyDetail(parseInt(btn.dataset.viewDetail));
+      });
     });
 
     // Hover sobre cards
     container.querySelectorAll('.property-card').forEach(card => {
       card.addEventListener('mouseenter', (e) => {
-        self.activarPropiedad(e.currentTarget.dataset.propertyId);
+        this.activarPropiedad(e.currentTarget.dataset.propertyId);
       });
       card.addEventListener('mouseleave', () => {
-        self.desactivarTodo();
+        this.desactivarTodo();
       });
     });
 
@@ -3430,26 +3413,36 @@ class ResultadosPage {
     }
   }
 
-  cambiarImagen(propId, direccion) {
-    const card = document.querySelector(`.property-card[data-property-id="${propId}"]`);
-    if (!card) return;
-    const carousel = card.querySelector('.carousel-images');
-    const imagenes = carousel.querySelectorAll('.carousel-image');
-    const indicadores = card.querySelectorAll('.indicator');
+  navigateCarousel(carouselId, direction) {
+    const carousel = document.querySelector(`.carousel-images[data-carousel="${carouselId}"]`);
+    if (!carousel) return;
 
-    let currentIndex = parseInt(carousel.dataset.current);
-    const totalImagenes = imagenes.length;
+    const images = carousel.querySelectorAll('.carousel-image');
+    const currentIndex = Array.from(images).findIndex(img => img.classList.contains('active'));
+    let newIndex = currentIndex + direction;
 
-    currentIndex = (currentIndex + direccion + totalImagenes) % totalImagenes;
+    if (newIndex < 0) newIndex = images.length - 1;
+    if (newIndex >= images.length) newIndex = 0;
 
-    imagenes.forEach((img, i) => img.classList.toggle('active', i === currentIndex));
-    indicadores.forEach((ind, i) => ind.classList.toggle('active', i === currentIndex));
+    this.goToSlide(carouselId, newIndex);
+  }
 
-    carousel.dataset.current = currentIndex;
+  goToSlide(carouselId, index) {
+    const carousel = document.querySelector(`.carousel-images[data-carousel="${carouselId}"]`);
+    if (!carousel) return;
 
-    // Actualizar contador de fotos
-    const counter = card.querySelector('.photo-counter-current');
-    if (counter) counter.textContent = currentIndex + 1;
+    const images = carousel.querySelectorAll('.carousel-image');
+    const indicators = document.querySelectorAll(`.carousel-indicators[data-carousel="${carouselId}"] .indicator`);
+
+    images.forEach((img, i) => img.classList.toggle('active', i === index));
+    indicators.forEach((ind, i) => ind.classList.toggle('active', i === index));
+    carousel.dataset.current = index;
+
+    const card = carousel.closest('.property-card');
+    if (card) {
+      const counter = card.querySelector('.photo-counter-current');
+      if (counter) counter.textContent = index + 1;
+    }
   }
 
   /**
