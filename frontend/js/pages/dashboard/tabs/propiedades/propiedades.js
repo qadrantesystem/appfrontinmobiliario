@@ -584,6 +584,12 @@ class PropiedadesTab {
               <button class="btn-admin btn-seguimiento" data-tracking-property="${prop.registro_cab_id}">
                 <i class="fas fa-chart-line"></i> Seguimiento
               </button>
+              ${prop.tipo_inmueble_id === 12 || prop.tipo_inmueble_id === 13 ? `
+                <button class="btn-admin btn-3d-view" data-3d-property="${prop.registro_cab_id}"
+                        style="background: linear-gradient(135deg, #0a1628, #0f4761); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3);">
+                  <i class="fas fa-cube"></i> 3D
+                </button>
+              ` : ''}
             </div>
           </div>
         </div>
@@ -739,6 +745,15 @@ class PropiedadesTab {
       });
     });
 
+    // Boton 3D (solo edificios)
+    document.querySelectorAll('.btn-3d-view').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const propId = btn.dataset['3dProperty'];
+        await this.show3DBuilding(propId);
+      });
+    });
+
     // Boton Seguimiento (timeline modal)
     document.querySelectorAll('.btn-seguimiento').forEach(btn => {
       btn.addEventListener('click', async (e) => {
@@ -747,6 +762,33 @@ class PropiedadesTab {
         await this.showTrackingModal(propId);
       });
     });
+  }
+
+  async show3DBuilding(propId) {
+    try {
+      const token = authService.getToken();
+
+      // Cargar datos del edificio
+      const propResponse = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const propData = await propResponse.json();
+      const edificio = propData.data || propData;
+
+      // Cargar oficinas
+      const ofiResponse = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/oficinas`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const ofiData = await ofiResponse.json();
+      const oficinas = ofiData.data || ofiData || [];
+
+      if (window.building3D) {
+        window.building3D.open(edificio, oficinas);
+      }
+    } catch (error) {
+      console.error('Error cargando edificio 3D:', error);
+      showNotification('Error al cargar vista 3D', 'error');
+    }
   }
 
   async showTrackingModal(propId) {

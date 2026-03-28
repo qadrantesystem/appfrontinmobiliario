@@ -1,0 +1,366 @@
+/* ========================================
+   BUILDING 3D - Estilo Tony Stark
+   ======================================== */
+
+.building-3d-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse at center, #0a1628 0%, #050d1a 50%, #020812 100%);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.building-3d-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Header */
+.building-3d-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(0, 180, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 180, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.building-3d-title {
+  margin: 0;
+  color: #00d4ff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.building-3d-subtitle {
+  margin: 2px 0 0;
+  color: rgba(0, 212, 255, 0.5);
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+}
+
+.building-3d-close {
+  background: rgba(255, 50, 50, 0.2);
+  border: 1px solid rgba(255, 50, 50, 0.4);
+  color: #ff5555;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.building-3d-close:hover {
+  background: rgba(255, 50, 50, 0.5);
+  transform: rotate(90deg);
+}
+
+/* Leyenda */
+.building-3d-legend {
+  display: flex;
+  gap: 12px;
+  padding: 8px 20px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* Escena 3D */
+.building-3d-scene {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  cursor: grab;
+  overflow: hidden;
+}
+
+.building-3d-scene:active { cursor: grabbing; }
+
+.building-3d-perspective {
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+}
+
+/* Base/suelo */
+.building-3d-base {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotateX(90deg);
+  background: rgba(0, 180, 255, 0.03);
+  border: 1px solid rgba(0, 180, 255, 0.1);
+}
+
+.base-grid {
+  width: 100%; height: 100%;
+  background-image:
+    linear-gradient(rgba(0, 180, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 180, 255, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Pisos */
+.building-3d-floor {
+  transform-style: preserve-3d;
+  position: relative;
+  margin-bottom: 4px;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), margin 0.5s ease;
+}
+
+.building-3d-perspective.exploded .building-3d-floor {
+  margin-bottom: 30px;
+}
+
+.floor-label {
+  position: absolute;
+  left: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(0, 212, 255, 0.6);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+.floor-offices {
+  display: flex;
+  gap: 4px;
+  transform-style: preserve-3d;
+}
+
+/* Oficina 3D */
+.office-3d {
+  width: 80px;
+  height: 50px;
+  position: relative;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  transition: transform 0.3s, filter 0.3s;
+}
+
+.office-3d:hover, .office-3d.hovered {
+  transform: translateY(-8px) scale(1.05);
+  filter: brightness(1.4);
+  z-index: 100;
+}
+
+/* Cara frontal */
+.office-front {
+  position: absolute;
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg, var(--office-color) 0%, color-mix(in srgb, var(--office-color) 60%, black) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  backface-visibility: hidden;
+}
+
+.office-name {
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+}
+
+.office-area {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.55rem;
+  font-weight: 500;
+}
+
+/* Cara superior */
+.office-top {
+  position: absolute;
+  width: 100%; height: 20px;
+  background: linear-gradient(135deg, var(--office-color) 0%, color-mix(in srgb, var(--office-color) 80%, white) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transform: rotateX(90deg) translateZ(0px);
+  transform-origin: bottom;
+  opacity: 0.8;
+}
+
+/* Cara lateral */
+.office-side {
+  position: absolute;
+  width: 20px; height: 100%;
+  right: -20px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--office-color) 40%, black) 0%, color-mix(in srgb, var(--office-color) 20%, black) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transform: rotateY(90deg);
+  transform-origin: left;
+}
+
+/* Glow */
+.office-glow {
+  position: absolute;
+  width: 100%; height: 100%;
+  box-shadow: 0 0 15px var(--office-color), inset 0 0 10px rgba(255, 255, 255, 0.05);
+  opacity: 0.4;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.office-3d:hover .office-glow {
+  opacity: 1;
+  box-shadow: 0 0 30px var(--office-color), 0 0 60px var(--office-color), inset 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+/* Techo/antena */
+.building-3d-roof {
+  width: 40px; height: 2px;
+  margin: 8px auto 0;
+  position: relative;
+}
+
+.roof-antenna {
+  width: 2px; height: 30px;
+  background: linear-gradient(to top, rgba(0, 212, 255, 0.3), rgba(0, 212, 255, 0.8));
+  margin: 0 auto;
+  position: relative;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.roof-antenna::after {
+  content: '';
+  position: absolute;
+  top: -4px; left: -3px;
+  width: 8px; height: 8px;
+  background: #00d4ff;
+  border-radius: 50%;
+  box-shadow: 0 0 15px #00d4ff, 0 0 30px #00d4ff;
+  animation: antennaBlink 2s ease-in-out infinite;
+}
+
+@keyframes antennaBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Controles */
+.building-3d-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  flex-shrink: 0;
+}
+
+.ctrl-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 180, 255, 0.3);
+  background: rgba(0, 180, 255, 0.08);
+  color: #00d4ff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ctrl-btn:hover {
+  background: rgba(0, 180, 255, 0.2);
+  border-color: #00d4ff;
+  box-shadow: 0 0 15px rgba(0, 180, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.ctrl-btn:active {
+  transform: scale(0.95);
+}
+
+/* Animacion de entrada */
+.building-3d-overlay {
+  animation: starkFadeIn 0.5s ease-out;
+}
+
+@keyframes starkFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.building-3d-perspective {
+  animation: starkBuildIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes starkBuildIn {
+  from { transform: rotateX(-25deg) rotateY(45deg) scale(0.5); opacity: 0; }
+  to { transform: rotateX(-25deg) rotateY(45deg) scale(1); opacity: 1; }
+}
+
+/* Scanlines effect */
+.building-3d-scene::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 180, 255, 0.01) 2px,
+    rgba(0, 180, 255, 0.01) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .building-3d-header { padding: 10px 14px; }
+  .building-3d-title { font-size: 0.9rem; }
+  .building-3d-legend { gap: 8px; padding: 6px 14px; }
+  .legend-item { font-size: 0.6rem; }
+
+  .office-3d { width: 60px; height: 40px; }
+  .office-name { font-size: 0.5rem; max-width: 50px; }
+  .office-area { font-size: 0.45rem; }
+  .office-side { width: 14px; right: -14px; }
+  .office-top { height: 14px; }
+
+  .floor-label { left: -30px; font-size: 0.55rem; }
+  .ctrl-btn { width: 36px; height: 36px; font-size: 0.9rem; }
+}
+
+@media (max-width: 480px) {
+  .office-3d { width: 48px; height: 34px; }
+  .office-name { font-size: 0.45rem; max-width: 40px; }
+  .office-side { width: 10px; right: -10px; }
+  .office-top { height: 10px; }
+  .building-3d-legend { display: none; }
+}
