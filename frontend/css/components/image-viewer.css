@@ -6,11 +6,15 @@
 .property-image,
 .gallery-image,
 .thumbnail-image,
-.search-result-image,
 .favorite-image {
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
   position: relative;
+}
+
+/* search-result-image: NO sobreescribir position (necesita absolute para carrusel) */
+.search-result-image {
+  cursor: pointer;
 }
 
 .property-image:hover,
