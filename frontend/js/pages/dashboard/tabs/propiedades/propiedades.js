@@ -85,7 +85,33 @@ class PropiedadesTab {
       this.app.pagination.updateItemsPerPage();
 
       // Header con filtros
+      // Sub-tabs: Propiedades + Oportunidades (solo corredor/admin)
+      const perfilId = currentUser?.perfil_id || 1;
+      const mostrarOportunidades = perfilId === 3 || perfilId === 4;
+
       const content = `
+        ${mostrarOportunidades ? `
+        <div style="display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0;">
+          <button class="sub-tab-btn active" data-subtab="propiedades"
+                  style="padding: 10px 20px; border: none; background: none; cursor: pointer; font-weight: 600;
+                         font-size: 0.85rem; color: var(--azul-corporativo); border-bottom: 3px solid var(--azul-corporativo);
+                         transition: all 0.2s;">
+            Mis Propiedades
+          </button>
+          <button class="sub-tab-btn" data-subtab="oportunidades"
+                  style="padding: 10px 20px; border: none; background: none; cursor: pointer; font-weight: 600;
+                         font-size: 0.85rem; color: #9ca3af; border-bottom: 3px solid transparent;
+                         transition: all 0.2s; position: relative;">
+            Oportunidades
+            <span id="badgeOportunidades" style="display: none; position: absolute; top: 4px; right: 4px;
+                  background: #ef4444; color: white; min-width: 18px; height: 18px; border-radius: 9px;
+                  font-size: 0.65rem; display: inline-flex; align-items: center; justify-content: center;
+                  font-weight: 700;"></span>
+          </button>
+        </div>
+        ` : ''}
+
+        <div id="subTabPropiedades">
         <div class="propiedades-header" style="margin-bottom: var(--spacing-xl);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
             <h2 style="color: var(--azul-corporativo); margin: 0;">
@@ -123,6 +149,9 @@ class PropiedadesTab {
 
           <div id="paginadorContainerBottom" class="paginacion-bottom"></div>
         `}
+        </div><!-- fin subTabPropiedades -->
+
+        <div id="subTabOportunidades" style="display: none;"></div>
       `;
 
       return content;
@@ -237,6 +266,64 @@ class PropiedadesTab {
 
     this.renderPropertiesPage();
     this.setupPropertyListeners();
+
+    // Sub-tabs: Propiedades / Oportunidades
+    this.setupSubTabs();
+    this.loadOportunidadesBadge();
+  }
+
+  setupSubTabs() {
+    document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const subtab = btn.dataset.subtab;
+
+        // Toggle visual
+        document.querySelectorAll('.sub-tab-btn').forEach(b => {
+          b.style.color = '#9ca3af';
+          b.style.borderBottomColor = 'transparent';
+          b.classList.remove('active');
+        });
+        btn.style.color = 'var(--azul-corporativo)';
+        btn.style.borderBottomColor = 'var(--azul-corporativo)';
+        btn.classList.add('active');
+
+        const propDiv = document.getElementById('subTabPropiedades');
+        const opDiv = document.getElementById('subTabOportunidades');
+        if (!propDiv || !opDiv) return;
+
+        if (subtab === 'oportunidades') {
+          propDiv.style.display = 'none';
+          opDiv.style.display = 'block';
+
+          // Cargar oportunidades
+          if (!this._oportunidadesTab) {
+            this._oportunidadesTab = new OportunidadesTab(this.app);
+          }
+          opDiv.innerHTML = await this._oportunidadesTab.render();
+          this._oportunidadesTab.setupListeners();
+        } else {
+          propDiv.style.display = 'block';
+          opDiv.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  async loadOportunidadesBadge() {
+    try {
+      const token = authService.getToken();
+      const response = await fetch(`${API_CONFIG.BASE_URL}/contactos/mis-oportunidades?limit=1`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      const nuevos = data.totales?.nuevo || 0;
+      const badge = document.getElementById('badgeOportunidades');
+      if (badge && nuevos > 0) {
+        badge.textContent = nuevos;
+        badge.style.display = 'inline-flex';
+      }
+    } catch (e) {}
   }
 
   /**
