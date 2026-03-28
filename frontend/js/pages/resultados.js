@@ -3073,10 +3073,14 @@ class ResultadosPage {
     if (!container) return;
 
     // Carrusel prev/next (misma lógica que busquedas-cards.js)
-    container.querySelectorAll('.carousel-prev, .carousel-next').forEach(btn => {
+    const carouselBtns = container.querySelectorAll('.carousel-prev, .carousel-next');
+    console.log('🎠 Carousel buttons found:', carouselBtns.length);
+    carouselBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
+        e.preventDefault();
         const carouselId = btn.dataset.carousel;
+        console.log('🎠 Carousel click:', carouselId, btn.classList.contains('carousel-prev') ? 'PREV' : 'NEXT');
         const direction = btn.classList.contains('carousel-prev') ? -1 : 1;
         this.navigateCarousel(carouselId, direction);
       });
