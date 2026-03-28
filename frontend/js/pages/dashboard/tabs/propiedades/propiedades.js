@@ -443,13 +443,14 @@ class PropiedadesTab {
       }[prop.estado] || { color: 'var(--gris-medio)', text: 'BORRADOR' };
 
       const estadoCRMBadge = {
-        'lead': { bg: 'transparent', border: 'transparent', color: 'var(--gris-medio)', text: '🔍 Lead', noBorder: true },
-        'contactado': { bg: 'white', border: 'var(--azul-corporativo)', color: 'var(--azul-corporativo)', text: '📞 Contactado' },
-        'visita_programada': { bg: 'white', border: 'var(--azul-corporativo)', color: 'var(--azul-corporativo)', text: '📅 Visita' },
-        'negociacion': { bg: 'white', border: 'var(--azul-corporativo)', color: 'var(--azul-corporativo)', text: '💼 Negociación' },
-        'cerrado_ganado': { bg: 'white', border: 'var(--dorado)', color: 'var(--dorado)', text: '✅ Ganado' },
-        'cerrado_perdido': { bg: 'white', border: 'var(--dorado-hover)', color: 'var(--dorado-hover)', text: '❌ Perdido' }
-      }[prop.estado_crm] || { bg: 'transparent', border: 'transparent', color: 'var(--gris-medio)', text: '', noBorder: true };
+        'lead': { bg: 'transparent', border: '#6b7280', color: '#6b7280', text: 'Lead', noBorder: true },
+        'contacto': { bg: 'white', border: '#10b981', color: '#10b981', text: '📞 Contacto' },
+        'propuesta': { bg: 'white', border: '#f59e0b', color: '#f59e0b', text: '📋 Propuesta' },
+        'negociacion': { bg: 'white', border: '#8b5cf6', color: '#8b5cf6', text: '💼 Negociacion' },
+        'pre_cierre': { bg: 'white', border: '#6366f1', color: '#6366f1', text: '🤝 Pre-Cierre' },
+        'cerrado_ganado': { bg: '#ecfdf5', border: '#22c55e', color: '#22c55e', text: '✅ Ganado' },
+        'cerrado_perdido': { bg: '#fef2f2', border: '#ef4444', color: '#ef4444', text: '❌ Perdido' }
+      }[prop.estado_crm] || { bg: 'transparent', border: 'transparent', color: '#6b7280', text: '', noBorder: true };
 
       const tipoLabel = prop.tipo_inmueble || '';
       const hasImages = imagenes[0] !== 'https://via.placeholder.com/400x300?text=Sin+Imagen';
@@ -575,9 +576,9 @@ class PropiedadesTab {
                   <option value="contacto" ${prop.estado_crm === 'contacto' ? 'selected' : ''}>Contacto</option>
                   <option value="propuesta" ${prop.estado_crm === 'propuesta' ? 'selected' : ''}>Propuesta</option>
                   <option value="negociacion" ${prop.estado_crm === 'negociacion' ? 'selected' : ''}>Negociacion</option>
-                  <option value="pre_cierre" ${prop.estado_crm === 'pre_cierre' ? 'selected' : ''}>Pre-cierre</option>
-                  <option value="cerrado_ganado" ${prop.estado_crm === 'cerrado_ganado' ? 'selected' : ''}>Ganado</option>
-                  <option value="cerrado_perdido" ${prop.estado_crm === 'cerrado_perdido' ? 'selected' : ''}>Perdido</option>
+                  <option value="pre_cierre" ${prop.estado_crm === 'pre_cierre' ? 'selected' : ''}>Pre-Cierre</option>
+                  <option value="cerrado_ganado" ${prop.estado_crm === 'cerrado_ganado' ? 'selected' : ''}>Cerrado Ganado</option>
+                  <option value="cerrado_perdido" ${prop.estado_crm === 'cerrado_perdido' ? 'selected' : ''}>Cerrado Perdido</option>
                 </select>
               ` : ''}
               <button class="btn-admin btn-seguimiento" data-tracking-property="${prop.registro_cab_id}">

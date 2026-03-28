@@ -188,12 +188,13 @@ class FavoritosTab {
 
     // Badge de estado CRM
     const estadoCRMBadge = {
-      'lead': { bg: 'transparent', border: 'transparent', color: '#6b7280', text: '🔍 Lead', noBorder: true },
-      'contactado': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '📞 Contactado' },
-      'visita_programada': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '📅 Visita' },
-      'negociacion': { bg: 'white', border: '#0066CC', color: '#0066CC', text: '💼 Negociación' },
-      'cerrado_ganado': { bg: 'white', border: '#22c55e', color: '#22c55e', text: '✅ Ganado' },
-      'cerrado_perdido': { bg: 'white', border: '#ef4444', color: '#ef4444', text: '❌ Perdido' }
+      'lead': { bg: 'transparent', border: 'transparent', color: '#6b7280', text: 'Lead', noBorder: true },
+      'contacto': { bg: 'white', border: '#10b981', color: '#10b981', text: '📞 Contacto' },
+      'propuesta': { bg: 'white', border: '#f59e0b', color: '#f59e0b', text: '📋 Propuesta' },
+      'negociacion': { bg: 'white', border: '#8b5cf6', color: '#8b5cf6', text: '💼 Negociacion' },
+      'pre_cierre': { bg: 'white', border: '#6366f1', color: '#6366f1', text: '🤝 Pre-Cierre' },
+      'cerrado_ganado': { bg: '#ecfdf5', border: '#22c55e', color: '#22c55e', text: '✅ Ganado' },
+      'cerrado_perdido': { bg: '#fef2f2', border: '#ef4444', color: '#ef4444', text: '❌ Perdido' }
     }[prop.estado_crm] || { bg: 'transparent', border: 'transparent', color: '#6b7280', text: '', noBorder: true };
 
     return `
