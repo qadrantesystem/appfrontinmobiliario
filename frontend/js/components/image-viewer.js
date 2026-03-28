@@ -158,7 +158,14 @@ class ImageViewer {
    * @param {string} selector - Selector CSS de imágenes
    */
   attachToImages(selector = '.property-image') {
+    // Evitar duplicar listener global
+    if (this._imageClickAttached) return;
+    this._imageClickAttached = true;
+
     document.addEventListener('click', async (e) => {
+      // No interceptar clicks en botones del carrusel ni controles
+      if (e.target.closest('.carousel-prev, .carousel-next, .indicator, .carousel-indicators, .favorite-btn-beautiful, .favorite-btn-float, .btn-detalle-resultado, .btn-detalle-prop, .btn-detalle-fav, button')) return;
+
       const img = e.target.closest(selector);
       if (!img) return;
 
