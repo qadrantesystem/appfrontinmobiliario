@@ -3419,6 +3419,7 @@ class ResultadosPage {
 
   navigateCarousel(carouselId, direction) {
     const carousel = document.querySelector(`.carousel-images[data-carousel="${carouselId}"]`);
+    console.log('🎠 navigateCarousel:', carouselId, 'found:', !!carousel);
     if (!carousel) return;
 
     const images = carousel.querySelectorAll('.carousel-image');
@@ -3437,6 +3438,8 @@ class ResultadosPage {
 
     const images = carousel.querySelectorAll('.carousel-image');
     const indicators = document.querySelectorAll(`.carousel-indicators[data-carousel="${carouselId}"] .indicator`);
+
+    console.log('🎠 goToSlide:', carouselId, 'index:', index, 'images:', images.length, 'indicators:', indicators.length);
 
     images.forEach((img, i) => img.classList.toggle('active', i === index));
     indicators.forEach((ind, i) => ind.classList.toggle('active', i === index));
