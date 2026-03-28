@@ -568,6 +568,21 @@ class PropiedadesTab {
               ${this.app.currentUser?.perfil_id === 4 && prop.corredor_asignado_id ? `
                 <span class="btn-admin btn-admin-assigned"><i class="fas fa-user-tie"></i> #${prop.corredor_asignado_id}</span>
               ` : ''}
+              ${(this.app.currentUser?.perfil_id === 3 || this.app.currentUser?.perfil_id === 4) ? `
+                <select class="btn-admin select-crm-estado" data-crm-property="${prop.registro_cab_id}"
+                        style="padding: 4px 6px; font-size: 0.7rem; border-radius: 4px; border: 1.5px solid #e2e8f0; cursor: pointer; background: white; color: #374151;">
+                  <option value="lead" ${prop.estado_crm === 'lead' ? 'selected' : ''}>Lead</option>
+                  <option value="contacto" ${prop.estado_crm === 'contacto' ? 'selected' : ''}>Contacto</option>
+                  <option value="propuesta" ${prop.estado_crm === 'propuesta' ? 'selected' : ''}>Propuesta</option>
+                  <option value="negociacion" ${prop.estado_crm === 'negociacion' ? 'selected' : ''}>Negociacion</option>
+                  <option value="pre_cierre" ${prop.estado_crm === 'pre_cierre' ? 'selected' : ''}>Pre-cierre</option>
+                  <option value="cerrado_ganado" ${prop.estado_crm === 'cerrado_ganado' ? 'selected' : ''}>Ganado</option>
+                  <option value="cerrado_perdido" ${prop.estado_crm === 'cerrado_perdido' ? 'selected' : ''}>Perdido</option>
+                </select>
+              ` : ''}
+              <button class="btn-admin btn-seguimiento" data-tracking-property="${prop.registro_cab_id}">
+                <i class="fas fa-chart-line"></i> Seguimiento
+              </button>
             </div>
           </div>
         </div>
@@ -699,6 +714,100 @@ class PropiedadesTab {
         e.stopPropagation();
         this.showPropertyForm();
       });
+    }
+
+    // Dropdown CRM estado (corredor/admin)
+    document.querySelectorAll('.select-crm-estado').forEach(select => {
+      select.addEventListener('change', async (e) => {
+        e.stopPropagation();
+        const propId = select.dataset.crmProperty;
+        const nuevoEstado = select.value;
+        try {
+          const token = authService.getToken();
+          const response = await fetch(`${API_CONFIG.BASE_URL}/propiedades/${propId}/asignar-corredor`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ corredor_id: this.app.currentUser?.usuario_id, estado_crm: nuevoEstado })
+          });
+          if (response.ok) {
+            showNotification(`Estado CRM actualizado a "${nuevoEstado}"`, 'success');
+          }
+        } catch (error) {
+          console.error('Error actualizando CRM:', error);
+        }
+      });
+    });
+
+    // Boton Seguimiento (timeline modal)
+    document.querySelectorAll('.btn-seguimiento').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const propId = btn.dataset.trackingProperty;
+        await this.showTrackingModal(propId);
+      });
+    });
+  }
+
+  async showTrackingModal(propId) {
+    try {
+      const token = authService.getToken();
+      const response = await fetch(`${API_CONFIG.BASE_URL}/contactos/tracking/${propId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Error cargando tracking');
+      const result = await response.json();
+      const data = result.data || {};
+      const prop = data.propiedad || {};
+      const timeline = data.timeline || [];
+
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+
+      modal.innerHTML = `
+        <div style="background:white;border-radius:12px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;">
+          <div style="background:var(--azul-corporativo,#0f4761);color:white;padding:14px 20px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;">
+            <h3 style="margin:0;font-size:1rem;">Seguimiento</h3>
+            <button onclick="this.closest('div[style*=fixed]').remove()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;">&times;</button>
+          </div>
+          <div style="padding:16px;">
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+              <div style="flex:1;min-width:80px;background:#f8fafc;padding:8px;border-radius:8px;text-align:center;">
+                <div style="font-size:1.4rem;font-weight:700;color:var(--azul-corporativo);">${prop.vistas || 0}</div>
+                <div style="font-size:0.7rem;color:#6b7280;">Vistas</div>
+              </div>
+              <div style="flex:1;min-width:80px;background:#f8fafc;padding:8px;border-radius:8px;text-align:center;">
+                <div style="font-size:1.4rem;font-weight:700;color:#f59e0b;">${prop.contactos || 0}</div>
+                <div style="font-size:0.7rem;color:#6b7280;">Contactos</div>
+              </div>
+              <div style="flex:1;min-width:80px;background:#f8fafc;padding:8px;border-radius:8px;text-align:center;">
+                <div style="font-size:1.4rem;font-weight:700;color:#10b981;">${prop.estado_crm || 'lead'}</div>
+                <div style="font-size:0.7rem;color:#6b7280;">Estado CRM</div>
+              </div>
+            </div>
+
+            <h4 style="margin:0 0 12px;color:var(--azul-corporativo);font-size:0.9rem;">Timeline</h4>
+            ${timeline.length === 0 ? '<p style="color:#9ca3af;text-align:center;font-size:0.85rem;">Sin actividad registrada</p>' : ''}
+            <div style="border-left:2px solid #e2e8f0;padding-left:16px;display:flex;flex-direction:column;gap:12px;">
+              ${timeline.map(t => `
+                <div style="position:relative;">
+                  <div style="position:absolute;left:-22px;top:2px;width:12px;height:12px;border-radius:50%;
+                              background:${t.tipo === 'contacto' ? '#f59e0b' : '#3b82f6'};border:2px solid white;"></div>
+                  <div style="font-size:0.75rem;color:#9ca3af;">${t.fecha ? new Date(t.fecha).toLocaleString('es-PE', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}</div>
+                  <div style="font-size:0.85rem;font-weight:600;color:#374151;">${t.icono} ${t.titulo}</div>
+                  ${t.detalle ? `<div style="font-size:0.78rem;color:#6b7280;">${t.detalle.substring(0, 100)}</div>` : ''}
+                  ${t.email ? `<div style="font-size:0.7rem;color:#3b82f6;">${t.email}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>`;
+
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+      document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { modal.remove(); document.removeEventListener('keydown', esc); } });
+      document.body.appendChild(modal);
+    } catch (error) {
+      console.error('Error mostrando tracking:', error);
+      showNotification('Error al cargar seguimiento', 'error');
     }
   }
 
