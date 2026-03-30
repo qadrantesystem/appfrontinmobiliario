@@ -15,7 +15,7 @@
     }
 
     updateItemsPerPage() {
-      this.itemsPerPage = 5;
+      this.itemsPerPage = window.innerWidth <= 768 ? 5 : 10;
     }
 
     _generarPaginas(actual, total) {
