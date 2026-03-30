@@ -24,17 +24,18 @@
 
       return `
         <div class="filters-container">
-          <div class="filters-header">
+          <div class="filters-header" id="filtersToggleHeader" style="cursor: pointer;">
             <div class="filters-title">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
               Filtros
+              <span id="filtersToggleIcon" style="font-size: 0.7rem; color: #9ca3af; margin-left: 4px;">▼</span>
             </div>
             <button id="btnClearAllFilters" class="filters-btn-limpiar">
               <i class="fas fa-times-circle"></i> Limpiar
             </button>
           </div>
 
-          <div class="filters-row">
+          <div class="filters-row" id="filtersContent">
             <!-- Tipo Inmueble -->
             <div class="filter-item">
               <div id="tipoMulti" class="multi-select">
@@ -102,6 +103,24 @@
 
     async setup() {
       await this.loadOptions();
+
+      // Toggle filtros (acordeon)
+      const toggleHeader = document.getElementById('filtersToggleHeader');
+      const filtersContent = document.getElementById('filtersContent');
+      const toggleIcon = document.getElementById('filtersToggleIcon');
+      if (toggleHeader && filtersContent) {
+        // En mobile empieza cerrado
+        if (window.innerWidth <= 768) {
+          filtersContent.style.display = 'none';
+          if (toggleIcon) toggleIcon.textContent = '▶';
+        }
+        toggleHeader.addEventListener('click', (e) => {
+          if (e.target.closest('#btnClearAllFilters')) return;
+          const isOpen = filtersContent.style.display !== 'none';
+          filtersContent.style.display = isOpen ? 'none' : 'flex';
+          if (toggleIcon) toggleIcon.textContent = isOpen ? '▶' : '▼';
+        });
+      }
 
       // Filtro Transaccion
       const filterTransaccion = document.getElementById('filterTransaccion');
