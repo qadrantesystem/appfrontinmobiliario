@@ -525,31 +525,50 @@ class PropiedadesTab {
               </div>
             </div>
 
-            <!-- Stats compactos -->
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: #9ca3af; margin-top: 2px;">
-              <span>👁 ${prop.vistas || 0}</span>
-              <span>📞 ${prop.contactos || 0}</span>
+            <!-- Fila 4: stats + CRM -->
+            <div class="prop-row-stats">
+              <span>${prop.vistas || 0} vistas</span>
+              <span>${prop.contactos || 0} contactos</span>
               ${estadoCRMBadge.text && !estadoCRMBadge.noBorder ? `
-                <span style="padding: 1px 6px; color: ${estadoCRMBadge.color}; border: 1.5px solid ${estadoCRMBadge.border}; border-radius: 4px; font-size: 0.62rem; font-weight: 600;">${estadoCRMBadge.text}</span>
+                <span style="padding: 1px 6px; color: ${estadoCRMBadge.color}; border: 1.5px solid ${estadoCRMBadge.border}; border-radius: 4px; font-size: 0.65rem; font-weight: 600;">${estadoCRMBadge.text}</span>
               ` : ''}
             </div>
 
-            <!-- Acciones compactas -->
-            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; align-items: center;">
+            <!-- Fila 5: Contacto -->
+            ${(prop.propietario_real_nombre || prop.propietario_nombre || prop.telefono || prop.email) ? `
+              <div class="prop-contact-row">
+                ${(prop.propietario_real_nombre || prop.propietario_nombre) ? `
+                  <span class="prop-contact-chip"><i class="fas fa-user"></i> ${prop.propietario_real_nombre || prop.propietario_nombre}</span>
+                ` : ''}
+                ${(prop.telefono || prop.propietario_real_telefono) ? `
+                  <a href="tel:${prop.telefono || prop.propietario_real_telefono}" class="prop-contact-chip prop-contact-link">
+                    <i class="fas fa-phone"></i> ${prop.telefono || prop.propietario_real_telefono}
+                  </a>
+                ` : ''}
+                ${(prop.email || prop.propietario_real_email) ? `
+                  <a href="mailto:${prop.email || prop.propietario_real_email}" class="prop-contact-chip prop-contact-link">
+                    <i class="fas fa-envelope"></i> ${prop.email || prop.propietario_real_email}
+                  </a>
+                ` : ''}
+              </div>
+            ` : ''}
+
+            <!-- Acciones -->
+            <div class="admin-actions-simple">
               <button class="btn-admin" data-view-property="${prop.registro_cab_id}">Detalle</button>
               ${prop.latitud && prop.longitud ? `
                 <button class="btn-admin" data-map-property="${prop.registro_cab_id}" data-lat="${prop.latitud}" data-lng="${prop.longitud}">Mapa</button>
               ` : ''}
               <button class="btn-admin" data-edit-property="${prop.registro_cab_id || prop.id}">Editar</button>
               ${prop.estado === 'borrador' && this.app.currentUser?.perfil_id === 4 ? `
-                <button class="btn-admin" data-publish-property="${prop.registro_cab_id}" style="color: #059669;">Publicar</button>
+                <button class="btn-admin" data-publish-property="${prop.registro_cab_id}">Publicar</button>
               ` : ''}
               ${this.app.currentUser?.perfil_id === 4 && !prop.corredor_asignado_id ? `
-                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}" style="color: #2563eb;">Asignar</button>
+                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}"><i class="fas fa-user-tie"></i> Asignar</button>
               ` : ''}
               ${(this.app.currentUser?.perfil_id === 3 || this.app.currentUser?.perfil_id === 4) ? `
                 <select class="select-crm-estado" data-crm-property="${prop.registro_cab_id}"
-                        style="padding: 3px 6px; font-size: 0.65rem; border-radius: 4px; border: 1.5px solid ${estadoCRMBadge.border || '#e2e8f0'};
+                        style="padding: 4px 6px; font-size: 0.68rem; border-radius: 4px; border: 1.5px solid ${estadoCRMBadge.border || '#e2e8f0'};
                                cursor: pointer; background: white; color: ${estadoCRMBadge.color || '#374151'}; font-weight: 600;">
                   <option value="lead" ${prop.estado_crm === 'lead' ? 'selected' : ''}>Lead</option>
                   <option value="contacto" ${prop.estado_crm === 'contacto' ? 'selected' : ''}>Contacto</option>
@@ -563,7 +582,7 @@ class PropiedadesTab {
               ${prop.tipo_inmueble_id === 12 || prop.tipo_inmueble_id === 13 ? `
                 <button class="btn-admin btn-3d-view" data-3d-property="${prop.registro_cab_id}"
                         style="background: linear-gradient(135deg, #0a1628, #0f4761); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3);">
-                  3D
+                  <i class="fas fa-cube"></i> 3D
                 </button>
               ` : ''}
             </div>

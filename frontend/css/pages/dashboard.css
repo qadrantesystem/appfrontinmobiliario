@@ -2177,23 +2177,22 @@
   }
 
   .admin-actions-simple {
-    flex-wrap: nowrap !important;
-    gap: 3px !important;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .admin-actions-simple::-webkit-scrollbar {
-    display: none;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
   }
 
   .btn-admin {
     min-width: unset !important;
     padding: 4px 8px !important;
-    font-size: 0.68rem !important;
+    font-size: 0.65rem !important;
     border-width: 1px !important;
     border-radius: 5px !important;
-    flex-shrink: 0;
+  }
+
+  .select-crm-estado {
+    font-size: 0.63rem !important;
+    padding: 3px 4px !important;
+    max-width: 100px;
   }
 
   /* Paginacion mobile */
