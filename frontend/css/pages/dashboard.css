@@ -2164,10 +2164,8 @@
   }
 
   .prop-contact-chip {
-    font-size: 0.65rem;
-    padding: 2px 5px;
-    white-space: normal;
-    word-break: break-all;
+    font-size: 0.6rem;
+    padding: 2px 4px;
   }
 
   .admin-actions-simple {
