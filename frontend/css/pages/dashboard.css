@@ -2170,7 +2170,10 @@
   }
 
   .prop-contact-email {
-    width: 100%;
+    width: 100% !important;
+    white-space: normal !important;
+    word-break: break-all !important;
+    display: flex !important;
   }
 
   .admin-actions-simple {
