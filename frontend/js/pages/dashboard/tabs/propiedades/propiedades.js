@@ -113,16 +113,13 @@ class PropiedadesTab {
 
         <div id="subTabPropiedades">
         <div class="propiedades-header" style="margin-bottom: var(--spacing-xl);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
-            <h2 style="color: var(--azul-corporativo); margin: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h2 style="color: var(--azul-corporativo); margin: 0; font-size: 1.1rem;">
               Mis Propiedades (<span id="propCount">${this.allProperties.length}</span>)
             </h2>
-            <button id="btnNuevaPropiedad" class="btn" style="background: var(--dorado); color: white; border: none; padding: var(--spacing-md) var(--spacing-xl); border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: var(--transition-fast); box-shadow: var(--shadow-sm);">
-              <span style="display: inline-block; width: 16px; height: 16px; border: 2px solid white; border-radius: 50%; position: relative; margin-right: 8px; vertical-align: middle;">
-                <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 8px; height: 2px;"></span>
-                <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(90deg); background: white; width: 8px; height: 2px;"></span>
-              </span>
-              Nueva Propiedad
+            <button id="btnNuevaPropiedad" style="background: var(--dorado); color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: all 0.2s;"
+                    onmouseover="this.style.background='var(--dorado-hover)'" onmouseout="this.style.background='var(--dorado)'">
+              <i class="fas fa-plus"></i> Nueva
             </button>
           </div>
 

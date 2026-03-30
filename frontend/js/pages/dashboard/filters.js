@@ -38,9 +38,9 @@
                       style="padding: 3px 8px; font-size: 0.6rem; border-radius: 4px; border: 1px solid #fca5a5; background: #fef2f2; color: #ef4444; cursor: pointer;">
                 <i class="fas fa-times"></i>
               </button>
-              <button id="filtersToggleBtn" title="Expandir filtros"
-                      style="padding: 3px 8px; font-size: 0.6rem; border-radius: 4px; border: 1px solid var(--azul-corporativo); background: white; color: var(--azul-corporativo); cursor: pointer; font-weight: 600;">
-                <i class="fas fa-sliders-h"></i> <span id="filtersToggleIcon">▼</span>
+              <button id="filtersToggleBtn" title="Mostrar/ocultar filtros"
+                      style="padding: 4px 10px; font-size: 0.65rem; border-radius: 5px; border: 1.5px solid var(--azul-corporativo); background: white; color: var(--azul-corporativo); cursor: pointer; font-weight: 600;">
+                <i class="fas fa-filter"></i> Filtros <span id="filtersToggleIcon">▼</span>
               </button>
             </div>
           </div>
