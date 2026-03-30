@@ -138,14 +138,8 @@ class Building3D {
     const perspective = document.getElementById('building3dPerspective');
     if (!perspective) return;
 
-    // Drag para rotar
-    this.modal.addEventListener('mousedown', (e) => {
-      if (e.target.closest('.ctrl-btn') || e.target.closest('.building-3d-close') || e.target.closest('.building-3d-header')) return;
-      this.isDragging = true;
-      this.lastMouse = { x: e.clientX, y: e.clientY };
-    });
-
-    document.addEventListener('mousemove', (e) => {
+    // Handlers con referencia para cleanup
+    const onMouseMove = (e) => {
       if (!this.isDragging) return;
       const dx = e.clientX - this.lastMouse.x;
       const dy = e.clientY - this.lastMouse.y;
@@ -153,27 +147,43 @@ class Building3D {
       this.rotation.x = Math.max(-60, Math.min(10, this.rotation.x - dy * 0.3));
       perspective.style.transform = `rotateX(${this.rotation.x}deg) rotateY(${this.rotation.y}deg)`;
       this.lastMouse = { x: e.clientX, y: e.clientY };
+    };
+    const onMouseUp = () => { this.isDragging = false; };
+    const onEsc = (e) => { if (e.key === 'Escape') cleanup(); };
+
+    const cleanup = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('keydown', onEsc);
+      this.isDragging = false;
+      this.modal.remove();
+    };
+
+    // Mouse drag
+    this.modal.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.ctrl-btn, .building-3d-close, .building-3d-header')) return;
+      this.isDragging = true;
+      this.lastMouse = { x: e.clientX, y: e.clientY };
     });
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
 
-    document.addEventListener('mouseup', () => { this.isDragging = false; });
-
-    // Touch support
+    // Touch drag
     this.modal.addEventListener('touchstart', (e) => {
-      if (e.target.closest('.ctrl-btn') || e.target.closest('.building-3d-close')) return;
+      if (e.target.closest('.ctrl-btn, .building-3d-close')) return;
       this.isDragging = true;
       this.lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    });
+    }, { passive: true });
 
     this.modal.addEventListener('touchmove', (e) => {
       if (!this.isDragging) return;
-      e.preventDefault();
       const dx = e.touches[0].clientX - this.lastMouse.x;
       const dy = e.touches[0].clientY - this.lastMouse.y;
       this.rotation.y += dx * 0.5;
       this.rotation.x = Math.max(-60, Math.min(10, this.rotation.x - dy * 0.3));
       perspective.style.transform = `rotateX(${this.rotation.x}deg) rotateY(${this.rotation.y}deg)`;
       this.lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }, { passive: false });
+    }, { passive: true });
 
     this.modal.addEventListener('touchend', () => { this.isDragging = false; });
 
@@ -185,30 +195,15 @@ class Building3D {
         if (action === 'rotate-left') this.rotation.y -= 45;
         if (action === 'rotate-right') this.rotation.y += 45;
         if (action === 'reset') { this.rotation = { x: -25, y: 45 }; }
-        if (action === 'explode') {
-          perspective.classList.toggle('exploded');
-          return;
-        }
+        if (action === 'explode') { perspective.classList.toggle('exploded'); return; }
         perspective.style.transform = `rotateX(${this.rotation.x}deg) rotateY(${this.rotation.y}deg)`;
       });
     });
 
-    // Hover oficinas
-    this.modal.querySelectorAll('.office-3d').forEach(office => {
-      office.addEventListener('mouseenter', () => { office.classList.add('hovered'); });
-      office.addEventListener('mouseleave', () => { office.classList.remove('hovered'); });
-    });
-
-    // Cerrar con ESC
-    const escHandler = (e) => {
-      if (e.key === 'Escape') { this.modal.remove(); document.removeEventListener('keydown', escHandler); }
-    };
-    document.addEventListener('keydown', escHandler);
-
-    // Cerrar click fuera
-    this.modal.addEventListener('click', (e) => {
-      if (e.target === this.modal) this.modal.remove();
-    });
+    // Cerrar
+    document.addEventListener('keydown', onEsc);
+    this.modal.addEventListener('click', (e) => { if (e.target === this.modal) cleanup(); });
+    this.modal.querySelector('.building-3d-close').addEventListener('click', cleanup);
   }
 }
 
