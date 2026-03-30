@@ -713,15 +713,16 @@
 
 /* Botón Nueva Propiedad (excepción - mantiene dorado) */
 #btnNuevaPropiedad {
-  background: var(--dorado) !important;
+  background: var(--azul-corporativo) !important;
   color: white !important;
-  border: 2px solid var(--dorado) !important;
+  border: none !important;
+  padding: 5px 12px !important;
+  font-size: 0.68rem !important;
+  border-radius: 5px !important;
 }
 
 #btnNuevaPropiedad:hover {
-  background: var(--dorado-hover) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
+  opacity: 0.85;
 }
 
 /* 🚀 SweetAlert2 Personalizado con Paleta Corporativa */
@@ -2309,11 +2310,8 @@
   }
 
   .propiedades-header #btnNuevaPropiedad {
-    padding: 8px 14px !important;
-    font-size: 0.82rem !important;
-    width: 100% !important;
-    text-align: center !important;
-    justify-content: center !important;
+    padding: 5px 12px !important;
+    font-size: 0.68rem !important;
   }
 }
 
