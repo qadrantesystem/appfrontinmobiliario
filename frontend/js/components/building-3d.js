@@ -39,7 +39,7 @@ class Building3D {
             <h2 class="building-3d-title">${edificio.nombre || edificio.titulo || 'Edificio'}</h2>
             <p class="building-3d-subtitle">${totalPisos} pisos | ${oficinas.length} oficinas | ${edificio.direccion || ''}</p>
           </div>
-          <button class="building-3d-close" onclick="this.closest('.building-3d-overlay').remove()">&times;</button>
+          <button class="building-3d-close">&times;</button>
         </div>
 
         <!-- Leyenda -->

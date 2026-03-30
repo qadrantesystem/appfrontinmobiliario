@@ -192,23 +192,13 @@
   transform-style: preserve-3d;
   transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
-  animation: starkBuildIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), autoRotate 30s linear infinite;
-  animation-delay: 0s, 2s;
+  animation: starkBuildIn 1s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes starkBuildIn {
-  from { transform: rotateX(-25deg) rotateY(45deg) scale(0.3); opacity: 0; }
-  to { transform: rotateX(-25deg) rotateY(45deg) scale(1); opacity: 1; }
-}
-
-@keyframes autoRotate {
-  from { transform: rotateX(-25deg) rotateY(0deg); }
-  to { transform: rotateX(-25deg) rotateY(360deg); }
-}
-
-/* Detener auto-rotacion al interactuar */
-.building-3d-perspective:hover {
-  animation-play-state: paused, paused;
+  from { transform: rotateX(-25deg) rotateY(45deg) scale(0.3); opacity: 0; filter: blur(10px); }
+  60% { filter: blur(2px); }
+  to { transform: rotateX(-25deg) rotateY(45deg) scale(1); opacity: 1; filter: blur(0); }
 }
 
 /* Base/suelo con grid animado */
@@ -285,7 +275,7 @@
 .office-front {
   position: absolute;
   width: 100%; height: 100%;
-  background: linear-gradient(180deg, var(--office-color) 0%, color-mix(in srgb, var(--office-color) 60%, black) 100%);
+  background: linear-gradient(180deg, var(--office-color) 0%, rgba(0,0,0,0.6) 100%);
   border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   flex-direction: column;
@@ -316,7 +306,7 @@
 .office-top {
   position: absolute;
   width: 100%; height: 20px;
-  background: linear-gradient(135deg, var(--office-color) 0%, color-mix(in srgb, var(--office-color) 80%, white) 100%);
+  background: linear-gradient(135deg, var(--office-color) 0%, rgba(255,255,255,0.3) 100%);
   border: 1px solid rgba(255, 255, 255, 0.2);
   transform: rotateX(90deg) translateZ(0px);
   transform-origin: bottom;
@@ -328,7 +318,7 @@
   position: absolute;
   width: 20px; height: 100%;
   right: -20px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--office-color) 40%, black) 0%, color-mix(in srgb, var(--office-color) 20%, black) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.7) 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   transform: rotateY(90deg);
   transform-origin: left;
@@ -349,7 +339,7 @@
   box-shadow: 0 0 25px var(--office-color), 0 0 50px var(--office-color);
 }
 
-/* Wireframe outline pulsante */
+/* Wireframe outline pulsante - oficinas */
 .office-front::after {
   content: '';
   position: absolute;
@@ -364,11 +354,7 @@
   50% { border-color: rgba(0, 212, 255, 0.4); }
 }
 
-/* Glitch effect sutil */
-.building-3d-perspective {
-  animation: starkBuildIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
+/* Glitch effect sutil en titulo */
 .building-3d-title {
   animation: titleGlow 3s ease-in-out infinite, glitchText 8s linear infinite;
 }
