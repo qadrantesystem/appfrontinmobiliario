@@ -165,33 +165,34 @@ class PropiedadesTab {
     const stats = this._calcStats(this.allProperties);
     const coloresTipo = ['#0f4761', '#ff9700', '#17a2b8', '#28a745', '#6a9ec4', '#e88700', '#dc3545', '#4f78a1', '#ffc107', '#6c757d', '#218838', '#f39c12'];
 
-    const tiposBadges = stats.tipos.map((t, i) => `
-      <div class="legend-chip" data-tipo="${t.nombre}">
-        <span class="legend-dot" style="background:${coloresTipo[i % coloresTipo.length]};"></span>
-        <span class="legend-val" id="legend_tipo_${i}">${t.count}</span>
-        <span class="legend-lbl">${t.nombre}</span>
-      </div>
-    `).join('');
+    // Abreviar nombres de tipo
+    const abreviar = (nombre) => {
+      if (nombre.includes('Oficina')) return 'Ofic.';
+      if (nombre.includes('Edificio')) return 'Edif.';
+      if (nombre.includes('Departamento')) return 'Depto.';
+      if (nombre.includes('Casa')) return 'Casa';
+      if (nombre.includes('Local')) return 'Local';
+      if (nombre.includes('Terreno')) return 'Terr.';
+      return nombre.substring(0, 6) + '.';
+    };
 
-    const estadosBadges = stats.estados.map(e => `
-      <div class="legend-chip">
-        <span class="legend-dot" style="background:${e.color};"></span>
-        <span class="legend-val" id="legend_est_${e.key}">${e.count}</span>
-        <span class="legend-lbl">${e.label}</span>
-      </div>
-    `).join('');
+    const abreviarEstado = (label) => {
+      if (label.includes('Publicados')) return 'Pub.';
+      if (label.includes('Borradores')) return 'Borr.';
+      if (label.includes('Pausados')) return 'Paus.';
+      if (label.includes('Vendidos')) return 'Vend.';
+      if (label.includes('Cerrados')) return 'Cerr.';
+      return label.substring(0, 5) + '.';
+    };
+
+    const chips = [
+      ...stats.tipos.map((t, i) => `<span title="${t.nombre}" style="display:inline-flex;align-items:center;gap:3px;font-size:0.65rem;color:#374151;"><span style="width:6px;height:6px;border-radius:50%;background:${coloresTipo[i % coloresTipo.length]};flex-shrink:0;"></span><b>${t.count}</b> ${abreviar(t.nombre)}</span>`),
+      ...stats.estados.map(e => `<span title="${e.label}" style="display:inline-flex;align-items:center;gap:3px;font-size:0.65rem;color:#374151;"><span style="width:6px;height:6px;border-radius:50%;background:${e.color};flex-shrink:0;"></span><b>${e.count}</b> ${abreviarEstado(e.label)}</span>`)
+    ];
 
     return `
-      <div id="propiedadesLegend" class="prop-legend">
-        <div class="prop-legend-group">
-          <span class="prop-legend-title">Por tipo</span>
-          ${tiposBadges}
-        </div>
-        <div class="prop-legend-sep"></div>
-        <div class="prop-legend-group">
-          <span class="prop-legend-title">Estado</span>
-          ${estadosBadges}
-        </div>
+      <div id="propiedadesLegend" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;margin-bottom:6px;">
+        ${chips.join('<span style="color:#d1d5db;">|</span>')}
       </div>
     `;
   }
