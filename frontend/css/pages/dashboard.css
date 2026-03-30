@@ -2336,6 +2336,12 @@
   margin-bottom: 12px;
 }
 
+@media (max-width: 768px) {
+  .paginacion-top {
+    display: none !important;
+  }
+}
+
 .paginacion-bottom {
   border-top: 1px solid var(--borde);
   margin-top: 12px;
