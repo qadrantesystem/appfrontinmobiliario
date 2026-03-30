@@ -23,24 +23,34 @@
       const showTransaccion = [1, 2, 3].includes(this.dashboard.currentUser?.perfil_id);
 
       return `
-        <div class="filters-container">
-          <div class="filters-header" id="filtersToggleHeader" style="cursor: pointer;">
-            <div class="filters-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-              Filtros
-              <span id="filtersToggleIcon" style="font-size: 0.7rem; color: #9ca3af; margin-left: 4px;">▼</span>
+        <div class="filters-container" style="padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fafbfc;">
+          <!-- Header: leyenda compacta + boton toggle a la derecha -->
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex: 1; overflow: hidden;">
+              <span id="filterBadgeTipo" style="font-size: 0.62rem; color: #6b7280; white-space: nowrap;" title="Tipo de inmueble">Todos</span>
+              <span style="color: #d1d5db;">|</span>
+              <span id="filterBadgeDistrito" style="font-size: 0.62rem; color: #6b7280; white-space: nowrap;" title="Distrito">Todos</span>
+              <span style="color: #d1d5db;">|</span>
+              <span id="filterBadgeArea" style="font-size: 0.62rem; color: #6b7280; white-space: nowrap;" title="Area m2">--m2</span>
             </div>
-            <button id="btnClearAllFilters" class="filters-btn-limpiar">
-              <i class="fas fa-times-circle"></i> Limpiar
-            </button>
+            <div style="display: flex; gap: 4px; flex-shrink: 0;">
+              <button id="btnClearAllFilters" class="filters-btn-limpiar" title="Limpiar filtros"
+                      style="padding: 3px 8px; font-size: 0.6rem; border-radius: 4px; border: 1px solid #fca5a5; background: #fef2f2; color: #ef4444; cursor: pointer;">
+                <i class="fas fa-times"></i>
+              </button>
+              <button id="filtersToggleBtn" title="Expandir filtros"
+                      style="padding: 3px 8px; font-size: 0.6rem; border-radius: 4px; border: 1px solid var(--azul-corporativo); background: white; color: var(--azul-corporativo); cursor: pointer; font-weight: 600;">
+                <i class="fas fa-sliders-h"></i> <span id="filtersToggleIcon">▼</span>
+              </button>
+            </div>
           </div>
 
-          <div class="filters-row" id="filtersContent">
-            <!-- Tipo Inmueble -->
+          <!-- Filtros colapsables -->
+          <div class="filters-row" id="filtersContent" style="margin-top: 8px;">
             <div class="filter-item">
               <div id="tipoMulti" class="multi-select">
                 <button type="button" class="multi-select__button" id="tipoToggle">
-                  <span class="multi-select__placeholder" id="tipoPlaceholder">Tipo de Inmueble</span>
+                  <span class="multi-select__placeholder" id="tipoPlaceholder">Tipo</span>
                   <span class="multi-select__tags" id="tipoTags"></span>
                   <span class="multi-select__arrow">&#9662;</span>
                 </button>
@@ -53,7 +63,6 @@
               </div>
             </div>
 
-            <!-- Distrito -->
             <div class="filter-item">
               <div id="distritoMulti" class="multi-select">
                 <button type="button" class="multi-select__button" id="distritoToggle">
@@ -75,25 +84,22 @@
             </div>
 
             ${showTransaccion ? `
-            <!-- Venta / Alquiler -->
             <div class="filter-item">
-              <select id="filterTransaccion" class="filter-select">
-                <option value="">Venta/Alquiler</option>
+              <select id="filterTransaccion" class="filter-select" title="Tipo transaccion">
+                <option value="">V/A</option>
                 <option value="venta">Venta</option>
                 <option value="alquiler">Alquiler</option>
               </select>
             </div>
             ` : ''}
 
-            <!-- Metraje -->
             <div class="filter-item filter-item--metraje">
-              <input type="number" id="filterMetraje" class="filter-input-metraje" placeholder="m² (&#177;15)" min="1" step="1">
+              <input type="number" id="filterMetraje" class="filter-input-metraje" placeholder="m2" title="Area en m2 (+-15%)" min="1" step="1">
             </div>
 
             ${isAdmin ? `
-            <!-- Nombre Propietario (Solo Admin) -->
             <div class="filter-item">
-              <input type="text" id="filterPropietario" class="filter-select" placeholder="Nombre Propietario">
+              <input type="text" id="filterPropietario" class="filter-select" placeholder="Propietario" title="Buscar por nombre de propietario">
             </div>
             ` : ''}
           </div>
@@ -105,17 +111,17 @@
       await this.loadOptions();
 
       // Toggle filtros (acordeon)
-      const toggleHeader = document.getElementById('filtersToggleHeader');
+      const toggleBtn = document.getElementById('filtersToggleBtn');
       const filtersContent = document.getElementById('filtersContent');
       const toggleIcon = document.getElementById('filtersToggleIcon');
-      if (toggleHeader && filtersContent) {
+      if (toggleBtn && filtersContent) {
         // En mobile empieza cerrado
         if (window.innerWidth <= 768) {
           filtersContent.style.display = 'none';
           if (toggleIcon) toggleIcon.textContent = '▶';
         }
-        toggleHeader.addEventListener('click', (e) => {
-          if (e.target.closest('#btnClearAllFilters')) return;
+        toggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
           const isOpen = filtersContent.style.display !== 'none';
           filtersContent.style.display = isOpen ? 'none' : 'flex';
           if (toggleIcon) toggleIcon.textContent = isOpen ? '▶' : '▼';
