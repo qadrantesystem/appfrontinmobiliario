@@ -534,23 +534,23 @@ class PropiedadesTab {
               ` : ''}
             </div>
 
-            <!-- Acciones: una sola fila compacta con iconos -->
-            <div style="display: flex; gap: 3px; flex-wrap: wrap; margin-top: 6px; align-items: center;">
-              <button class="btn-admin" data-view-property="${prop.registro_cab_id}" title="Ver detalle"><i class="fas fa-search"></i></button>
+            <!-- Acciones compactas -->
+            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; align-items: center;">
+              <button class="btn-admin" data-view-property="${prop.registro_cab_id}">Detalle</button>
               ${prop.latitud && prop.longitud ? `
-                <button class="btn-admin" data-map-property="${prop.registro_cab_id}" data-lat="${prop.latitud}" data-lng="${prop.longitud}" title="Ver mapa"><i class="fas fa-map-marker-alt"></i></button>
+                <button class="btn-admin" data-map-property="${prop.registro_cab_id}" data-lat="${prop.latitud}" data-lng="${prop.longitud}">Mapa</button>
               ` : ''}
-              <button class="btn-admin" data-edit-property="${prop.registro_cab_id || prop.id}" title="Editar"><i class="fas fa-pen"></i></button>
+              <button class="btn-admin" data-edit-property="${prop.registro_cab_id || prop.id}">Editar</button>
               ${prop.estado === 'borrador' && this.app.currentUser?.perfil_id === 4 ? `
-                <button class="btn-admin" data-publish-property="${prop.registro_cab_id}" title="Publicar" style="color: #059669;"><i class="fas fa-check-circle"></i></button>
+                <button class="btn-admin" data-publish-property="${prop.registro_cab_id}" style="color: #059669;">Publicar</button>
               ` : ''}
               ${this.app.currentUser?.perfil_id === 4 && !prop.corredor_asignado_id ? `
-                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}" title="Asignar corredor" style="color: #2563eb;"><i class="fas fa-user-tie"></i></button>
+                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}" style="color: #2563eb;">Asignar</button>
               ` : ''}
               ${(this.app.currentUser?.perfil_id === 3 || this.app.currentUser?.perfil_id === 4) ? `
-                <select class="select-crm-estado" data-crm-property="${prop.registro_cab_id}" title="Estado CRM"
+                <select class="select-crm-estado" data-crm-property="${prop.registro_cab_id}"
                         style="padding: 3px 6px; font-size: 0.65rem; border-radius: 4px; border: 1.5px solid ${estadoCRMBadge.border || '#e2e8f0'};
-                               cursor: pointer; background: white; color: ${estadoCRMBadge.color || '#374151'}; font-weight: 600; max-width: 110px;">
+                               cursor: pointer; background: white; color: ${estadoCRMBadge.color || '#374151'}; font-weight: 600;">
                   <option value="lead" ${prop.estado_crm === 'lead' ? 'selected' : ''}>Lead</option>
                   <option value="contacto" ${prop.estado_crm === 'contacto' ? 'selected' : ''}>Contacto</option>
                   <option value="propuesta" ${prop.estado_crm === 'propuesta' ? 'selected' : ''}>Propuesta</option>
@@ -561,9 +561,9 @@ class PropiedadesTab {
                 </select>
               ` : ''}
               ${prop.tipo_inmueble_id === 12 || prop.tipo_inmueble_id === 13 ? `
-                <button class="btn-admin btn-3d-view" data-3d-property="${prop.registro_cab_id}" title="Vista 3D"
+                <button class="btn-admin btn-3d-view" data-3d-property="${prop.registro_cab_id}"
                         style="background: linear-gradient(135deg, #0a1628, #0f4761); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3);">
-                  <i class="fas fa-cube"></i>
+                  3D
                 </button>
               ` : ''}
             </div>
