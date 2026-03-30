@@ -2261,8 +2261,14 @@
   }
 
   .prop-contact-chip {
-    max-width: 140px;
     font-size: 0.6rem;
+  }
+
+  .prop-contact-email {
+    width: 100% !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    word-break: break-all !important;
   }
 
   .btn-admin {
