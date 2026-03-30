@@ -2159,21 +2159,13 @@
   }
 
   .prop-contact-row {
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap;
     gap: 4px;
-    scrollbar-width: none;
-  }
-
-  .prop-contact-row::-webkit-scrollbar {
-    display: none;
   }
 
   .prop-contact-chip {
-    flex-shrink: 0;
     font-size: 0.65rem;
     padding: 2px 5px;
-    max-width: none;
   }
 
   .admin-actions-simple {
