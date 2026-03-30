@@ -2022,9 +2022,6 @@
   border: 1.5px solid var(--azul-corporativo);
   border-radius: 4px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
 }
 
 .prop-contact-link {
@@ -2169,6 +2166,8 @@
   .prop-contact-chip {
     font-size: 0.65rem;
     padding: 2px 5px;
+    white-space: normal;
+    word-break: break-all;
   }
 
   .admin-actions-simple {
