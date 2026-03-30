@@ -117,9 +117,9 @@ class PropiedadesTab {
             <h2 style="color: var(--azul-corporativo); margin: 0; font-size: 1.1rem;">
               Mis Propiedades (<span id="propCount">${this.allProperties.length}</span>)
             </h2>
-            <button id="btnNuevaPropiedad" style="background: var(--dorado); color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: all 0.2s;"
-                    onmouseover="this.style.background='var(--dorado-hover)'" onmouseout="this.style.background='var(--dorado)'">
-              <i class="fas fa-plus"></i> Nueva
+            <button id="btnNuevaPropiedad" style="background: var(--azul-corporativo); color: white; border: none; padding: 5px 12px; border-radius: 5px; font-weight: 600; cursor: pointer; font-size: 0.68rem; display: flex; align-items: center; gap: 4px; transition: all 0.2s;"
+                    onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+              <i class="fas fa-plus" style="font-size: 0.6rem;"></i> Nueva
             </button>
           </div>
 
