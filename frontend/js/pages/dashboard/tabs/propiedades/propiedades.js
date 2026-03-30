@@ -546,7 +546,7 @@ class PropiedadesTab {
                   </a>
                 ` : ''}
                 ${(prop.email || prop.propietario_real_email) ? `
-                  <a href="mailto:${prop.email || prop.propietario_real_email}" class="prop-contact-chip prop-contact-link">
+                  <a href="mailto:${prop.email || prop.propietario_real_email}" class="prop-contact-chip prop-contact-link prop-contact-email">
                     <i class="fas fa-envelope"></i> ${prop.email || prop.propietario_real_email}
                   </a>
                 ` : ''}

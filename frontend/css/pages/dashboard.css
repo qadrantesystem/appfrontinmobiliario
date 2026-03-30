@@ -2160,13 +2160,17 @@
 
   .prop-contact-row {
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 3px;
   }
 
   .prop-contact-chip {
-    font-size: 0.52rem;
-    padding: 2px 3px;
+    font-size: 0.63rem;
+    padding: 2px 5px;
     gap: 2px;
+  }
+
+  .prop-contact-email {
+    width: 100%;
   }
 
   .admin-actions-simple {
