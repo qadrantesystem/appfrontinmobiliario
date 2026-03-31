@@ -4056,13 +4056,13 @@ class PropertyForm {
         pisoSelect.innerHTML = '<option value="">Cargando pisos...</option>';
         pisoContainer.style.display = 'block';
 
-        // Usar pisos del modal rápido si están disponibles, sino consultar backend
+        // Prioridad: 1) modal rápido, 2) dato del edificio, 3) consultar backend
         let cantidadPisos;
         if (this._pisosEdificioRapido) {
           cantidadPisos = this._pisosEdificioRapido;
-          // Limpiar después de 2 segundos (evita que doble callback lo pise)
           setTimeout(() => { this._pisosEdificioRapido = null; }, 2000);
-          console.log(`✅ Usando pisos del modal rapido: ${cantidadPisos}`);
+        } else if (edificio.cantidad_pisos) {
+          cantidadPisos = parseInt(edificio.cantidad_pisos);
         } else {
           cantidadPisos = await edificioService.obtenerCantidadPisos(edificio.registro_cab_id);
         }
