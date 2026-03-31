@@ -4108,14 +4108,14 @@ class PropertyForm {
         const nombreInmuebleInput = document.getElementById('nombre_inmueble');
         if (!nombreInmuebleInput) return;
 
-        // Solo auto-generar si el campo está vacío o tiene el placeholder genérico
+        // Auto-generar siempre que cambie de piso (sobreescribe nombre anterior)
         const valorActual = nombreInmuebleInput.value.trim();
-        const esPlaceholderGenerico = !valorActual ||
-                                       valorActual.includes('Edificio') ||
-                                       valorActual.includes('Oficinas') ||
-                                       valorActual === nombreInmuebleInput.placeholder;
+        const esAutoGenerado = !valorActual ||
+                               valorActual.startsWith('Oficina ') ||
+                               valorActual.includes('Edificio') ||
+                               valorActual === nombreInmuebleInput.placeholder;
 
-        if (esPlaceholderGenerico) {
+        if (esAutoGenerado) {
           // Generar nombre correlativo
           const nombreCorrelativo = await this.generarNombreCorrelativo(
             edificioActual.registro_cab_id,
