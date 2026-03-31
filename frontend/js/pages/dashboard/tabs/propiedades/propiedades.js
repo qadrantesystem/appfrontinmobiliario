@@ -561,8 +561,13 @@ class PropiedadesTab {
               ${prop.estado === 'borrador' && this.app.currentUser?.perfil_id === 4 ? `
                 <button class="btn-admin" data-publish-property="${prop.registro_cab_id}">Publicar</button>
               ` : ''}
-              ${this.app.currentUser?.perfil_id === 4 && !prop.corredor_asignado_id ? `
-                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}"><i class="fas fa-user-tie"></i> Asignar</button>
+              ${this.app.currentUser?.perfil_id === 4 ? `
+                ${prop.corredor_nombre ? `
+                  <span style="font-size: 0.65rem; color: #059669; font-weight: 600; padding: 2px 6px; background: #ecfdf5; border-radius: 4px;">
+                    <i class="fas fa-user-tie"></i> ${prop.corredor_nombre}${prop.comision_corredor ? ` (${prop.comision_corredor}%)` : ''}
+                  </span>
+                ` : ''}
+                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}"><i class="fas fa-user-tie"></i> ${prop.corredor_asignado_id ? 'Reasignar' : 'Asignar'}</button>
               ` : ''}
               ${(this.app.currentUser?.perfil_id === 3 || this.app.currentUser?.perfil_id === 4) ? `
                 <select class="select-crm-estado" data-crm-property="${prop.registro_cab_id}"
