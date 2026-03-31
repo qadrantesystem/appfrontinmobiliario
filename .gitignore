@@ -1,5 +1,7 @@
 node_modules/
 .env
+pruebas/output/
+pruebas/.env
 .DS_Store
 *.log
 backup/

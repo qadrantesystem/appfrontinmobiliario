@@ -112,8 +112,8 @@ class BusquedasLista {
       container.innerHTML = `
         <div class="empty-state">
           <i class="fas fa-search"></i>
-          <h3>No tienes búsquedas guardadas</h3>
-          <p>Haz clic en "Nueva Búsqueda" para comenzar.</p>
+          <h3>No tienes búsquedas realizadas</h3>
+          <p>Haz clic en "Nueva Búsqueda" para comenzar a buscar propiedades.</p>
         </div>
       `;
       return;
