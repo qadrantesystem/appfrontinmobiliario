@@ -132,7 +132,8 @@ class SelectorEdificio {
         distrito_nombre: this.edificioSeleccionado.distrito_nombre || this.edificioSeleccionado.distrito,
         direccion: this.edificioSeleccionado.direccion,
         latitud: this.edificioSeleccionado.latitud,
-        longitud: this.edificioSeleccionado.longitud
+        longitud: this.edificioSeleccionado.longitud,
+        cantidad_pisos: this.edificioSeleccionado.cantidad_pisos
       });
     }
 
