@@ -1741,8 +1741,8 @@ class PropiedadesTab {
         await this.updatePropertyCRMStatus(propId, crmStatus);
       }
 
-      // Recargar las propiedades
-      this.renderPropertiesPage();
+      // Recargar propiedades desde API (no usar cache)
+      await this.forceReloadProperties();
 
     } catch (error) {
       console.error('❌ Error asignando corredor:', error);
