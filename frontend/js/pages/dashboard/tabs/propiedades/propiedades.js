@@ -551,6 +551,26 @@ class PropiedadesTab {
               </div>
             ` : ''}
 
+            <!-- Fila 6: Corredor asignado (admin y corredor) -->
+            ${(this.app.currentUser?.perfil_id === 4 || this.app.currentUser?.perfil_id === 3) && prop.corredor_nombre ? `
+              <div style="margin-top: 6px; padding: 6px 10px; background: white; border: 1.5px solid var(--azul-corporativo, #0f4761); border-radius: 6px; display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+                  <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--azul-corporativo, #0f4761), var(--azul-medio, #4f78a1)); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 700; flex-shrink: 0;">
+                    ${prop.corredor_nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                  </div>
+                  <div style="min-width: 0;">
+                    <div style="font-size: 0.6rem; color: var(--azul-medio, #4f78a1); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Corredor asignado</div>
+                    <div style="font-size: 0.75rem; color: var(--azul-corporativo, #0f4761); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${prop.corredor_nombre}${prop.comision_corredor ? ` · ${prop.comision_corredor}%` : ''}</div>
+                  </div>
+                </div>
+                ${this.app.currentUser?.perfil_id === 4 ? `
+                  <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}" style="font-size: 0.6rem; padding: 3px 8px; white-space: nowrap;">
+                    <i class="fas fa-exchange-alt"></i> Reasignar
+                  </button>
+                ` : ''}
+              </div>
+            ` : ''}
+
             <!-- Acciones -->
             <div class="admin-actions-simple">
               <button class="btn-admin" data-view-property="${prop.registro_cab_id}">Detalle</button>
@@ -561,13 +581,8 @@ class PropiedadesTab {
               ${prop.estado === 'borrador' && this.app.currentUser?.perfil_id === 4 ? `
                 <button class="btn-admin" data-publish-property="${prop.registro_cab_id}">Publicar</button>
               ` : ''}
-              ${this.app.currentUser?.perfil_id === 4 ? `
-                ${prop.corredor_nombre ? `
-                  <span style="font-size: 0.65rem; color: #059669; font-weight: 600; padding: 2px 6px; background: #ecfdf5; border-radius: 4px;">
-                    <i class="fas fa-user-tie"></i> ${prop.corredor_nombre}${prop.comision_corredor ? ` (${prop.comision_corredor}%)` : ''}
-                  </span>
-                ` : ''}
-                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}"><i class="fas fa-user-tie"></i> ${prop.corredor_asignado_id ? 'Reasignar' : 'Asignar'}</button>
+              ${this.app.currentUser?.perfil_id === 4 && !prop.corredor_nombre ? `
+                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}"><i class="fas fa-user-tie"></i> Asignar</button>
               ` : ''}
               ${(this.app.currentUser?.perfil_id === 3 || this.app.currentUser?.perfil_id === 4) ? `
                 <select class="select-crm-estado" data-crm-property="${prop.registro_cab_id}"
