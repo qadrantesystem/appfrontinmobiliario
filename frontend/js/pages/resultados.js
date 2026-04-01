@@ -2290,26 +2290,27 @@ class ResultadosPage {
       `;
     }
 
-    // Mapa de iconos por categoría
+    // Mapa de iconos WebP por categoría
     const iconMap = {
-      'AREAS_COMUNES_EDIFICIO': 'fa-building',
-      'ASCENSORES': 'fa-elevator',
-      'IMPLEMENTACION_DETALLE': 'fa-toolbox',
-      'SOPORTE_EDIFICIO': 'fa-wrench',
-      'CERCANIA_ESTRATEGICA': 'fa-map-marker-alt',
-      'VISTA_OFICINA': 'fa-eye',
-      'CARACTERISTICAS_CASA': 'fa-home',
-      'CARACTERISTICAS_DEPTO': 'fa-building',
-      'CARACTERISTICAS_TERRENO': 'fa-map',
-      'CARACTERISTICAS_LOCAL': 'fa-store',
-      'SERVICIOS': 'fa-wrench',
-      'SEGURIDAD': 'fa-shield-halved',
-      'TECNOLOGIA_CONECTIVIDAD': 'fa-wifi',
-      'SOSTENIBILIDAD': 'fa-leaf',
-      'ESPACIOS_PERSONALES': 'fa-door-open',
-      'COMPLEMENTARIOS': 'fa-box',
-      'OTROS': 'fa-circle-info'
+      'AREAS_COMUNES_EDIFICIO': 'building-community.webp',
+      'ASCENSORES': 'elevator.webp',
+      'IMPLEMENTACION_DETALLE': 'bulb.webp',
+      'SOPORTE_EDIFICIO': 'shield-check.webp',
+      'CERCANIA_ESTRATEGICA': 'train.webp',
+      'VISTA_OFICINA': 'eye.webp',
+      'CARACTERISTICAS_CASA': 'home.webp',
+      'CARACTERISTICAS_DEPTO': 'building.webp',
+      'CARACTERISTICAS_TERRENO': 'road.webp',
+      'CARACTERISTICAS_LOCAL': 'building-store.webp',
+      'SERVICIOS': 'bolt.webp',
+      'SEGURIDAD': 'shield-check.webp',
+      'TECNOLOGIA_CONECTIVIDAD': 'wifi.webp',
+      'SOSTENIBILIDAD': 'trees.webp',
+      'ESPACIOS_PERSONALES': 'home.webp',
+      'COMPLEMENTARIOS': 'box.webp',
+      'OTROS': 'file-description.webp'
     };
+    const iconImg = (file, size = 18) => `<img src="assets/icons/amenidades/${file}" width="${size}" height="${size}" alt="" style="vertical-align: middle;">`;
 
     // Renderizar categorías según configuración
     const htmlResult = configTipo.categorias
@@ -2339,7 +2340,7 @@ class ResultadosPage {
         return `
           <div class="accordion-item-avanzado">
             <button class="accordion-header-avanzado ${activeClass}" type="button" data-categoria="${catConfig.codigo}" aria-expanded="${expandedState}">
-              <i class="fa-solid ${icon}"></i>
+              ${iconImg(icon)}
               <span>${catConfig.nombre}</span>
               ${badgeHTML}
               <i class="fa-solid fa-chevron-down accordion-arrow"></i>
@@ -2366,96 +2367,54 @@ class ResultadosPage {
     // Usar el código de categoría pasado como parámetro o el de la característica
     const categoria = codigoCategoria || item.categoria;
 
-    // Mapa de iconos según tipo de característica (sin repeticiones)
-    const getIcon = (nombre) => {
+    // Mapa de iconos WebP según nombre de característica
+    const getIconFile = (nombre) => {
       const n = nombre.toLowerCase();
-
-      // Conectividad y tecnología
-      if (n.includes('wifi') || n.includes('internet')) return 'fa-wifi';
-      if (n.includes('fibra') || n.includes('banda ancha')) return 'fa-network-wired';
-      if (n.includes('cable') || n.includes('tv')) return 'fa-tv';
-      if (n.includes('telefon')) return 'fa-phone';
-      if (n.includes('interfon') || n.includes('intercomunicador')) return 'fa-walkie-talkie';
-
-      // Climatización
-      if (n.includes('aire acondicionado') || n.includes('a/c')) return 'fa-snowflake';
-      if (n.includes('clima')) return 'fa-temperature-half';
-      if (n.includes('calefac')) return 'fa-fire';
-      if (n.includes('ventilac')) return 'fa-fan';
-
-      // Movilidad vertical
-      if (n.includes('ascensor')) return 'fa-elevator';
-      if (n.includes('escalera')) return 'fa-stairs';
-      if (n.includes('rampa')) return 'fa-wheelchair';
-
-      // Estacionamiento
-      if (n.includes('parqueo') || n.includes('estacionamiento')) return 'fa-square-parking';
-      if (n.includes('cochera') || n.includes('garage')) return 'fa-car';
-      if (n.includes('moto') || n.includes('bicicleta')) return 'fa-bicycle';
-
-      // Áreas recreativas
-      if (n.includes('piscina')) return 'fa-person-swimming';
-      if (n.includes('gym') || n.includes('gimnasio')) return 'fa-dumbbell';
-      if (n.includes('sauna')) return 'fa-hot-tub-person';
-      if (n.includes('spa') || n.includes('jacuzzi')) return 'fa-spa';
-      if (n.includes('juegos') || n.includes('niños')) return 'fa-children';
-      if (n.includes('cancha') || n.includes('deporte')) return 'fa-basketball';
-      if (n.includes('parque') || n.includes('área verde')) return 'fa-tree';
-      if (n.includes('jardín')) return 'fa-leaf';
-      if (n.includes('bbq') || n.includes('parrilla')) return 'fa-fire-flame-curved';
-
-      // Seguridad
-      if (n.includes('seguridad') || n.includes('vigilancia')) return 'fa-shield-halved';
-      if (n.includes('cámara') || n.includes('circuito')) return 'fa-video';
-      if (n.includes('alarma')) return 'fa-bell';
-      if (n.includes('reja') || n.includes('cerco')) return 'fa-fence';
-      if (n.includes('garita') || n.includes('caseta')) return 'fa-house-circle-check';
-
-      // Servicios básicos
-      if (n.includes('luz') || n.includes('electric')) return 'fa-lightbulb';
-      if (n.includes('agua')) return 'fa-droplet';
-      if (n.includes('gas')) return 'fa-fire-burner';
-      if (n.includes('desagüe') || n.includes('alcantarillado')) return 'fa-faucet-drip';
-
-      // Espacios interiores
-      if (n.includes('terraza')) return 'fa-building-flag';
-      if (n.includes('balcón')) return 'fa-border-all';
-      if (n.includes('cocina')) return 'fa-kitchen-set';
-      if (n.includes('baño')) return 'fa-toilet';
-      if (n.includes('closet') || n.includes('armario')) return 'fa-box-archive';
-      if (n.includes('sala')) return 'fa-couch';
-      if (n.includes('comedor')) return 'fa-utensils';
-      if (n.includes('lavander')) return 'fa-soap';
-      if (n.includes('deposito') || n.includes('almacén')) return 'fa-warehouse';
-      if (n.includes('estudio') || n.includes('oficina')) return 'fa-desktop';
-      if (n.includes('dormitorio') || n.includes('habitación')) return 'fa-bed';
-
-      // Vistas y acabados
-      if (n.includes('vista')) return 'fa-eye';
-      if (n.includes('puerta')) return 'fa-door-open';
-      if (n.includes('ventana')) return 'fa-window-maximize';
-      if (n.includes('piso')) return 'fa-layer-group';
-      if (n.includes('techo')) return 'fa-house-chimney';
-      if (n.includes('muro') || n.includes('pared')) return 'fa-cubes';
-      if (n.includes('pintura')) return 'fa-paint-roller';
-      if (n.includes('porcelanato') || n.includes('cerámico')) return 'fa-grip';
-
-      // Servicios adicionales
-      if (n.includes('ascensor de servicio')) return 'fa-dolly';
-      if (n.includes('sala de reuniones')) return 'fa-users';
-      if (n.includes('salón de eventos')) return 'fa-champagne-glasses';
-      if (n.includes('co-working') || n.includes('coworking')) return 'fa-laptop';
-      if (n.includes('lounge')) return 'fa-mug-saucer';
-      if (n.includes('lobby')) return 'fa-door-closed';
-      if (n.includes('recepción')) return 'fa-bell-concierge';
-
-      // Por defecto
-      return 'fa-circle-check';
+      if (n.includes('wifi') || n.includes('internet') || n.includes('fibra')) return 'wifi.webp';
+      if (n.includes('aire acondicionado') || n.includes('a/c') || n.includes('aac') || n.includes('chiller')) return 'air-conditioning.webp';
+      if (n.includes('ascensor') || n.includes('montacarga')) return 'elevator.webp';
+      if (n.includes('escalera')) return 'stairs-up.webp';
+      if (n.includes('parqueo') || n.includes('estacionamiento') || n.includes('cochera')) return 'parking.webp';
+      if (n.includes('bicicleta')) return 'bike.webp';
+      if (n.includes('piscina')) return 'building-community.webp';
+      if (n.includes('gym') || n.includes('gimnasio')) return 'barbell.webp';
+      if (n.includes('parque') || n.includes('jardín') || n.includes('área verde')) return 'trees.webp';
+      if (n.includes('seguridad') || n.includes('vigilancia') || n.includes('recepción')) return 'shield-check.webp';
+      if (n.includes('cámara') || n.includes('circuito') || n.includes('cctv')) return 'video.webp';
+      if (n.includes('generador') || n.includes('electrógeno') || n.includes('luz') || n.includes('electric')) return 'bolt.webp';
+      if (n.includes('agua') || n.includes('sprinkler') || n.includes('rociador')) return 'droplet.webp';
+      if (n.includes('cocina') || n.includes('comedor')) return 'tools-kitchen-2.webp';
+      if (n.includes('baño')) return 'bath.webp';
+      if (n.includes('sala de reunion') || n.includes('sum')) return 'users-group.webp';
+      if (n.includes('deposito') || n.includes('almacén')) return 'box.webp';
+      if (n.includes('vista')) return 'eye.webp';
+      if (n.includes('terraza') || n.includes('rooftop')) return 'building-skyscraper.webp';
+      if (n.includes('piso') || n.includes('porcelanato')) return 'square-half.webp';
+      if (n.includes('techo') || n.includes('falso techo')) return 'layout-board.webp';
+      if (n.includes('luminaria') || n.includes('iluminación')) return 'bulb.webp';
+      if (n.includes('mobiliario') || n.includes('amoblado')) return 'armchair.webp';
+      if (n.includes('ventana') || n.includes('roller')) return 'window.webp';
+      if (n.includes('tabique') || n.includes('mampara')) return 'layout-distribute-vertical.webp';
+      if (n.includes('cable') || n.includes('cableado')) return 'plug-connected.webp';
+      if (n.includes('local comercial')) return 'building-store.webp';
+      if (n.includes('cafeteria') || n.includes('coffee')) return 'coffee.webp';
+      if (n.includes('lounge') || n.includes('after office')) return 'glass-full.webp';
+      if (n.includes('lobby') || n.includes('puerta')) return 'home.webp';
+      if (n.includes('dormitorio') || n.includes('habitación')) return 'home.webp';
+      if (n.includes('closet') || n.includes('armario')) return 'box.webp';
+      if (n.includes('helipuerto')) return 'drone.webp';
+      if (n.includes('hotel')) return 'building.webp';
+      if (n.includes('restaurante') || n.includes('servicio')) return 'soup.webp';
+      if (n.includes('tren') || n.includes('transporte')) return 'train.webp';
+      if (n.includes('avenida') || n.includes('calle')) return 'road.webp';
+      if (n.includes('clínica') || n.includes('hospital')) return 'first-aid-kit.webp';
+      if (n.includes('data') || n.includes('servidor')) return 'server.webp';
+      return 'circle-check.webp';
     };
+    const pillIcon = (nombre, size = 16) => `<img src="assets/icons/amenidades/${getIconFile(nombre)}" width="${size}" height="${size}" alt="" style="vertical-align: middle;">`;
 
     if (item.tipo_input === 'checkbox') {
       const isActive = this.filtrosAdicionales.avanzado[categoria]?.[item.id] === true;
-      const icon = getIcon(item.nombre);
       const html = `
         <button
           type="button"
@@ -2467,7 +2426,7 @@ class ResultadosPage {
           aria-pressed="${isActive ? 'true' : 'false'}"
           title="${item.nombre}"
         >
-          <i class="fa-solid ${icon}"></i>
+          ${pillIcon(item.nombre)}
         </button>
       `;
       return html;
@@ -2475,10 +2434,9 @@ class ResultadosPage {
 
     if (item.tipo_input === 'number') {
       const value = this.filtrosAdicionales.avanzado[categoria]?.[item.id] || '';
-      const icon = getIcon(item.nombre);
       return `
         <div class="number-filter-compact" data-tooltip="${item.nombre} ${item.unidad ? `(${item.unidad})` : ''}">
-          <i class="fa-solid ${icon}"></i>
+          ${pillIcon(item.nombre)}
           <input
             type="number"
             class="form-control-compact"

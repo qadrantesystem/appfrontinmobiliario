@@ -921,41 +921,43 @@ class BusquedasTab {
     const categorias = data.categorias || [];
     console.log(`📦 ${categorias.length} categorías a renderizar`);
 
-    // Mapa de iconos por categoría (igual que resultados.js)
+    // Mapa de iconos WebP por categoría
     const iconMap = {
-      'Generales del Edificio': 'fa-building',
-      'Soporte del Edificio': 'fa-wrench',
-      'Áreas Comunes del Edificio': 'fa-swimming-pool',
-      'Ascensores': 'fa-elevator',
-      'De la Oficina': 'fa-toolbox',
-      'Equipamiento de Oficina': 'fa-cogs',
-      'Vista de la Oficina': 'fa-eye',
-      'Información de Áreas': 'fa-ruler-combined',
-      'Valorización Edificio': 'fa-dollar-sign',
-      'Soporte Urbano': 'fa-map-marker-alt',
-      'CARACTERISTICAS_CASA': 'fa-home',
-      'CARACTERISTICAS_DEPTO': 'fa-building',
-      'CARACTERISTICAS_TERRENO': 'fa-map',
-      'CARACTERISTICAS_LOCAL': 'fa-store',
-      'SERVICIOS': 'fa-wrench',
-      'SEGURIDAD': 'fa-shield-halved',
-      'TECNOLOGIA_CONECTIVIDAD': 'fa-wifi',
-      'SOSTENIBILIDAD': 'fa-leaf',
-      'ESPACIOS_PERSONALES': 'fa-door-open',
-      'COMPLEMENTARIOS': 'fa-box',
-      'OTROS': 'fa-circle-info'
+      'Generales del Edificio': 'building.webp',
+      'Soporte del Edificio': 'shield-check.webp',
+      'Áreas Comunes del Edificio': 'building-community.webp',
+      'Ascensores': 'elevator.webp',
+      'De la Oficina': 'file-description.webp',
+      'Equipamiento de Oficina': 'armchair.webp',
+      'Vista de la Oficina': 'eye.webp',
+      'Información de Áreas': 'ruler-2.webp',
+      'Valorización Edificio': 'currency-dollar.webp',
+      'Soporte Urbano': 'train.webp',
+      'Condición Comercial': 'cash.webp',
+      'CARACTERISTICAS_CASA': 'home.webp',
+      'CARACTERISTICAS_DEPTO': 'building.webp',
+      'CARACTERISTICAS_TERRENO': 'road.webp',
+      'CARACTERISTICAS_LOCAL': 'building-store.webp',
+      'SERVICIOS': 'bolt.webp',
+      'SEGURIDAD': 'shield-check.webp',
+      'TECNOLOGIA_CONECTIVIDAD': 'wifi.webp',
+      'SOSTENIBILIDAD': 'trees.webp',
+      'ESPACIOS_PERSONALES': 'home.webp',
+      'COMPLEMENTARIOS': 'box.webp',
+      'OTROS': 'file-description.webp'
     };
+    const catIcon = (file) => `<img src="assets/icons/amenidades/${file}" width="18" height="18" alt="" style="vertical-align: middle;">`;
 
     container.innerHTML = categorias.map(cat => {
       console.log(`📂 Categoría: ${cat.nombre}, ${cat.caracteristicas?.length || 0} características`);
 
-      const icon = iconMap[cat.nombre] || 'fa-circle-info';
+      const iconFile = iconMap[cat.nombre] || 'file-description.webp';
       const pillsHTML = cat.caracteristicas.map(c => this.renderCaracteristicaPill(c, cat.nombre)).join('');
 
       return `
         <div class="accordion-item-avanzado">
           <button class="accordion-header-avanzado" type="button" data-categoria="${cat.nombre}" aria-expanded="false">
-            <i class="fa-solid ${icon}"></i>
+            ${catIcon(iconFile)}
             <span>${cat.nombre}</span>
             <i class="fa-solid fa-chevron-down accordion-arrow"></i>
           </button>
@@ -975,58 +977,42 @@ class BusquedasTab {
    * Renderizar pill de característica con iconos (igual que resultados.js)
    */
   renderCaracteristicaPill(item, categoria) {
-    // Función para obtener icono basado en el nombre
-    const getIcon = (nombre) => {
+    // Función para obtener archivo WebP basado en el nombre
+    const getIconFile = (nombre) => {
       const n = nombre.toLowerCase();
-
-      // Conectividad y tecnología
-      if (n.includes('wifi') || n.includes('internet')) return 'fa-wifi';
-      if (n.includes('fibra') || n.includes('banda ancha')) return 'fa-network-wired';
-      if (n.includes('cable') || n.includes('tv')) return 'fa-tv';
-      if (n.includes('telefon')) return 'fa-phone';
-
-      // Seguridad
-      if (n.includes('alarma')) return 'fa-bell';
-      if (n.includes('cámara') || n.includes('video')) return 'fa-video';
-      if (n.includes('seguridad') || n.includes('vigilancia')) return 'fa-shield-halved';
-      if (n.includes('portero') || n.includes('portería')) return 'fa-user-shield';
-
-      // Vehículos y transporte
-      if (n.includes('parqueo') || n.includes('estacionamiento') || n.includes('cochera')) return 'fa-car';
-      if (n.includes('ascensor') && !n.includes('servicio')) return 'fa-elevator';
-      if (n.includes('ascensor de servicio')) return 'fa-dolly';
-
-      // Áreas comunes
-      if (n.includes('piscina')) return 'fa-person-swimming';
-      if (n.includes('gimnasio')) return 'fa-dumbbell';
-      if (n.includes('parque') || n.includes('jardín')) return 'fa-tree';
-      if (n.includes('juegos')) return 'fa-gamepad';
-      if (n.includes('parrilla') || n.includes('bbq')) return 'fa-fire-burner';
-
-      // Espacios interiores
-      if (n.includes('terraza')) return 'fa-building-flag';
-      if (n.includes('balcón')) return 'fa-border-all';
-      if (n.includes('cocina')) return 'fa-kitchen-set';
-      if (n.includes('baño')) return 'fa-toilet';
-      if (n.includes('closet') || n.includes('armario')) return 'fa-box-archive';
-      if (n.includes('sala')) return 'fa-couch';
-      if (n.includes('comedor')) return 'fa-utensils';
-      if (n.includes('dormitorio') || n.includes('habitación')) return 'fa-bed';
-
-      // Vistas
-      if (n.includes('vista')) return 'fa-eye';
-
-      // Servicios
-      if (n.includes('sala de reuniones')) return 'fa-users';
-      if (n.includes('lobby')) return 'fa-door-closed';
-      if (n.includes('recepción')) return 'fa-bell-concierge';
-
-      // Por defecto
-      return 'fa-circle-check';
+      if (n.includes('wifi') || n.includes('internet') || n.includes('fibra')) return 'wifi.webp';
+      if (n.includes('aire acondicionado') || n.includes('a/c') || n.includes('aac') || n.includes('chiller')) return 'air-conditioning.webp';
+      if (n.includes('ascensor') || n.includes('montacarga')) return 'elevator.webp';
+      if (n.includes('escalera')) return 'stairs-up.webp';
+      if (n.includes('parqueo') || n.includes('estacionamiento') || n.includes('cochera')) return 'parking.webp';
+      if (n.includes('bicicleta')) return 'bike.webp';
+      if (n.includes('piscina')) return 'building-community.webp';
+      if (n.includes('gym') || n.includes('gimnasio')) return 'barbell.webp';
+      if (n.includes('parque') || n.includes('jardín')) return 'trees.webp';
+      if (n.includes('seguridad') || n.includes('vigilancia') || n.includes('recepción')) return 'shield-check.webp';
+      if (n.includes('cámara') || n.includes('video') || n.includes('cctv')) return 'video.webp';
+      if (n.includes('generador') || n.includes('electrógeno')) return 'bolt.webp';
+      if (n.includes('sprinkler') || n.includes('rociador') || n.includes('agua')) return 'droplet.webp';
+      if (n.includes('cocina') || n.includes('comedor')) return 'tools-kitchen-2.webp';
+      if (n.includes('baño')) return 'bath.webp';
+      if (n.includes('sala de reunion') || n.includes('sum')) return 'users-group.webp';
+      if (n.includes('deposito')) return 'box.webp';
+      if (n.includes('vista')) return 'eye.webp';
+      if (n.includes('terraza') || n.includes('rooftop')) return 'building-skyscraper.webp';
+      if (n.includes('piso')) return 'square-half.webp';
+      if (n.includes('luminaria')) return 'bulb.webp';
+      if (n.includes('mobiliario')) return 'armchair.webp';
+      if (n.includes('roller') || n.includes('ventana')) return 'window.webp';
+      if (n.includes('tabique') || n.includes('mampara')) return 'layout-distribute-vertical.webp';
+      if (n.includes('cable') || n.includes('cableado')) return 'plug-connected.webp';
+      if (n.includes('dormitorio') || n.includes('habitación')) return 'home.webp';
+      if (n.includes('lobby')) return 'home.webp';
+      if (n.includes('helipuerto')) return 'drone.webp';
+      return 'circle-check.webp';
     };
+    const pillImg = (nombre) => `<img src="assets/icons/amenidades/${getIconFile(nombre)}" width="16" height="16" alt="" style="vertical-align: middle;">`;
 
     if (item.tipo_input === 'checkbox') {
-      const icon = getIcon(item.nombre);
       return `
         <button
           type="button"
@@ -1038,16 +1024,15 @@ class BusquedasTab {
           aria-pressed="false"
           title="${item.nombre}"
         >
-          <i class="fa-solid ${icon}"></i>
+          ${pillImg(item.nombre)}
         </button>
       `;
     }
 
     if (item.tipo_input === 'number') {
-      const icon = getIcon(item.nombre);
       return `
         <div class="number-filter-compact" data-tooltip="${item.nombre} ${item.unidad ? `(${item.unidad})` : ''}">
-          <i class="fa-solid ${icon}"></i>
+          ${pillImg(item.nombre)}
           <input
             type="number"
             class="form-control-compact"
