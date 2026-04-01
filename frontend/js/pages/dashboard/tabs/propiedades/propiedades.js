@@ -553,19 +553,14 @@ class PropiedadesTab {
 
             <!-- Fila 6: Corredor asignado (admin y corredor) -->
             ${(this.app.currentUser?.perfil_id === 4 || this.app.currentUser?.perfil_id === 3) && prop.corredor_nombre ? `
-              <div style="margin-top: 6px; padding: 6px 10px; background: white; border: 1.5px solid var(--azul-corporativo, #0f4761); border-radius: 6px; display: flex; align-items: center; gap: 8px; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
-                  <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--azul-corporativo, #0f4761), var(--azul-medio, #4f78a1)); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 700; flex-shrink: 0;">
-                    ${prop.corredor_nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-                  </div>
-                  <div style="min-width: 0;">
-                    <div style="font-size: 0.6rem; color: var(--azul-medio, #4f78a1); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Corredor asignado</div>
-                    <div style="font-size: 0.75rem; color: var(--azul-corporativo, #0f4761); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${prop.corredor_nombre}${prop.comision_corredor ? ` · ${prop.comision_corredor}%` : ''}</div>
-                  </div>
-                </div>
+              <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: white; border: 1.5px solid var(--azul-corporativo, #0f4761); border-radius: 20px; font-size: 0.7rem; color: var(--azul-corporativo, #0f4761); font-weight: 600;">
+                  <i class="fas fa-user-tie" style="font-size: 0.6rem;"></i>
+                  ${prop.corredor_nombre}${prop.comision_corredor ? ` · ${prop.comision_corredor}%` : ''}
+                </span>
                 ${this.app.currentUser?.perfil_id === 4 ? `
-                  <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}" style="font-size: 0.6rem; padding: 3px 8px; white-space: nowrap;">
-                    <i class="fas fa-exchange-alt"></i> Reasignar
+                  <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}" style="font-size: 0.6rem; padding: 2px 6px;">
+                    <i class="fas fa-exchange-alt"></i>
                   </button>
                 ` : ''}
               </div>
