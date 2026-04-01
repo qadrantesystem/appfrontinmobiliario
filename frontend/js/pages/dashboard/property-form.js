@@ -2291,7 +2291,10 @@ class PropertyForm {
                     const isBoolean = tipoInput === 'checkbox' || tipoInput === 'boolean';
                     const caracId = carac.caracteristica_id || carac.id;
                     const caracNombre = carac.nombre || '';
-                    const caracIcono = carac.icono || '📋';
+                    const caracIconoFile = carac.icono || null;
+                    const caracIcono = caracIconoFile
+                      ? `<img src="assets/icons/amenidades/${caracIconoFile}" width="16" height="16" alt="" style="vertical-align: middle; opacity: 0.8;">`
+                      : '📋';
 
                     // ✅ PRE-POBLAR con valor existente (modo edición)
                     const caracExistente = this.formData.caracteristicas?.find(c =>
@@ -2321,26 +2324,43 @@ class PropertyForm {
 
   getGrupoIcon(grupoNombre) {
     const nombre = grupoNombre.toLowerCase();
+    const iconMap = {
+      'areas comunes': 'building-community.webp',
+      'áreas comunes': 'building-community.webp',
+      'ascensor': 'elevator.webp',
+      'equipamiento': 'armchair.webp',
+      'vista': 'eye.webp',
+      'informacion de area': 'ruler-2.webp',
+      'información de área': 'ruler-2.webp',
+      'valorizacion': 'currency-dollar.webp',
+      'valorización': 'currency-dollar.webp',
+      'soporte urbano': 'train.webp',
+      'cercania': 'train.webp',
+      'cercanía': 'train.webp',
+      'soporte': 'shield-check.webp',
+      'seguridad': 'shield-check.webp',
+      'servicio': 'bolt.webp',
+      'acabado': 'square-half.webp',
+      'cocina': 'tools-kitchen-2.webp',
+      'baño': 'bath.webp',
+      'bano': 'bath.webp',
+      'parqueo': 'parking.webp',
+      'estacionamiento': 'parking.webp',
+      'edificio': 'building.webp',
+      'generales': 'building.webp',
+      'oficina': 'file-description.webp',
+      'implementacion': 'bulb.webp',
+      'implementación': 'bulb.webp',
+      'amenidad': 'barbell.webp',
+      'recreacion': 'barbell.webp',
+    };
 
-    if (nombre.includes('areas comunes') || nombre.includes('áreas comunes')) return '🏊';
-    if (nombre.includes('ascensor')) return '🛗';
-    if (nombre.includes('equipamiento')) return '⚙️';
-    if (nombre.includes('vista')) return '👁️';
-    if (nombre.includes('informacion de area') || nombre.includes('información de área')) return '📐';
-    if (nombre.includes('valorizacion') || nombre.includes('valorización')) return '💰';
-    if (nombre.includes('soporte urbano') || nombre.includes('cercania') || nombre.includes('cercanía')) return '📍';
-    if (nombre.includes('soporte')) return '🛡️';
-    if (nombre.includes('seguridad')) return '🔒';
-    if (nombre.includes('servicio')) return '⚡';
-    if (nombre.includes('acabado')) return '✨';
-    if (nombre.includes('cocina')) return '🍳';
-    if (nombre.includes('baño') || nombre.includes('bano')) return '🚿';
-    if (nombre.includes('parqueo') || nombre.includes('estacionamiento')) return '🚗';
-    if (nombre.includes('edificio') || nombre.includes('generales')) return '🏢';
-    if (nombre.includes('oficina')) return '📋';
-    if (nombre.includes('amenidad') || nombre.includes('recreacion')) return '🎯';
-
-    return '📋';
+    for (const [key, file] of Object.entries(iconMap)) {
+      if (nombre.includes(key)) {
+        return `<img src="assets/icons/amenidades/${file}" width="20" height="20" alt="" style="vertical-align: middle;">`;
+      }
+    }
+    return `<img src="assets/icons/amenidades/building.webp" width="20" height="20" alt="" style="vertical-align: middle;">`;
   }
 
   renderInput(id, label, type, required, placeholder, attrs = {}) {
