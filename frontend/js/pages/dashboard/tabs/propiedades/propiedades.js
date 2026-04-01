@@ -551,18 +551,13 @@ class PropiedadesTab {
               </div>
             ` : ''}
 
-            <!-- Fila 6: Corredor asignado (admin y corredor) -->
+            <!-- Fila 6: Corredor asignado -->
             ${(this.app.currentUser?.perfil_id === 4 || this.app.currentUser?.perfil_id === 3) && prop.corredor_nombre ? `
-              <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <div style="margin-top: 4px;">
                 <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: white; border: 1.5px solid var(--azul-corporativo, #0f4761); border-radius: 20px; font-size: 0.7rem; color: var(--azul-corporativo, #0f4761); font-weight: 600;">
                   <i class="fas fa-user-tie" style="font-size: 0.6rem;"></i>
                   ${prop.corredor_nombre}${prop.comision_corredor ? ` · ${prop.comision_corredor}%` : ''}
                 </span>
-                ${this.app.currentUser?.perfil_id === 4 ? `
-                  <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}" style="font-size: 0.6rem; padding: 2px 6px;">
-                    <i class="fas fa-exchange-alt"></i>
-                  </button>
-                ` : ''}
               </div>
             ` : ''}
 
@@ -576,8 +571,8 @@ class PropiedadesTab {
               ${prop.estado === 'borrador' && this.app.currentUser?.perfil_id === 4 ? `
                 <button class="btn-admin" data-publish-property="${prop.registro_cab_id}">Publicar</button>
               ` : ''}
-              ${this.app.currentUser?.perfil_id === 4 && !prop.corredor_nombre ? `
-                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}"><i class="fas fa-user-tie"></i> Asignar</button>
+              ${this.app.currentUser?.perfil_id === 4 ? `
+                <button class="btn-admin" data-assign-broker="${prop.registro_cab_id}"><i class="fas fa-user-tie"></i> ${prop.corredor_nombre ? 'Reasignar' : 'Asignar'}</button>
               ` : ''}
               ${(this.app.currentUser?.perfil_id === 3 || this.app.currentUser?.perfil_id === 4) ? `
                 <select class="select-crm-estado" data-crm-property="${prop.registro_cab_id}"
