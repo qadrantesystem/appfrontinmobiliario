@@ -713,10 +713,15 @@ class ResultadosPage {
         }
       }
 
-      // Filtro por tipo de inmueble - Comparar por NOMBRE
+      // Filtro por tipo de inmueble - Comparar por ID (los individuales traen tipo_inmueble_id, no el nombre)
       if (this.filtrosSimplificados.tipo_inmueble_id) {
-        const tipoNombre = this.tiposInmuebles.find(t => t.id === this.filtrosSimplificados.tipo_inmueble_id)?.nombre;
-        if (tipoNombre && prop.tipo_inmueble !== tipoNombre) {
+        const tid = parseInt(this.filtrosSimplificados.tipo_inmueble_id);
+        const propTipoId = prop.tipo_inmueble_id != null ? parseInt(prop.tipo_inmueble_id) : null;
+        const tipoNombre = this.tiposInmuebles.find(t => t.id === tid)?.nombre;
+        const coincide = propTipoId !== null
+          ? propTipoId === tid
+          : (prop.tipo_inmueble ? prop.tipo_inmueble === tipoNombre : true);
+        if (!coincide) {
           return false;
         }
       }
