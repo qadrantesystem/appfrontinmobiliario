@@ -11,49 +11,51 @@ class SearchService {
    */
   async buscarPropiedades(filters) {
     try {
-      // Para modo invitado, usamos endpoint público
-      const queryParams = new URLSearchParams();
-      
-      // Agregar filtros a la query
-      if (filters.tipo_inmueble_id) {
-        queryParams.append('tipo_inmueble_id', filters.tipo_inmueble_id);
-      }
-      if (filters.transaccion) {
-        queryParams.append('transaccion', filters.transaccion);
-      }
-      if (filters.area) {
-        queryParams.append('area_min', filters.area);
-      }
-      if (filters.presupuesto_compra) {
-        queryParams.append('presupuesto_max', filters.presupuesto_compra);
-      }
-      if (filters.presupuesto_alquiler) {
-        queryParams.append('alquiler_max', filters.presupuesto_alquiler);
-      }
-      if (filters.distritos_ids && filters.distritos_ids.length > 0) {
-        queryParams.append('distritos_ids', filters.distritos_ids.join(','));
-      }
-      
-      const url = `${API_CONFIG.BASE_URL}/propiedades/public-search?${queryParams.toString()}`;
-      
+      // Modo invitado: endpoint público real con búsqueda inteligente (individuales + combinaciones)
+      const distritoIds = Array.isArray(filters.distritos_ids)
+        ? filters.distritos_ids.map(Number).filter(n => !isNaN(n))
+        : [];
+
+      const precio = filters.transaccion === 'alquiler'
+        ? filters.presupuesto_alquiler
+        : filters.presupuesto_compra;
+
+      const body = {
+        filtros_genericos: {
+          tipo_inmueble_id: filters.tipo_inmueble_id ? Number(filters.tipo_inmueble_id) : null,
+          distrito_ids: distritoIds,
+          transaccion: filters.transaccion || null
+        },
+        filtros_basicos: {
+          area: filters.area ? Number(filters.area) : null,
+          precio: precio ? Number(precio) : null
+        },
+        incluir_combinaciones: true,
+        page: 1,
+        limit: 24
+      };
+
+      const url = `${API_CONFIG.BASE_URL}/propiedades/buscar-avanzada-publica`;
+
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify(body)
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
 
       return data.data || [];
     } catch (error) {
       console.error('❌ Error buscando propiedades:', error);
-      // En caso de error, retornar datos de ejemplo para modo invitado
-      return this.getExampleProperties();
+      // No devolver datos de ejemplo: mostrar vacío para no enmascarar errores
+      return [];
     }
   }
 
