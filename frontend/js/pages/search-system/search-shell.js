@@ -206,7 +206,6 @@ class SearchShell {
 
   updatePills() {
     const f = this.app.state.filters || {};
-    const tipos = { 1: 'Casa', 2: 'Departamento', 3: 'Oficina', 4: 'Local', 5: 'Terreno' };
 
     // Ubicación
     const ubEl = this.el.pills?.querySelector('[data-qs-pill-value="ubicacion"]');
@@ -218,11 +217,11 @@ class SearchShell {
       ubEl.textContent = txt;
     }
 
-    // Tipo
+    // Tipo: prioriza el nombre REAL de la opción seleccionada en el modal
     const tipoEl = this.el.pills?.querySelector('[data-qs-pill-value="tipo"]');
     if (tipoEl) {
       tipoEl.textContent = f.tipo_inmueble_id
-        ? (tipos[f.tipo_inmueble_id] || 'Tipo Inmueble')
+        ? this.getTipoInmuebleLabel(f.tipo_inmueble_id)
         : 'Tipo Inmueble';
     }
 
@@ -231,6 +230,27 @@ class SearchShell {
     if (areaEl) {
       areaEl.textContent = f.area ? `${f.area} m²` : 'Área';
     }
+  }
+
+  /**
+   * Nombre del tipo de inmueble para el pill.
+   * 1) Texto real de la opción seleccionada del modal de filtros (existe en el
+   *    DOM aunque esté cerrado). 2) Mapa estático alineado con
+   *    SearchFilters.FALLBACK_TIPOS (no se crea ningún caché global nuevo).
+   */
+  getTipoInmuebleLabel(id) {
+    try {
+      const txt = document
+        .querySelector('select[data-qs="tipo_inmueble_id"] option:checked')
+        ?.textContent?.trim();
+      if (txt && txt.toLowerCase() !== 'todos') return txt;
+    } catch (e) { /* silencioso: caemos al mapa estático */ }
+
+    const tipos = {
+      1: 'Oficina en Edificio', 2: 'Oficina', 3: 'Local Comercial',
+      4: 'Edificio', 5: 'Depósito', 6: 'Terreno'
+    };
+    return tipos[Number(id)] || 'Tipo Inmueble';
   }
 
   updateFiltersBadge() {

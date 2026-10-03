@@ -155,8 +155,8 @@ class SearchFilters {
     `;
 
     this.el = this.container.querySelector('.qs-f-sheet');
-    this.renderDistritoChips();
     this.renderDistritoList();
+    this.updateDistritoSummary();
     this.refreshTransaccion();
     this.updateApplyCount();
   }
@@ -202,13 +202,20 @@ class SearchFilters {
       <div class="qs-f-section">
         <div class="qs-f-field">
           <label>Distrito(s)</label>
-          <div class="qs-f-chips" data-qs-dist-chips></div>
-          <div class="qs-f-combo">
-            <div class="qs-f-combo-input">
+          <button type="button" class="qs-f-dist-trigger" data-qs-dist-trigger aria-haspopup="listbox" aria-expanded="false">
+            <span class="qs-f-dist-summary" data-qs-dist-summary>Selecciona distritos...</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <div class="qs-f-dist-panel" data-qs-dist-panel hidden>
+            <div class="qs-f-dist-search">
               <i class="fa-solid fa-magnifying-glass"></i>
               <input type="text" data-qs-dist-search placeholder="Buscar distrito..." autocomplete="off">
             </div>
-            <div class="qs-f-combo-list" data-qs-dist-list></div>
+            <div class="qs-f-dist-options" data-qs-dist-list role="listbox" aria-multiselectable="true"></div>
+            <div class="qs-f-dist-actions">
+              <button type="button" class="qs-f-dist-all" data-qs-dist-all>Seleccionar todos</button>
+              <button type="button" class="qs-f-dist-clear" data-qs-dist-clear>Limpiar</button>
+            </div>
           </div>
         </div>
 
@@ -447,59 +454,97 @@ class SearchFilters {
 
   /* ============================ DISTRITOS =============================== */
 
-  renderDistritoChips() {
-    const box = this.container.querySelector('[data-qs-dist-chips]');
-    if (!box) return;
-
-    box.innerHTML = [...this.selectedDistritos].map(id => {
-      const d = this.distritos.find(x => String(x.id) === String(id));
-      if (!d) return '';
-      return `
-        <span class="qs-f-chip">
-          ${d.nombre}
-          <button type="button" data-qs-chip-remove="${d.id}" aria-label="Quitar">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </span>
-      `;
-    }).join('');
+  /** Distritos ordenados alfabéticamente (localeCompare 'es'). */
+  getDistritosOrdenados() {
+    return [...this.distritos].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
   }
 
+  /** Distritos visibles según el término de búsqueda actual. */
+  getDistritosVisibles() {
+    const term = (this._distSearch || '').toLowerCase().trim();
+    const ordenados = this.getDistritosOrdenados();
+    return term
+      ? ordenados.filter(d => d.nombre.toLowerCase().includes(term))
+      : ordenados;
+  }
+
+  /** Renderiza la lista de opciones (checkboxes) del dropdown de distritos. */
   renderDistritoList() {
     const list = this.container.querySelector('[data-qs-dist-list]');
     if (!list) return;
 
-    const term = (this._distSearch || '').toLowerCase().trim();
-    const items = this.distritos.filter(d =>
-      !term || d.nombre.toLowerCase().includes(term)
-    );
-
+    const items = this.getDistritosVisibles();
     if (!items.length) {
-      list.innerHTML = `<div class="qs-f-combo-empty">Sin coincidencias</div>`;
+      list.innerHTML = `<div class="qs-f-dist-empty">Sin coincidencias</div>`;
       return;
     }
 
     list.innerHTML = items.map(d => {
       const selected = this.selectedDistritos.has(String(d.id));
       return `
-        <button type="button" class="qs-f-combo-item ${selected ? 'selected' : ''}"
-          data-qs-dist-item="${d.id}">
+        <label class="qs-f-dist-option">
+          <input type="checkbox" data-qs-dist-item="${d.id}" ${selected ? 'checked' : ''}>
           <span>${d.nombre}</span>
-          <i class="fa-solid fa-check qs-f-combo-check"></i>
-        </button>
+        </label>
       `;
     }).join('');
   }
 
-  toggleDistrito(id) {
-    const key = String(id);
-    if (this.selectedDistritos.has(key)) {
-      this.selectedDistritos.delete(key);
+  /** Actualiza el texto resumen del trigger (patrón del Home). */
+  updateDistritoSummary() {
+    const el = this.container?.querySelector('[data-qs-dist-summary]');
+    if (!el) return;
+
+    const nombres = [...this.selectedDistritos].map(id => {
+      const d = this.distritos.find(x => String(x.id) === String(id));
+      return d ? d.nombre : '';
+    }).filter(Boolean);
+
+    if (!nombres.length) {
+      el.textContent = 'Selecciona distritos...';
+    } else if (nombres.length <= 2) {
+      el.textContent = nombres.join(', ');
     } else {
-      this.selectedDistritos.add(key);
+      el.textContent = `${nombres[0]}, ${nombres[1]} +${nombres.length - 2}`;
     }
-    this.renderDistritoChips();
+  }
+
+  /** Abre/cierra el panel del dropdown de distritos. */
+  toggleDistritoPanel(force) {
+    const panel = this.container?.querySelector('[data-qs-dist-panel]');
+    const trigger = this.container?.querySelector('[data-qs-dist-trigger]');
+    if (!panel || !trigger) return;
+
+    const abrir = typeof force === 'boolean' ? force : panel.hidden;
+    panel.hidden = !abrir;
+    trigger.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+
+    if (abrir) {
+      panel.scrollIntoView({ block: 'nearest' });
+      panel.querySelector('[data-qs-dist-search]')?.focus();
+    }
+  }
+
+  /** Cierra el panel de distritos (sin tocar el modal). */
+  closeDistritoPanel() {
+    const panel = this.container?.querySelector('[data-qs-dist-panel]');
+    const trigger = this.container?.querySelector('[data-qs-dist-trigger]');
+    if (panel) panel.hidden = true;
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+
+  /** Marca todos los distritos filtrados/visibles. */
+  selectAllDistritosVisibles() {
+    this.getDistritosVisibles().forEach(d => this.selectedDistritos.add(String(d.id)));
     this.renderDistritoList();
+    this.updateDistritoSummary();
+  }
+
+  /** Vacía la selección de distritos. */
+  clearDistritos() {
+    this.selectedDistritos.clear();
+    this.renderDistritoList();
+    this.updateDistritoSummary();
   }
 
   refreshTransaccion() {
@@ -568,17 +613,22 @@ class SearchFilters {
         return;
       }
 
-      // Distrito: seleccionar / quitar chip
-      const item = e.target.closest('[data-qs-dist-item]');
-      if (item) {
+      // Distrito(s): abrir/cerrar dropdown
+      if (e.target.closest('[data-qs-dist-trigger]')) {
         e.preventDefault();
-        this.toggleDistrito(item.dataset.qsDistItem);
+        this.toggleDistritoPanel();
         return;
       }
-      const chip = e.target.closest('[data-qs-chip-remove]');
-      if (chip) {
+
+      // Distrito(s): seleccionar todos / limpiar
+      if (e.target.closest('[data-qs-dist-all]')) {
         e.preventDefault();
-        this.toggleDistrito(chip.dataset.qsChipRemove);
+        this.selectAllDistritosVisibles();
+        return;
+      }
+      if (e.target.closest('[data-qs-dist-clear]')) {
+        e.preventDefault();
+        this.clearDistritos();
         return;
       }
 
@@ -597,16 +647,27 @@ class SearchFilters {
       }
     });
 
-    // Buscador de distritos
+    // Buscador de distritos (conserva la posición del scroll de la lista)
     this.container.addEventListener('input', (e) => {
       if (e.target.matches('[data-qs-dist-search]')) {
         this._distSearch = e.target.value;
+        const prevScroll = this.container.querySelector('[data-qs-dist-list]')?.scrollTop || 0;
         this.renderDistritoList();
+        const list = this.container.querySelector('[data-qs-dist-list]');
+        if (list) list.scrollTop = prevScroll;
       }
     });
 
-    // Multi-select de distritos (Básico)
+    // Multi-select de distritos (Generales + Básico)
     this.container.addEventListener('change', (e) => {
+      if (e.target.matches('[data-qs-dist-item]')) {
+        const id = String(e.target.dataset.qsDistItem);
+        if (e.target.checked) this.selectedDistritos.add(id);
+        else this.selectedDistritos.delete(id);
+        this.updateDistritoSummary();
+        return;
+      }
+
       const cerca = e.target.matches('[data-qs-cerca]');
       if (cerca) {
         const id = String(e.target.dataset.qsCerca);
@@ -615,11 +676,24 @@ class SearchFilters {
       }
     });
 
-    // Cerrar con Escape
+    // Click fuera del campo de distritos cierra el dropdown
+    this._onDocClick = (e) => {
+      const panel = this.container.querySelector('[data-qs-dist-panel]');
+      if (!panel || panel.hidden) return;
+      const field = panel.closest('.qs-f-field');
+      if (field && !field.contains(e.target)) this.closeDistritoPanel();
+    };
+    document.addEventListener('click', this._onDocClick);
+
+    // Cerrar con Escape (primero el dropdown, luego el modal)
     this._onKeydown = (e) => {
-      if (e.key === 'Escape' && this.container.classList.contains('qs-f-open')) {
-        this.close();
+      if (e.key !== 'Escape' || !this.container.classList.contains('qs-f-open')) return;
+      const panel = this.container.querySelector('[data-qs-dist-panel]');
+      if (panel && !panel.hidden) {
+        this.closeDistritoPanel();
+        return;
       }
+      this.close();
     };
     document.addEventListener('keydown', this._onKeydown);
   }
@@ -669,8 +743,8 @@ class SearchFilters {
       this.container.querySelectorAll('select').forEach(s => { s.value = ''; });
     }
 
-    this.renderDistritoChips();
     this.renderDistritoList();
+    this.updateDistritoSummary();
     this.refreshTransaccion();
 
     const app = this.app || {};
@@ -764,14 +838,20 @@ class SearchFilters {
     this.transaccion = f.transaccion || '';
     this.refreshTransaccion();
 
+    // Acepta distritos_ids, distritos o distrito (array o valor único, ids u objetos)
+    const rawDistritos = f.distritos_ids ?? f.distritos ?? f.distrito ?? [];
+    const asArray = Array.isArray(rawDistritos) ? rawDistritos : [rawDistritos];
     this.selectedDistritos = new Set(
-      (f.distritos_ids || []).map(String)
+      asArray
+        .map(x => (x && typeof x === 'object') ? (x.id ?? x.distrito_id) : x)
+        .filter(x => x != null)
+        .map(String)
     );
     this.selectedDistritosCerca = new Set(
       (f.distritos_cerca || []).map(String)
     );
-    this.renderDistritoChips();
     this.renderDistritoList();
+    this.updateDistritoSummary();
 
     this.container.querySelectorAll('[data-qs-cerca]').forEach(cb => {
       cb.checked = this.selectedDistritosCerca.has(String(cb.dataset.qsCerca));

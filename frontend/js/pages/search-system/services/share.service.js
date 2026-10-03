@@ -699,6 +699,22 @@ Equipo Qadrante`;
   }
 
   /**
+   * Etiqueta de transacción de una propiedad: 'Alquiler' | 'Venta'.
+   * Usa la transacción real de cada propiedad (prop.transaccion) y, si no
+   * viene, la de los filtros (mismo criterio que generarResumenBusqueda /
+   * formatPrecio). Normaliza mayúsculas/espacios.
+   */
+  getTransaccionLabel(prop = {}) {
+    const fg = this.filters.filtros_genericos || {};
+    const raw = prop.transaccion
+      || this.filters.transaccion
+      || this.filters.operacion
+      || fg.transaccion
+      || '';
+    return String(raw).toLowerCase().trim() === 'alquiler' ? 'Alquiler' : 'Venta';
+  }
+
+  /**
    * Generar tabla HTML para mostrar en modal
    */
   generarTablaResumen(properties) {
@@ -707,7 +723,7 @@ Equipo Qadrante`;
     properties.forEach((prop, index) => {
       const esCombinacion = prop.tipo === 'combinacion';
       const distrito = prop.distrito || 'N/A';
-      const transaccion = (prop.transaccion || this.filters.transaccion || this.filters.operacion) === 'alquiler' ? 'Alquiler' : 'Venta';
+      const transaccion = this.getTransaccionLabel(prop);
 
       if (esCombinacion) {
         // Fila principal de la combinación (verde)
@@ -778,7 +794,7 @@ Equipo Qadrante`;
     properties.forEach((prop, index) => {
       const esCombinacion = prop.tipo === 'combinacion';
       const distrito = prop.distrito || 'N/A';
-      const transaccion = (prop.transaccion || this.filters.transaccion || this.filters.operacion) === 'alquiler' ? 'Alquiler' : 'Venta';
+      const transaccion = this.getTransaccionLabel(prop);
       const precio = this.formatPrecio(prop);
 
       if (esCombinacion) {
