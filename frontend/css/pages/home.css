@@ -44,12 +44,13 @@ body.home .container {
   min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
 }
 .home .brand { display: flex; align-items: center; gap: 14px; text-decoration: none; }
-.home .logo-img { height: 40px; width: auto; }
+.home .logo-img { height: 56px; width: auto; }
 .home .brand__tag {
-  color: rgba(255,255,255,.9); font-size: 11px; line-height: 1.05; font-weight: 500;
-  border-left: 2px solid rgba(255,255,255,.6); padding-left: 12px; letter-spacing: .2px;
+  color: rgba(255,255,255,.9); font-size: 11px; line-height: 1.12; font-weight: 500;
+  border-left: 1px solid rgba(255,255,255,.5); padding-left: 14px; letter-spacing: .3px;
 }
 .home .header__nav { margin-left: auto; }
+.home .nav-login-item { display: none; }
 .home .nav-menu { display: flex; align-items: center; gap: 26px; list-style: none; margin: 0; padding: 0; }
 .home .nav-menu a {
   color: var(--q-white); text-decoration: none; font-weight: 500; font-size: 15px;
@@ -62,8 +63,8 @@ body.home .container {
   align-items: center; gap: 8px; text-decoration: none; white-space: nowrap;
 }
 .home .btn-login:hover { background: var(--q-orange-dark); }
-.home .hamburger { display: none; background: none; border: 0; }
-.home .hamburger span { display: block; width: 24px; height: 2px; background: #fff; margin: 5px 0; transition: var(--transition); }
+.home .hamburger { display: none; background: none; border: 0; padding: 8px; cursor: pointer; }
+.home .hamburger span { display: block; width: 30px; height: 3px; background: #fff; margin: 6px 0; border-radius: 2px; transition: var(--transition); }
 
 /* ---------------- Hero ---------------- */
 .home .hero { position: relative; min-height: 620px; display: flex; align-items: center; overflow: hidden; }
@@ -260,20 +261,24 @@ body.home .container {
 
 /* ---------------- Responsive ---------------- */
 @media (max-width: 1024px) {
-  .home .header__nav { display: none; }
   .home .hamburger { display: block; margin-left: auto; }
   .home .btn-login { display: none; }
+  .home .header__nav { margin-left: 0; }
   .home .nav-menu {
-    position: absolute; top: 100%; right: 16px; left: 16px; background: var(--q-primary-dark);
-    flex-direction: column; align-items: flex-start; gap: 0; padding: 8px; border-radius: 10px;
+    position: absolute; top: 100%; right: 12px; left: 12px; background: var(--q-primary-dark);
+    flex-direction: column; align-items: stretch; gap: 0; padding: 8px; border-radius: 12px;
     box-shadow: var(--shadow-md); display: none;
   }
   .home .nav-menu.active { display: flex; }
-  .home .nav-menu a { display: block; width: 100%; padding: 12px 14px; border-radius: 8px; }
-  .home .nav-menu a:hover { background: rgba(255,255,255,.08); border-bottom-color: transparent; }
-  .home .hamburger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .home .nav-menu li { width: 100%; }
+  .home .nav-menu a { display: block; width: 100%; padding: 13px 14px; border-radius: 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .home .nav-menu li:last-child a { border-bottom: 0; }
+  .home .nav-menu a:hover, .home .nav-menu a.active { background: rgba(255,255,255,.08); border-bottom-color: rgba(255,255,255,.06); }
+  .home .nav-login-item { display: block; margin-top: 8px; }
+  .home .nav-login { background: var(--q-orange) !important; color: #fff !important; text-align: center; font-weight: 600; border-bottom: 0 !important; }
+  .home .hamburger.active span:nth-child(1) { transform: translateY(9px) rotate(45deg); }
   .home .hamburger.active span:nth-child(2) { opacity: 0; }
-  .home .hamburger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .home .hamburger.active span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
 
   .home .hero__search-row { flex-direction: column; align-items: stretch; }
   .home .hero__audiences { flex-wrap: wrap; gap: 22px; }
@@ -289,6 +294,7 @@ body.home .container {
 
 @media (max-width: 640px) {
   .home .container { width: calc(100% - 32px); }
+  .home .logo-img { height: 46px; }
   .home .hero { min-height: 0; }
   .home .hero__inner { padding-block: 40px; }
   .home .hero__title { font-size: 38px; }
