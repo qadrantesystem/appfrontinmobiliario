@@ -37,11 +37,12 @@ body.home .container {
   position: sticky; top: 0; z-index: 100;
   background: var(--q-primary);
   color: var(--q-white);
+  padding: 0;
   transition: box-shadow var(--transition);
 }
 .home .header--scrolled { box-shadow: var(--shadow-md); }
 .home .header__inner {
-  min-height: 84px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  min-height: 84px; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 0;
 }
 .home .brand { display: flex; align-items: center; gap: 14px; text-decoration: none; }
 .home .logo-img { height: 65px; width: auto; }
@@ -150,7 +151,7 @@ body.home .container {
 .home .value-item p { color: var(--q-text-secondary); font-size: 14px; margin: 0; }
 
 /* ---------------- Secciones ---------------- */
-.home .section { padding-block: 72px; background: var(--q-bg); }
+.home .section { padding-block: 56px; background: var(--q-bg); }
 .home .section-title {
   position: relative; color: var(--q-text); font-size: 30px; font-weight: 700;
   margin: 0 0 28px; padding-top: 16px;
@@ -188,7 +189,7 @@ body.home .container {
 .home .opportunities { background: var(--q-white); }
 .home .opportunities__grid {
   display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 32px; align-items: center;
-  padding-block: 72px;
+  padding-block: 56px;
 }
 .home .eyebrow { color: var(--q-secondary); font-size: 12px; font-weight: 700; letter-spacing: 1.5px; }
 .home .opportunities__text h2 { color: var(--q-text); font-size: 34px; line-height: 1.1; font-weight: 800; margin: 10px 0 14px; }
@@ -213,7 +214,7 @@ body.home .container {
 
 /* ---------------- CTA / Contacto ---------------- */
 .home .cta { background: linear-gradient(135deg, var(--q-primary-deep), var(--q-primary)); color: #fff; }
-.home .cta__grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; align-items: center; padding-block: 64px; }
+.home .cta__grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; align-items: center; padding-block: 48px; }
 .home .cta__text h2 { font-size: 32px; font-weight: 800; margin: 0 0 10px; color: #fff; }
 .home .cta__text p { color: #cfe0e7; margin: 0; }
 .home .cta__form { display: flex; flex-direction: column; gap: 12px; }
@@ -229,7 +230,7 @@ body.home .container {
 /* ---------------- Footer ---------------- */
 .home .footer { background: var(--q-primary-deep); color: #cfe0e7; }
 .home .footer-grid {
-  display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr; gap: 40px; padding-block: 56px;
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr; gap: 40px; padding-block: 44px;
 }
 .home .footer-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .home .brand__tag--footer { color: rgba(255,255,255,.85); border-left-color: rgba(255,255,255,.5); }
