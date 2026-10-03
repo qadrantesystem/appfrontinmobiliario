@@ -126,6 +126,11 @@ body.home .container {
   border: 0; background: transparent; font-size: 15px; color: var(--q-text);
   padding: 10px 8px; border-right: 1px solid var(--q-border); cursor: pointer;
 }
+.home .hero-search-bar .hero-input {
+  border: 0; background: transparent; font-size: 15px; color: var(--q-text);
+  padding: 10px 8px; border-right: 1px solid var(--q-border); width: 100%; min-width: 0; outline: none;
+}
+.home .hero-search-bar .hero-input::placeholder { color: var(--q-text-secondary); }
 .home .hero-search-bar .btn-buscar-hero {
   border: 0; background: var(--q-orange); color: #fff; border-radius: 8px; min-height: 44px;
   padding: 0 20px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
