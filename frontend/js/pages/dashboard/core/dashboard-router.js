@@ -198,7 +198,17 @@ class DashboardRouter {
    * Cargar tab Búsquedas (usa módulos existentes)
    */
   async loadBusquedasTab() {
-    // Usar el nuevo BusquedasTab para todos los perfiles
+    // Nuevo módulo de búsqueda (rediseño), reutilizado del público
+    if (window.SearchSystemMain) {
+      this.currentModule = {
+        render: () => this._searchDesignHtml(),
+        afterRender: () => this._initSearchDesign(),
+        destroy: () => this._destroySearchDesign()
+      };
+      return this.currentModule.render();
+    }
+
+    // Fallback: tab de búsquedas anterior
     if (typeof BusquedasTab !== 'undefined') {
       const module = new BusquedasTab(this.app);
       this.currentModule = module;
@@ -206,6 +216,51 @@ class DashboardRouter {
     }
 
     return '<p>Módulo de búsquedas no disponible</p>';
+  }
+
+  /**
+   * Skeleton del nuevo módulo de búsqueda (sin app bar / tabs / bottom nav,
+   * el dashboard ya tiene su propio marco). Los componentes rellenan los IDs #qs*.
+   */
+  _searchDesignHtml() {
+    return `
+      <div id="qsApp" class="qs-app" data-mode="auth">
+        <div id="qsHeaderPills" class="qs-pills"></div>
+        <div id="qsFiltersBar" class="qs-filtersbar"></div>
+        <div class="qs-countrow">
+          <div id="qsCount" class="qs-count"></div>
+          <div id="qsViewToggle" class="qs-viewtoggle"></div>
+        </div>
+        <main class="qs-content">
+          <section id="qsResults" class="qs-results qs-view-list"></section>
+          <div id="qsMapWrap" class="qs-mapwrap" hidden>
+            <div id="qsMap" class="qs-map"></div>
+            <div id="qsMapCard" class="qs-mapcard"></div>
+          </div>
+        </main>
+        <div id="qsSelectionBar" class="qs-selectionbar" hidden></div>
+        <div id="qsFiltersModal" class="qs-modal"></div>
+      </div>`;
+  }
+
+  /** Inicializa el orquestador del nuevo módulo de búsqueda sobre #qsApp. */
+  async _initSearchDesign() {
+    if (!window.SearchSystemMain) return;
+    if (!document.getElementById('qsApp')) return;
+    try { this.qsSearch?.resultsMap?.destroy?.(); } catch (e) { /* noop */ }
+    try {
+      this.qsSearch = new window.SearchSystemMain({ mount: '#qsApp', mode: 'auth' });
+      window.qsSearch = this.qsSearch;
+      await this.qsSearch.init();
+    } catch (e) {
+      console.error('❌ Error iniciando SearchSystemMain:', e);
+    }
+  }
+
+  /** Limpia el módulo de búsqueda al salir del tab. */
+  _destroySearchDesign() {
+    try { this.qsSearch?.resultsMap?.destroy?.(); } catch (e) { /* noop */ }
+    this.qsSearch = null;
   }
 
   /**

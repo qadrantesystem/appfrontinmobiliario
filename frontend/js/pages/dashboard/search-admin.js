@@ -345,7 +345,7 @@ class SearchAdminModule {
                 Mostrando ${startIndex + 1}-${Math.min(endIndex, this.filteredSearches.length)}
               </p>
             </div>
-            <button onclick="window.dashboard?.renderSearchDesign()"
+            <button onclick="window.dashboard?.switchTab('busquedas', window.dashboard.currentUser?.perfil_id)"
                     class="search-header-btn"
                     style="padding: var(--spacing-md) var(--spacing-xl); border-radius: var(--radius-md); font-weight: 600; background: var(--azul-corporativo); color: white; border: none; cursor: pointer; font-size: var(--font-size-base); transition: var(--transition-fast); box-shadow: var(--shadow-sm);"
                     onmouseover="this.style.background='var(--azul-medio)'; this.style.boxShadow='var(--shadow-md)'"

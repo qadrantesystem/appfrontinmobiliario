@@ -1057,12 +1057,7 @@ class Dashboard {
       return await this.searchAdminModule.renderContent();
     }
 
-    // Usuario normal: nuevo módulo de búsqueda (rediseño)
-    if (window.SearchSystemMain) {
-      return this._searchDesignHtml();
-    }
-
-    // Fallback: módulo simple anterior
+    // Usuario normal: usar SearchSimpleModule (técnica de mantenimiento)
     if (this.searchSimpleModule) {
       return await this.searchSimpleModule.render();
     }
@@ -1088,53 +1083,6 @@ class Dashboard {
         <p>Si no carga, haz clic en "Nueva Búsqueda".</p>
       </div>
     `;
-  }
-
-  /**
-   * Skeleton del nuevo módulo de búsqueda (sin app bar / tabs / bottom nav,
-   * el dashboard ya tiene su propio marco). Los componentes rellenan los IDs #qs*.
-   */
-  _searchDesignHtml() {
-    return `
-      <div id="qsApp" class="qs-app" data-mode="auth">
-        <div id="qsHeaderPills" class="qs-pills"></div>
-        <div id="qsFiltersBar" class="qs-filtersbar"></div>
-        <div class="qs-countrow">
-          <div id="qsCount" class="qs-count"></div>
-          <div id="qsViewToggle" class="qs-viewtoggle"></div>
-        </div>
-        <main class="qs-content">
-          <section id="qsResults" class="qs-results qs-view-list"></section>
-          <div id="qsMapWrap" class="qs-mapwrap" hidden>
-            <div id="qsMap" class="qs-map"></div>
-            <div id="qsMapCard" class="qs-mapcard"></div>
-          </div>
-        </main>
-        <div id="qsSelectionBar" class="qs-selectionbar" hidden></div>
-        <div id="qsFiltersModal" class="qs-modal"></div>
-      </div>`;
-  }
-
-  /** Inicializa el orquestador del nuevo módulo de búsqueda sobre #qsApp. */
-  async initSearchDesign() {
-    if (!window.SearchSystemMain) return;
-    if (!document.getElementById('qsApp')) return;
-    // Limpiar mapa previo si se re-renderiza el tab
-    try { this.qsSearch?.resultsMap?.destroy?.(); } catch (e) { /* noop */ }
-    try {
-      this.qsSearch = new window.SearchSystemMain({ mount: '#qsApp', mode: 'auth' });
-      window.qsSearch = this.qsSearch;
-      await this.qsSearch.init();
-    } catch (e) {
-      console.error('❌ Error iniciando SearchSystemMain:', e);
-    }
-  }
-
-  /** Renderiza el diseño de búsqueda dentro del tab actual (para el botón "Nueva Búsqueda"). */
-  async renderSearchDesign() {
-    if (!this.tabContent) return;
-    this.tabContent.innerHTML = this._searchDesignHtml();
-    await this.initSearchDesign();
   }
 
   async getHistorialContent() {
@@ -1662,10 +1610,8 @@ class Dashboard {
     }
 
     if (tabId === 'busquedas') {
-      // Nuevo módulo de búsqueda (rediseño)
-      if (document.getElementById('qsApp') && window.SearchSystemMain) {
-        this.initSearchDesign();
-      } else if (this.searchSimpleModule) {
+      // Setup event listeners para SearchSimpleModule
+      if (this.searchSimpleModule) {
         this.searchSimpleModule.setupEventListeners();
       }
       // También configurar listeners para tarjetas de propiedades (favoritos, etc)
