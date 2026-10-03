@@ -216,7 +216,13 @@ class HomePage {
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
-      dropdown.classList.toggle('open');
+      const abierto = dropdown.classList.toggle('open');
+      if (abierto) {
+        // Mueve ligeramente el scroll para que se vean los distritos
+        setTimeout(() => {
+          dropdown.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 60);
+      }
     });
 
     if (searchInput) {
