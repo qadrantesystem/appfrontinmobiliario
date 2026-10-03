@@ -1,0 +1,645 @@
+/**
+ * search-results.css — Estilos de RESULTADOS (cards) + barra de SELECCIÓN.
+ * Proyecto Cuadrante · componente A2 del rediseño del módulo de búsqueda.
+ *
+ * Solo usa tokens --qs-* definidos por A1 (con fallback neutro por si aún no existen).
+ * Todas las clases van prefijadas con `.qs-` para no chocar.
+ */
+
+/* ==================== Lista de resultados ==================== */
+
+/* A1 define el flujo de #qsResults (flex en lista / grid en vista grilla).
+   Con display:contents las cards se convierten en hijas directas de #qsResults
+   y respetan ese layout; el fallback apila en una columna. */
+.qs-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@supports (display: contents) {
+  .qs-list {
+    display: contents;
+  }
+}
+
+/* ======================== Card grande ======================== */
+
+.qs-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--qs-surface, #ffffff);
+  border: 1px solid var(--qs-border, #e0e0e0);
+  border-radius: var(--qs-radius-lg, 16px);
+  box-shadow: var(--qs-shadow, 0 2px 8px rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.qs-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--qs-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.14));
+}
+
+.qs-media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--qs-bg, #f5f7fa);
+  overflow: hidden;
+}
+
+.qs-carousel {
+  position: absolute;
+  inset: 0;
+}
+
+.qs-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.qs-img-active {
+  opacity: 1;
+}
+
+/* Controles sobre la imagen */
+.qs-check {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.qs-check input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.qs-check-box {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid var(--qs-border, #cfd6dd);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.qs-check input:checked + .qs-check-box {
+  background: var(--qs-primary, #0f4761);
+  border-color: var(--qs-primary, #0f4761);
+  color: #fff;
+}
+
+.qs-fav {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--qs-text-2, #666666);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.qs-fav:hover {
+  transform: scale(1.06);
+}
+
+.qs-fav.is-fav {
+  color: #e0245e;
+}
+
+.qs-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.qs-nav:hover {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.qs-prev { left: 10px; }
+.qs-next { right: 10px; }
+
+/* Contador 1/N (abajo-izquierda) */
+.qs-imgcount {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 3;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.qs-imgcount b { font-weight: 700; }
+
+/* Cuerpo de la card */
+.qs-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qs-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--qs-text, #333333);
+  line-height: 1.25;
+}
+
+.qs-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.85rem;
+  color: var(--qs-text-2, #666666);
+}
+
+.qs-line i {
+  color: var(--qs-secondary, #4f78a1);
+  width: 14px;
+  text-align: center;
+}
+
+.qs-price {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--qs-orange, #ff9700);
+  margin-top: 2px;
+}
+
+.qs-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--qs-border, #eef1f4);
+}
+
+.qs-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: var(--qs-text-2, #666666);
+}
+
+.qs-meta-item i {
+  color: var(--qs-secondary, #4f78a1);
+}
+
+/* ========================== Botones ========================== */
+
+.qs-btn {
+  border: none;
+  border-radius: var(--qs-radius, 10px);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.qs-btn-primary {
+  background: var(--qs-primary, #0f4761);
+  color: #fff;
+}
+
+.qs-btn-primary:hover {
+  background: var(--qs-primary-2, #1e3a5f);
+}
+
+.qs-detail {
+  margin-left: auto;
+}
+
+/* ==================== Card compacta horizontal ==================== */
+
+.qs-card-compact {
+  grid-column: 1 / -1;
+  cursor: pointer;
+}
+
+.qs-compact-body {
+  padding: 12px 14px;
+}
+
+.qs-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.qs-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(15, 71, 97, 0.12);
+  background: color-mix(in srgb, var(--qs-primary, #0f4761) 12%, transparent);
+  color: var(--qs-primary, #0f4761);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.qs-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--qs-orange, #ff9700);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.qs-compact-row {
+  display: flex;
+  gap: 14px;
+}
+
+.qs-compact-media {
+  position: relative;
+  flex: 0 0 34%;
+  max-width: 190px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--qs-radius, 10px);
+  overflow: hidden;
+  background: var(--qs-bg, #f5f7fa);
+}
+
+.qs-compact-media .qs-imgcount {
+  bottom: 8px;
+  left: 8px;
+}
+
+.qs-compact-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.qs-compact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.qs-compact-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.qs-cell-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--qs-text-2, #8a939c);
+  text-transform: uppercase;
+}
+
+.qs-cell-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--qs-text, #333333);
+}
+
+.qs-cell-price {
+  color: var(--qs-orange, #ff9700);
+}
+
+.qs-compact-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.qs-compact-actions .qs-detail {
+  margin-left: auto;
+}
+
+.qs-nav-sm {
+  position: static;
+  transform: none;
+  width: 30px;
+  height: 30px;
+  background: var(--qs-bg, #eef1f4);
+  color: var(--qs-text, #333333);
+}
+
+.qs-nav-sm:hover {
+  background: var(--qs-border, #dde3e8);
+}
+
+.qs-check-inline {
+  position: static;
+  margin-bottom: 10px;
+}
+
+/* ========================= Paginación ========================= */
+
+.qs-pagination {
+  grid-column: 1 / -1;
+  flex-basis: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.qs-page-btn {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--qs-border, #e0e0e0);
+  border-radius: var(--qs-radius, 10px);
+  background: var(--qs-surface, #ffffff);
+  color: var(--qs-text, #333333);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qs-page-btn:hover {
+  border-color: var(--qs-primary, #0f4761);
+  color: var(--qs-primary, #0f4761);
+}
+
+.qs-page-btn.is-active {
+  background: var(--qs-primary, #0f4761);
+  border-color: var(--qs-primary, #0f4761);
+  color: #fff;
+}
+
+.qs-page-btn.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.qs-page-ellipsis {
+  color: var(--qs-text-2, #666666);
+  padding: 0 4px;
+}
+
+/* ====================== Empty state ====================== */
+
+.qs-empty {
+  grid-column: 1 / -1;
+  flex-basis: 100%;
+  width: 100%;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--qs-text-2, #666666);
+}
+
+.qs-empty i {
+  font-size: 2.4rem;
+  color: var(--qs-border, #cfd6dd);
+  margin-bottom: 12px;
+}
+
+.qs-empty h3 {
+  margin: 0 0 6px;
+  color: var(--qs-text, #333333);
+}
+
+/* ==================== Barra de selección ==================== */
+
+#qsSelectionBar {
+  display: none;
+}
+
+/* Misma geometría que el shell de A1 (sobre el bottom-nav), look claro. */
+#qsSelectionBar.qs-sel-visible {
+  display: flex;
+  position: fixed;
+  left: 50%;
+  bottom: 80px;
+  transform: translateX(-50%);
+  width: min(456px, calc(100% - 24px));
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--qs-surface, #ffffff);
+  border: 1px solid var(--qs-border, #e0e0e0);
+  border-radius: var(--qs-radius-lg, 16px);
+  box-shadow: var(--qs-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.14));
+  z-index: 60;
+}
+
+.qs-sel-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--qs-primary, #0f4761);
+}
+
+.qs-sel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qs-sel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 1px solid var(--qs-border, #e0e0e0);
+  border-radius: var(--qs-radius, 10px);
+  background: var(--qs-surface, #ffffff);
+  color: var(--qs-text, #333333);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qs-sel-btn i {
+  color: var(--qs-primary, #0f4761);
+}
+
+.qs-sel-btn:hover {
+  border-color: var(--qs-primary, #0f4761);
+  background: var(--qs-bg, #f5f7fa);
+}
+
+/* ==================== Card flotante del mapa ==================== */
+/* #qsMapCard ya existe en el HTML; A1 define su posición. Aquí solo el
+   contenido interno (imagen flush + cuerpo). El chevron la contrae. */
+
+#qsMapCard {
+  overflow: hidden;
+  padding: 0;
+}
+
+#qsMapCard[hidden] {
+  display: none;
+}
+
+.qs-map-card-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  cursor: pointer;
+}
+
+.qs-mc-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--qs-bg, #f5f7fa);
+}
+
+.qs-mc-media .qs-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
+}
+
+.qs-mc-body {
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.qs-mc-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--qs-text, #333333);
+}
+
+.qs-mc-price {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--qs-orange, #ff9700);
+  margin-top: 2px;
+}
+
+.qs-mc-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.qs-mc-chevron {
+  margin-left: auto;
+  border: 1px solid var(--qs-border, #e0e0e0);
+  background: var(--qs-surface, #ffffff);
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  color: var(--qs-text, #333333);
+  cursor: pointer;
+}
+
+#qsMapCard.qs-collapsed .qs-mc-media,
+#qsMapCard.qs-collapsed .qs-line,
+#qsMapCard.qs-collapsed .qs-mc-price {
+  display: none;
+}
+
+#qsMapCard.qs-collapsed .qs-mc-chevron i {
+  transform: rotate(180deg);
+}
+
+/* ========================= Responsive ========================= */
+
+@media (max-width: 560px) {
+  .qs-list {
+    grid-template-columns: 1fr;
+  }
+
+  .qs-compact-row {
+    flex-direction: column;
+  }
+
+  .qs-compact-media {
+    flex-basis: auto;
+    max-width: none;
+    aspect-ratio: 16 / 9;
+  }
+
+  .qs-sel-btn span {
+    display: none;
+  }
+
+  .qs-sel-btn {
+    padding: 10px 12px;
+  }
+}

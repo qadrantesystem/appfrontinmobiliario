@@ -1,0 +1,256 @@
+/* ============================================================
+   Vista Mapa de Resultados (pantalla 3) — prefijo .qs-map
+   Archivo: css/components/search-map.css
+   Usa tokens --qs-* (con fallback a la paleta actual).
+   ============================================================ */
+
+/* Contenedor: altura tipo mock móvil */
+.qs-map-wrap {
+  position: relative;
+  width: 100%;
+  height: 68vh;
+  min-height: 420px;
+  overflow: hidden;
+  border-radius: var(--qs-radius-lg, 12px);
+  background: var(--qs-bg, #eef2f7);
+  box-shadow: var(--qs-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+}
+
+#qsMap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  font-family: inherit;
+}
+
+#qsMap.leaflet-container {
+  font-family: inherit;
+  background: var(--qs-bg, #eef2f7);
+}
+
+/* ============================================================
+   UI flotante
+   ============================================================ */
+
+.qs-map-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;               /* por encima de marcadores/controles Leaflet */
+  pointer-events: none;        /* no bloquea el drag del mapa */
+}
+
+.qs-map-overlay > * {
+  pointer-events: auto;
+}
+
+/* --- Topbar: contador + Ver lista --- */
+.qs-map-topbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.qs-map-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: var(--qs-surface, #ffffff);
+  color: var(--qs-text, #12263a);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: var(--qs-shadow, 0 4px 16px rgba(0, 0, 0, 0.12));
+}
+
+.qs-map-viewlist {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 15px;
+  border: none;
+  border-radius: 999px;
+  background: var(--qs-primary, #0f4761);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--qs-shadow, 0 4px 16px rgba(0, 0, 0, 0.15));
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.qs-map-viewlist:hover {
+  background: var(--qs-primary-2, #1e3a5f);
+  transform: translateY(-1px);
+}
+
+.qs-map-viewlist:active {
+  transform: scale(0.97);
+}
+
+.qs-map-viewlist i {
+  font-size: 0.9rem;
+}
+
+/* --- Columna de controles (derecha) --- */
+.qs-map-controls {
+  position: absolute;
+  top: 64px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qs-map-ctrl {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 14px;
+  background: var(--qs-surface, #ffffff);
+  color: var(--qs-primary, #0f4761);
+  font-size: 1.05rem;
+  cursor: pointer;
+  box-shadow: var(--qs-shadow, 0 4px 16px rgba(0, 0, 0, 0.15));
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.qs-map-ctrl:hover {
+  background: var(--qs-primary, #0f4761);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.qs-map-ctrl:active {
+  transform: scale(0.94);
+}
+
+/* ============================================================
+   Marcadores numerados
+   ============================================================ */
+
+.qs-map-marker {
+  background: transparent;
+  border: none;
+}
+
+.qs-map-pin {
+  --pin-color: var(--qs-primary, #0f4761);
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pin-color);
+  color: #ffffff;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 4px 10px rgba(15, 71, 97, 0.35);
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+  transform-origin: center bottom;
+}
+
+/* Punta del pin */
+.qs-map-pin::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 9px solid var(--pin-color);
+}
+
+.qs-map-pin-num {
+  position: relative;
+  z-index: 1;
+}
+
+/* Hover */
+.qs-map-marker:hover .qs-map-pin {
+  transform: scale(1.12);
+  box-shadow: 0 6px 14px rgba(15, 71, 97, 0.45);
+}
+
+/* Activo (click / focus) */
+.qs-map-marker--active .qs-map-pin {
+  --pin-color: var(--qs-orange, #ff9700);
+  transform: scale(1.28) translateY(-2px);
+  box-shadow: 0 8px 18px rgba(255, 151, 0, 0.5);
+}
+
+.qs-map-marker--active {
+  z-index: 700 !important;
+}
+
+/* ============================================================
+   Fallback (Leaflet no disponible)
+   ============================================================ */
+
+.qs-map-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--qs-text-2, #666666);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.qs-map-fallback i {
+  font-size: 1.6rem;
+  opacity: 0.6;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .qs-map-wrap {
+    height: 62vh;
+    min-height: 380px;
+  }
+
+  .qs-map-topbar {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+  }
+
+  .qs-map-count,
+  .qs-map-viewlist {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+
+  .qs-map-controls {
+    top: 58px;
+    right: 10px;
+  }
+
+  .qs-map-ctrl {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+}

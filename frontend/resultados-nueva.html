@@ -6,11 +6,13 @@
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>Resultados de Búsqueda - Qadrante</title>
 
-    <!-- Styles -->
+    <!-- Styles base -->
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/pages/header-guest.css">
-    <link rel="stylesheet" href="css/pages/search-system.css?v=1">
+    <link rel="stylesheet" href="css/pages/search-system.css?v=2">
+    <link rel="stylesheet" href="css/components/search-results.css">
+    <link rel="stylesheet" href="css/components/search-filters.css">
+    <link rel="stylesheet" href="css/components/search-map.css">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -25,128 +27,65 @@
     <!-- jsPDF y html2canvas para generación de PDFs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <!-- Scripts de configuración -->
-    <script src="js/config/api.js?v=7"></script>
-    <script src="js/services/auth.service.js?v=7"></script>
-    <script src="js/services/search.service.js?v=6"></script>
-    <script src="js/utils/helpers.js?v=6"></script>
 </head>
-<body>
-    <!-- Header Épico y Pilim Limpio para Invitados -->
-    <header class="header-guest-results">
-        <div class="header-guest-container">
-            <!-- Logo -->
-            <div class="header-guest-left">
-                <div class="logo">
-                    <a href="index.html">
-                        <img src="assets/images/Logov2/Recurso 8.png" alt="Qadrante" class="logo-img">
-                    </a>
-                </div>
-            </div>
+<body class="qs-body">
 
-            <!-- Info Central -->
-            <div class="header-guest-center">
-                <div class="results-info">
-                    <h1 id="resultsCounter" class="results-counter">Cargando resultados...</h1>
-                    <div id="activeFilters" class="active-filters">
-                        <!-- Filtros activos se muestran aquí -->
-                    </div>
-                </div>
-            </div>
+    <!-- Skeleton del módulo de búsqueda (SearchShell pinta los contenedores) -->
+    <div id="qsApp" class="qs-app" data-mode="guest">
 
-            <!-- Acciones Derecha -->
-            <div class="header-guest-right">
-                <button class="btn btn-outline btn-sm" onclick="window.location.href='index.html?openModal=true'">
-                    ← Nueva Búsqueda
-                </button>
-                <button class="btn btn-primary btn-sm" onclick="window.location.href='login.html'">
-                    Iniciar Sesión
-                </button>
-            </div>
-        </div>
-    </header>
+        <!-- App bar -->
+        <header id="qsAppBar" class="qs-appbar"></header>
 
-    <!-- Contenido Principal -->
-    <main class="search-results-main" style="padding: 20px; max-width: 1400px; margin: 0 auto;">
+        <!-- Tabs -->
+        <nav id="qsTabs" class="qs-tabs"></nav>
 
-        <!-- Acordeón de Filtros -->
-        <div id="searchFiltersAccordion"></div>
+        <!-- Header pills -->
+        <div id="qsHeaderPills" class="qs-pills"></div>
 
-        <!-- Toolbar de Acciones -->
-        <div class="results-toolbar" style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        ">
-            <div id="selectionCounter" style="font-weight: 600; color: var(--azul-corporativo);"></div>
-            <div style="display: flex; gap: 12px;">
-                <button class="btn btn-secondary" data-generate-pdf>
-                    📄 Generar Fichas PDF
-                </button>
-                <button class="btn btn-primary" data-send-email>
-                    📧 Enviar por Correo
-                </button>
-            </div>
+        <!-- Barra de filtros + orden -->
+        <div id="qsFiltersBar" class="qs-filtersbar"></div>
+
+        <!-- Contador + toggle de vista -->
+        <div class="qs-countrow">
+            <div id="qsCount" class="qs-count"></div>
+            <div id="qsViewToggle" class="qs-viewtoggle"></div>
         </div>
 
-        <!-- Grid: Resultados + Mapa -->
-        <div style="display: grid; grid-template-columns: 1fr 500px; gap: 20px; margin-bottom: 20px;">
-            <!-- Resultados -->
-            <div>
-                <div id="searchResults">
-                    <div class="search-loading" style="text-align: center; padding: 60px 20px;">
-                        <div class="spinner-large"></div>
-                        <p style="margin-top: 20px; color: var(--gris-medio);">Cargando propiedades...</p>
-                    </div>
-                </div>
+        <!-- Contenido: resultados / mapa -->
+        <main class="qs-content">
+            <section id="qsResults" class="qs-results qs-view-list"></section>
 
-                <!-- Paginación -->
-                <div id="searchPagination" style="margin-top: 20px;"></div>
+            <div id="qsMapWrap" class="qs-mapwrap" hidden>
+                <div id="qsMap" class="qs-map"></div>
+                <div id="qsMapCard" class="qs-mapcard"></div>
             </div>
+        </main>
 
-            <!-- Mapa -->
-            <div style="position: sticky; top: 60px; height: fit-content;">
-                <div id="resultsMap"></div>
-            </div>
-        </div>
-    </main>
+        <!-- Barra de selección -->
+        <div id="qsSelectionBar" class="qs-selectionbar" hidden></div>
 
-    <!-- Scripts Esenciales para Modo Invitado -->
+        <!-- Bottom nav -->
+        <nav id="qsBottomNav" class="qs-bottomnav"></nav>
+
+        <!-- Modal de filtros (lo rellena SearchFilters) -->
+        <div id="qsFiltersModal" class="qs-modal"></div>
+    </div>
+
+    <!-- Scripts del módulo (orden congelado) -->
     <script src="js/config/api.js?v=7"></script>
     <script src="js/services/search.service.js?v=6"></script>
     <script src="js/utils/helpers.js?v=6"></script>
-    <script src="js/pages/search-system/search-main.js?v=1"></script>
+    <script src="js/pages/search-system/search-shell.js"></script>
+    <script src="js/pages/search-system/components/search-results.js"></script>
+    <script src="js/pages/search-system/components/search-filters.js"></script>
+    <script src="js/pages/search-system/components/results-map.js"></script>
+    <script src="js/pages/search-system/search-main.js"></script>
 
-    <!-- Inicializar -->
+    <!-- Init -->
     <script>
-        // Inicializar sistema cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🚀 Inicializando página de resultados...');
-
-            // Crear instancia del sistema
-            const searchSystem = new SearchSystemMain();
-            await searchSystem.init();
-
-            // Guardar globalmente
-            window.searchSystem = searchSystem;
-
-            // Si hay filtros en URL, ejecutar búsqueda automáticamente
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('auto')) {
-                const filters = {
-                    tipo_inmueble_id: urlParams.get('tipo'),
-                    distritos: urlParams.get('distritos')?.split(',').map(Number) || [],
-                    operacion: urlParams.get('operacion') || 'compra'
-                };
-
-                await searchSystem.executeSearch(filters);
-            }
+            window.searchSystem = new SearchSystemMain({ mode: 'guest' });
+            await window.searchSystem.init();
         });
     </script>
 </body>
