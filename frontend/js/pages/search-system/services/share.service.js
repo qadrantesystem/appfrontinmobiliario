@@ -706,12 +706,15 @@ Equipo Qadrante`;
    */
   getTransaccionLabel(prop = {}) {
     const fg = this.filters.filtros_genericos || {};
-    const raw = prop.transaccion
-      || this.filters.transaccion
-      || this.filters.operacion
-      || fg.transaccion
-      || '';
-    return String(raw).toLowerCase().trim() === 'alquiler' ? 'Alquiler' : 'Venta';
+    const propTx = String(prop.transaccion || '').toLowerCase().trim();
+    const filtTx = String(
+      this.filters.transaccion || this.filters.operacion || fg.transaccion || ''
+    ).toLowerCase().trim();
+    // Si la propiedad es 'ambos' (se alquila y vende) o no trae el dato,
+    // mostramos la transacción que el usuario buscó.
+    const eff = (propTx && propTx !== 'ambos' && propTx !== 'ambos ')  ? propTx : (filtTx || propTx);
+    if (eff === 'ambos') return 'Alquiler / Venta';
+    return eff === 'alquiler' ? 'Alquiler' : 'Venta';
   }
 
   /**
