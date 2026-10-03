@@ -298,9 +298,72 @@ class SearchResults {
   }
 
   emitAction(action) {
-    const payload = { action, count: this.selected.size, ids: Array.from(this.selected) };
+    const ids = Array.from(this.selected);
+    const payload = { action, count: ids.length, ids };
     if (typeof this.app.emit === 'function') this.app.emit(`selection:${action}`, payload);
+
+    if (action === 'share') { this.shareByEmail(ids); return; }
+    if (action === 'compare') { this.notify('info', 'Comparar', 'Próximamente podrás comparar las propiedades seleccionadas.'); return; }
     console.log(`📋 Acción de selección: ${action}`, payload);
+  }
+
+  /** Notificación simple (SweetAlert si está disponible). */
+  notify(icon, title, text) {
+    if (window.Swal) { window.Swal.fire({ icon, title, text }); return; }
+    window.alert(`${title}: ${text}`);
+  }
+
+  /** Envía por correo las fichas PDF de las propiedades seleccionadas (server-side). */
+  async shareByEmail(ids) {
+    ids = (ids || Array.from(this.selected)).map(Number).filter((n) => !isNaN(n));
+    if (!ids.length) { this.notify('info', 'Sin selección', 'Marca al menos una propiedad para compartir.'); return; }
+
+    const token = (window.authService && typeof authService.getToken === 'function') ? authService.getToken() : null;
+    if (!token) { this.notify('info', 'Inicia sesión', 'Necesitas iniciar sesión para enviar fichas por correo.'); return; }
+    if (!window.Swal) { this.notify('error', 'Error', 'No se pudo abrir el formulario de envío.'); return; }
+
+    const { value: form } = await window.Swal.fire({
+      title: '📧 Enviar fichas por correo',
+      html: `
+        <input id="qs-mail-to" class="swal2-input" type="email" placeholder="Correo destinatario">
+        <input id="qs-mail-subj" class="swal2-input" placeholder="Asunto" value="Fichas de propiedades - Qadrante">
+        <textarea id="qs-mail-msg" class="swal2-textarea" placeholder="Mensaje (opcional)">Adjunto encontrará las fichas de las propiedades seleccionadas.</textarea>`,
+      showCancelButton: true,
+      confirmButtonText: 'Enviar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#0F4761',
+      focusConfirm: false,
+      preConfirm: () => {
+        const to = document.getElementById('qs-mail-to').value.trim();
+        if (!to) { window.Swal.showValidationMessage('Ingresa un correo'); return false; }
+        return {
+          to,
+          subject: document.getElementById('qs-mail-subj').value.trim() || 'Fichas de propiedades',
+          message: document.getElementById('qs-mail-msg').value.trim()
+        };
+      }
+    });
+    if (!form) return;
+
+    window.Swal.fire({ title: 'Generando y enviando fichas…', didOpen: () => window.Swal.showLoading(), allowOutsideClick: false });
+    try {
+      const resp = await fetch(`${API_CONFIG.BASE_URL}/emails/enviar-fichas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          to_email: form.to,
+          subject: form.subject,
+          message: form.message,
+          propiedad_ids: ids,
+          send_copy: false
+        })
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.detail || `Error ${resp.status}`);
+      window.Swal.fire({ icon: 'success', title: '✅ Fichas enviadas', text: `${data.propiedades_enviadas || ids.length} ficha(s) enviada(s) a ${form.to}` });
+    } catch (err) {
+      window.Swal.fire({ icon: 'error', title: 'No se pudo enviar', text: err.message });
+    }
   }
 
   /* ====================== card flotante mapa ==================== */

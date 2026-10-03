@@ -17,8 +17,12 @@ class SearchService {
         : [];
 
       const precio = filters.transaccion === 'alquiler'
-        ? filters.presupuesto_alquiler
-        : filters.presupuesto_compra;
+        ? (filters.presupuesto_alquiler ?? filters.precio_max ?? filters.precio_min)
+        : (filters.presupuesto_compra ?? filters.precio_max ?? filters.precio_min);
+
+      // El nuevo módulo entrega area_min/area_max y precio_min/max; el endpoint
+      // público espera un único `area`/`precio`. Priorizamos el mínimo.
+      const area = filters.area ?? filters.area_min ?? filters.area_max;
 
       const body = {
         filtros_genericos: {
@@ -27,7 +31,7 @@ class SearchService {
           transaccion: filters.transaccion || null
         },
         filtros_basicos: {
-          area: filters.area ? Number(filters.area) : null,
+          area: area ? Number(area) : null,
           precio: precio ? Number(precio) : null
         },
         incluir_combinaciones: true,
