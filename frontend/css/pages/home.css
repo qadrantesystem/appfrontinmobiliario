@@ -308,6 +308,9 @@ body.home .container {
   .home .hero__desc { font-size: 15px; }
   .home .hero-search-bar { grid-template-columns: 1fr; max-width: 100%; }
   .home .hero-select { border-right: 0; border-bottom: 1px solid var(--q-border); }
+  .home .hero-field--zona { position: relative; }
+  .home .hero-search-distrito { position: static; }
+  .home .distrito-dropdown { left: 0; right: 0; width: auto; }
   .home .hero__tabs { display: flex; flex-wrap: nowrap; width: 100%; gap: 4px; }
   .home .hero-tab { flex: 1 1 0; min-width: 0; justify-content: center; font-size: 11.5px; padding: 8px 4px; gap: 4px; }
   .home .hero-tab i { font-size: 12px; }
