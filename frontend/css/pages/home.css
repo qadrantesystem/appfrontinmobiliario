@@ -41,10 +41,10 @@ body.home .container {
 }
 .home .header--scrolled { box-shadow: var(--shadow-md); }
 .home .header__inner {
-  min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  min-height: 84px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
 }
 .home .brand { display: flex; align-items: center; gap: 14px; text-decoration: none; }
-.home .logo-img { height: 56px; width: auto; }
+.home .logo-img { height: 65px; width: auto; }
 .home .brand__tag {
   color: rgba(255,255,255,.9); font-size: 11px; line-height: 1.12; font-weight: 500;
   border-left: 1px solid rgba(255,255,255,.5); padding-left: 14px; letter-spacing: .3px;
@@ -294,7 +294,6 @@ body.home .container {
 
 @media (max-width: 640px) {
   .home .container { width: calc(100% - 32px); }
-  .home .logo-img { height: 46px; }
   .home .hero { min-height: 0; }
   .home .hero__inner { padding-block: 40px; }
   .home .hero__title { font-size: 38px; }
