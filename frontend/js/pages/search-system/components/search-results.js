@@ -302,9 +302,36 @@ class SearchResults {
     const payload = { action, count: ids.length, ids };
     if (typeof this.app.emit === 'function') this.app.emit(`selection:${action}`, payload);
 
-    if (action === 'share') { this.shareByEmail(ids); return; }
+    if (action === 'share') { this.shareSelection(ids); return; }
     if (action === 'compare') { this.notify('info', 'Comparar', 'Próximamente podrás comparar las propiedades seleccionadas.'); return; }
     console.log(`📋 Acción de selección: ${action}`, payload);
+  }
+
+  /**
+   * Compartir completo vía ShareService (correo + WhatsApp + tabla resumen).
+   * Fallback al envío simple por correo si el servicio aún no está cargado.
+   */
+  async shareSelection(ids) {
+    ids = (ids || Array.from(this.selected));
+    if (!ids.length) { this.notify('info', 'Sin selección', 'Marca al menos una propiedad para compartir.'); return; }
+
+    const token = window.authService?.getToken?.();
+    if (!token) { this.notify('info', 'Inicia sesión', 'Necesitas iniciar sesión para compartir las propiedades.'); return; }
+
+    // Si el Compartir completo no está cargado, caemos al correo simple.
+    if (!window.ShareService) { this.shareByEmail(ids); return; }
+
+    // Resultados seleccionados (this.selected guarda los ids de app.state.results).
+    const props = this.results.filter((p) => {
+      const id = this.idOf(p);
+      return this.selected.has(id) || this.selected.has(Number(id)) || this.selected.has(String(id));
+    });
+
+    const share = new window.ShareService({
+      filters: this.app?.state?.filters || {},
+      userName: window.authService?.getCurrentUser?.()?.nombre || 'Asesor Qadrante'
+    });
+    await share.compartir(props);
   }
 
   /** Notificación simple (SweetAlert si está disponible). */
