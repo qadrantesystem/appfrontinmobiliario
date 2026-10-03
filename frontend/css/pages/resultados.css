@@ -3037,3 +3037,39 @@ html, body { overflow-x: hidden; }
 
   #mainContainer #map { height: 100%; width: 100%; }
 }
+
+/* ============================================================
+   Botón sutil "Mapa" (solo móvil, en la vista Lista)
+   ============================================================ */
+.view-map-fab {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 900;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 999px;
+  background: var(--azul-corporativo, #0f4761);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(15, 71, 97, 0.35);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.view-map-fab:active { transform: translateX(-50%) scale(0.97); }
+.view-map-fab:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+
+@media (min-width: 1025px) { .view-map-fab { display: none !important; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .view-map-fab { transition: none !important; }
+}

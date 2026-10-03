@@ -3371,6 +3371,21 @@ class ResultadosPage {
     const main = document.getElementById('mainContainer');
     if (!tabs || !main) return;
 
+    const isMobile = window.innerWidth <= 1024;
+
+    // Botón sutil "Mapa" (solo móvil, visible en la vista Lista)
+    let fab = document.getElementById('viewMapFab');
+    if (isMobile && !fab) {
+      fab = document.createElement('button');
+      fab.id = 'viewMapFab';
+      fab.type = 'button';
+      fab.className = 'view-map-fab';
+      fab.setAttribute('aria-label', 'Ver mapa');
+      fab.innerHTML = '<i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Mapa';
+      document.body.appendChild(fab);
+      fab.addEventListener('click', () => setView('map'));
+    }
+
     const setView = (view) => {
       main.classList.toggle('view-list', view === 'list');
       main.classList.toggle('view-map', view === 'map');
@@ -3379,6 +3394,7 @@ class ResultadosPage {
         b.classList.toggle('active', on);
         b.setAttribute('aria-selected', on ? 'true' : 'false');
       });
+      if (fab) fab.style.display = view === 'list' ? 'inline-flex' : 'none';
       if (view === 'map') {
         setTimeout(() => {
           if (!this.map) this.renderMapa();
@@ -3387,12 +3403,29 @@ class ResultadosPage {
       }
     };
 
+    // Expuesto para que el clic del marcador cambie a la lista
+    this._setView = setView;
+
     tabs.querySelectorAll('.view-tab').forEach((btn) => {
       btn.addEventListener('click', () => setView(btn.dataset.view));
     });
 
-    // Vista inicial: lista en móvil (en desktop se ven ambas columnas)
-    if (window.innerWidth <= 1024) setView('list');
+    // En móvil la primera vista es el MAPA (en desktop se ven ambas columnas)
+    if (isMobile) setView('map');
+  }
+
+  /** Al tocar una burbuja del mapa: ir a la lista y resaltar esa tarjeta (móvil). */
+  irAListaDesdeMapa(propId) {
+    if (window.innerWidth <= 1024 && typeof this._setView === 'function') {
+      this._setView('list');
+      setTimeout(() => {
+        this.activarPropiedad(propId);
+        this.scrollToCard(propId);
+      }, 140);
+    } else {
+      this.activarPropiedad(propId);
+      this.scrollToCard(propId);
+    }
   }
 
   renderMapa() {
@@ -3507,8 +3540,7 @@ class ResultadosPage {
       const propId = markerId;
       
       marker.on('click', () => {
-        this.activarPropiedad(propId);
-        this.scrollToCard(propId);
+        this.irAListaDesdeMapa(propId);
       });
 
       marker.on('mouseover', () => this.activarPropiedad(propId));
