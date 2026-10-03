@@ -4,107 +4,284 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-    <title>Qadrante - Encuentra tu inmueble ideal</title>
-    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
-    <link rel="stylesheet" href="css/variables.css?v=23">
-    <link rel="stylesheet" href="css/global.css?v=22">
-    <link rel="stylesheet" href="css/utils/animations.css?v=22">
-    <link rel="stylesheet" href="css/components/carousel.css?v=22">
-    <link rel="stylesheet" href="css/components/modal-busqueda.css?v=22">
-    <link rel="stylesheet" href="css/pages/home.css?v=22">
-    <link rel="stylesheet" href="css/pages/why-match.css?v=22">
-    <link rel="stylesheet" href="css/pages/busqueda.css?v=22">
+    <title>Qadrante — Inmuebles corporativos</title>
+
+    <!-- Tipografía: Inter (Design System) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/variables.css?v=24">
+    <link rel="stylesheet" href="css/global.css?v=23">
+    <link rel="stylesheet" href="css/utils/animations.css?v=23">
+    <link rel="stylesheet" href="css/components/modal-busqueda.css?v=23">
+    <link rel="stylesheet" href="css/pages/busqueda.css?v=23">
+    <link rel="stylesheet" href="css/pages/home.css?v=30">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body>
-    <!-- Header -->
+<body class="home">
+
+    <!-- ============ HEADER ============ -->
     <header class="header" id="mainHeader">
-        <div class="container">
-            <nav class="navbar">
-                <div class="logo">
-                    <a href="/">
-                        <img src="assets/images/Logov2/Recurso 8.png" alt="Qadrante" class="logo-img">
-                    </a>
-                </div>
-                <button class="hamburger" id="hamburger" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
+        <div class="container header__inner">
+            <a class="brand" href="/">
+                <img src="assets/images/home/logo-qadrante-white.webp" alt="Qadrante" class="logo-img">
+                <span class="brand__tag">Servicios<br>Inmobiliarios<br>Integrales</span>
+            </a>
+
+            <button class="hamburger" id="hamburger" aria-label="Menú">
+                <span></span><span></span><span></span>
+            </button>
+
+            <nav class="header__nav">
                 <ul class="nav-menu" id="navMenu">
                     <li><a href="#hero" class="active">Inicio</a></li>
                     <li><a href="#" id="btnBuscarNav">Buscar</a></li>
                     <li><a href="#nosotros">Nosotros</a></li>
-                    <li><a href="/login" class="btn btn-outline">Iniciar Sesión</a></li>
+                    <li><a href="#servicios">Servicios</a></li>
+                    <li><a href="#" id="btnPublicarInmueble">Publicar Inmueble</a></li>
                 </ul>
             </nav>
+
+            <a href="/login" class="btn btn-login"><i class="fa-regular fa-user"></i> Iniciar Sesión</a>
         </div>
     </header>
 
-    <!-- Hero Carousel -->
-    <section class="carousel-hero" id="hero">
-        <div class="carousel-slides">
-            <div class="carousel-slide active">
-                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&h=1080&fit=crop" alt="Oficina Moderna">
-            </div>
-            <div class="carousel-slide">
-                <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&h=1080&fit=crop" alt="Edificio Corporativo">
-            </div>
-            <div class="carousel-slide">
-                <img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1920&h=1080&fit=crop" alt="Espacio Empresarial">
-            </div>
-            <div class="carousel-slide">
-                <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1920&h=1080&fit=crop" alt="Oficina Premium">
-            </div>
-            <div class="carousel-slide">
-                <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1920&h=1080&fit=crop" alt="Casa Moderna">
-            </div>
-        </div>
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero">
+        <img class="hero__bg" src="assets/images/home/hero-skyline.webp" alt="Edificios corporativos">
+        <div class="hero__overlay"></div>
 
-        <div class="carousel-overlay"></div>
+        <div class="container hero__inner">
+            <div class="hero__content">
+                <span class="hero__badge">ESPACIOS QUE IMPULSAN<br>GRANDES NEGOCIOS</span>
+                <h1 class="hero__title">Encuentra el<br><span class="hl">inmueble ideal</span><br>para tu empresa</h1>
+                <p class="hero__desc">Plataforma especializada en inmuebles corporativos. Oficinas, locales, terrenos y edificios en las mejores zonas del país.</p>
 
-        <div class="carousel-content">
-            <h1 id="heroTitle">Encuentra tu inmueble ideal</h1>
-            <p id="heroSubtitle">Motor de búsqueda especializado por tipos de inmuebles</p>
-
-            <!-- Barra de búsqueda inline -->
-            <div class="hero-search-bar">
-                <select id="heroTipoInmueble">
-                    <option value="">Tipo de inmueble...</option>
-                </select>
-                <div class="hero-search-distrito">
-                    <button type="button" class="distrito-trigger" id="heroDistritoTrigger">Distritos...</button>
-                    <div class="distrito-dropdown" id="heroDistritoDropdown">
-                        <input type="text" class="distrito-search-input" id="heroDistritoSearch" placeholder="Buscar distrito...">
-                        <div class="distrito-options" id="heroDistritoOptions"></div>
-                    </div>
+                <div class="hero__tabs" id="heroTipoTabs">
+                    <button type="button" class="hero-tab active" data-tipo="1"><i class="fa-regular fa-building"></i> Oficinas</button>
+                    <button type="button" class="hero-tab" data-tipo="4"><i class="fa-solid fa-store"></i> Locales</button>
+                    <button type="button" class="hero-tab" data-tipo="5"><i class="fa-solid fa-mountain-sun"></i> Terrenos</button>
+                    <button type="button" class="hero-tab" data-tipo="12"><i class="fa-regular fa-building-columns"></i> Edificios</button>
                 </div>
-                <select id="heroTransaccion">
-                    <option value="venta">Venta</option>
-                    <option value="alquiler">Alquiler</option>
-                </select>
-                <button class="btn-buscar-hero" id="btnBuscarHeroInline">Buscar</button>
-            </div>
 
-            <div class="hero-search-avanzada">
-                <a href="#" id="btnBusquedaAvanzada">Búsqueda avanzada</a>
-            </div>
+                <div class="hero__search-row">
+                    <div class="hero-search-bar">
+                        <div class="hero-field hero-field--zona">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <div class="hero-search-distrito">
+                                <button type="button" class="distrito-trigger" id="heroDistritoTrigger">Zona, distrito o edificio…</button>
+                                <div class="distrito-dropdown" id="heroDistritoDropdown">
+                                    <input type="text" class="distrito-search-input" id="heroDistritoSearch" placeholder="Buscar distrito...">
+                                    <div class="distrito-options" id="heroDistritoOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <select id="heroTransaccion" class="hero-select" aria-label="Operación">
+                            <option value="venta">Venta</option>
+                            <option value="alquiler">Alquiler</option>
+                        </select>
+                        <select id="heroMetraje" class="hero-select" aria-label="Metraje">
+                            <option value="">Metraje</option>
+                            <option value="100">Hasta 100 m²</option>
+                            <option value="200">100 – 200 m²</option>
+                            <option value="400">200 – 400 m²</option>
+                            <option value="800">400 – 800 m²</option>
+                            <option value="2000">Más de 800 m²</option>
+                        </select>
+                        <button class="btn btn-primary btn-buscar-hero" id="btnBuscarHeroInline"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+                    </div>
 
-            <div class="carousel-buttons">
-                <button class="btn btn-secondary" id="btnPublicarInmueble">Publicar Inmueble</button>
+                    <aside class="hero__audiences">
+                        <div class="audience"><i class="fa-regular fa-building"></i><span>Empresas</span></div>
+                        <div class="audience"><i class="fa-solid fa-user-tie"></i><span>Inversionistas</span></div>
+                        <div class="audience"><i class="fa-solid fa-briefcase"></i><span>Fondos</span></div>
+                        <div class="audience"><i class="fa-solid fa-handshake"></i><span>Corredores</span></div>
+                    </aside>
+                </div>
+
+                <a href="#" id="btnBusquedaAvanzada" class="hero__advanced"><i class="fa-solid fa-sliders"></i> Búsqueda avanzada</a>
+
+                <!-- Select real que usa home.js (sincronizado por las tabs) -->
+                <select id="heroTipoInmueble" hidden aria-hidden="true"></select>
             </div>
         </div>
     </section>
 
-    <!-- Modal de Búsqueda Avanzada -->
+    <!-- ============ PROPUESTA DE VALOR ============ -->
+    <section class="value-section" id="nosotros">
+        <div class="container value-grid">
+            <div class="value-item">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <h3>Búsqueda Precisa</h3>
+                <p>Encuentra inmuebles que realmente se ajusten a tu necesidad.</p>
+            </div>
+            <div class="value-item">
+                <i class="fa-solid fa-chart-line"></i>
+                <h3>Mejor Oferta</h3>
+                <p>Compara alternativas para tomar la mejor decisión.</p>
+            </div>
+            <div class="value-item">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h3>Publica con Confianza</h3>
+                <p>Tus inmuebles llegan a clientes serios y calificados.</p>
+            </div>
+            <div class="value-item">
+                <i class="fa-regular fa-handshake"></i>
+                <h3>Experiencia Segura</h3>
+                <p>Te acompañamos en todo el proceso inmobiliario.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ EXPLORA POR TIPO ============ -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Explora por tipo de inmueble</h2>
+            <div class="type-grid">
+                <a class="type-card" href="#" data-tipo="1">
+                    <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800&q=80" alt="Oficinas" loading="lazy">
+                    <div class="type-card__body">
+                        <h3>Oficinas</h3>
+                        <p>Espacios corporativos en ubicaciones estratégicas</p>
+                    </div>
+                    <span class="type-card__arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+                <a class="type-card" href="#" data-tipo="4">
+                    <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80" alt="Locales" loading="lazy">
+                    <div class="type-card__body">
+                        <h3>Locales</h3>
+                        <p>Ubicaciones comerciales para hacer crecer tu negocio</p>
+                    </div>
+                    <span class="type-card__arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+                <a class="type-card" href="#" data-tipo="5">
+                    <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80" alt="Terrenos" loading="lazy">
+                    <div class="type-card__body">
+                        <h3>Terrenos</h3>
+                        <p>Oportunidades de inversión de alto potencial</p>
+                    </div>
+                    <span class="type-card__arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+                <a class="type-card" href="#" data-tipo="12">
+                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80" alt="Edificios" loading="lazy">
+                    <div class="type-card__body">
+                        <h3>Edificios</h3>
+                        <p>Activos empresariales en venta o alquiler</p>
+                    </div>
+                    <span class="type-card__arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ OPORTUNIDADES ============ -->
+    <section class="opportunities">
+        <div class="container opportunities__grid">
+            <div class="opportunities__text">
+                <span class="eyebrow">PARA INVERSIONISTAS<br>Y DESARROLLADORES</span>
+                <h2>Oportunidades<br><span class="hl">de alto potencial</span></h2>
+                <p>Conecta con terrenos, edificios y activos estratégicos para proyectos corporativos, comerciales y de uso mixto.</p>
+                <a href="#" class="btn btn-primary" id="btnConocerOportunidades">Conocer oportunidades <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="opportunities__image">
+                <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1000&q=80" alt="Desarrollo inmobiliario" loading="lazy">
+            </div>
+            <ul class="opportunities__list">
+                <li><i class="fa-regular fa-building"></i> Terrenos estratégicos para desarrollo</li>
+                <li><i class="fa-regular fa-building"></i> Edificios con potencial de reposicionamiento</li>
+                <li><i class="fa-solid fa-chart-line"></i> Mercado corporativo en crecimiento</li>
+                <li><i class="fa-solid fa-handshake"></i> Acompañamiento en todo el proceso</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ============ SERVICIOS (render dinámico) ============ -->
+    <section class="section" id="servicios">
+        <div class="container">
+            <h2 class="section-title">Servicios inmobiliarios integrales</h2>
+            <div class="services-grid" id="servicesGrid"></div>
+        </div>
+    </section>
+
+    <!-- ============ CTA / CONTACTO ============ -->
+    <section class="cta">
+        <div class="container cta__grid">
+            <div class="cta__text">
+                <h2>¿Quieres incorporar tu inmueble al equipo?</h2>
+                <p>Contáctanos y te ayudaremos a comercializar tu propiedad con clientes corporativos.</p>
+            </div>
+            <form class="contacto-form cta__form" id="contactoForm">
+                <div class="cta__row">
+                    <input type="text" name="nombre" placeholder="Tu nombre" required>
+                    <input type="email" name="email" placeholder="Tu email" required>
+                </div>
+                <textarea name="mensaje" placeholder="Tu mensaje" required></textarea>
+                <button type="submit" class="btn btn-primary"><i class="fa-regular fa-paper-plane"></i> Enviar Mensaje</button>
+                <div class="contacto-mensaje" id="contactoMensaje"></div>
+            </form>
+        </div>
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col footer-col--brand">
+                    <div class="footer-brand">
+                        <img src="assets/images/home/logo-qadrante-white.webp" alt="Qadrante" class="logo-img">
+                        <span class="brand__tag brand__tag--footer">Servicios<br>Inmobiliarios<br>Integrales</span>
+                    </div>
+                    <p id="footerMision">Conectamos a empresas con espacios que impulsan su crecimiento, de forma segura, transparente y profesional.</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h3>Enlaces</h3>
+                    <ul>
+                        <li><a href="/">Inicio</a></li>
+                        <li><a href="/busqueda">Buscar</a></li>
+                        <li><a href="#nosotros">Nosotros</a></li>
+                        <li><a href="#servicios">Servicios</a></li>
+                        <li><a href="#" id="footerPublicar">Publicar Inmueble</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Tipos de Inmuebles</h3>
+                    <ul>
+                        <li><a href="#" data-tipo="1">Oficinas</a></li>
+                        <li><a href="#" data-tipo="4">Locales</a></li>
+                        <li><a href="#" data-tipo="5">Terrenos</a></li>
+                        <li><a href="#" data-tipo="12">Edificios</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col footer-col--contact">
+                    <h3>Contacto</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> <span id="footerDireccion">Surco, Lima - Perú</span></p>
+                    <p><i class="fa-solid fa-phone"></i> <span id="footerTelefono">+51 999 457 538</span></p>
+                    <p><i class="fa-regular fa-envelope"></i> <span id="footerEmail">informes@qadrante2.com</span></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Qadrante. Todos los derechos reservados.</p>
+                <div class="footer-legal">
+                    <a href="#">Términos y Condiciones</a>
+                    <a href="#">Política de Privacidad</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============ MODAL BÚSQUEDA AVANZADA (se mantiene) ============ -->
     <div class="modal-overlay" id="modalBusqueda" style="display: none;">
         <div class="modal-busqueda">
-            <button class="modal-close" id="btnCerrarModal">
-                <i class="fas fa-times"></i>
-            </button>
+            <button class="modal-close" id="btnCerrarModal"><i class="fas fa-times"></i></button>
             <div class="container">
             <div class="filtro-simplificado-card">
                 <h2>Búsqueda Avanzada</h2>
@@ -119,11 +296,8 @@
                 <div class="ubicacion-row">
                     <div class="form-group">
                         <label>País</label>
-                        <select id="pais" class="form-control">
-                            <option value="PERU">Perú</option>
-                        </select>
+                        <select id="pais" class="form-control"><option value="PERU">Perú</option></select>
                     </div>
-
                     <div class="form-group">
                         <label>Departamento</label>
                         <select id="departamento" class="form-control">
@@ -131,7 +305,6 @@
                             <option value="LIMA" selected>Lima</option>
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label>Provincia</label>
                         <select id="provincia" class="form-control">
@@ -153,8 +326,7 @@
                             <div class="multi-select__search">
                                 <input type="text" id="distritoSearch" placeholder="Buscar distrito..." class="multi-select__search-input">
                             </div>
-                            <div class="multi-select__options" id="distritoOptions">
-                            </div>
+                            <div class="multi-select__options" id="distritoOptions"></div>
                             <div class="multi-select__actions">
                                 <button type="button" id="distritoSelectAll" class="multi-select__action">Seleccionar todos</button>
                                 <button type="button" id="distritoClear" class="multi-select__action alt">Limpiar</button>
@@ -172,13 +344,11 @@
                             <option value="alquiler">Alquiler</option>
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label for="metraje">Metraje (m²)</label>
                         <input type="number" id="metraje" class="form-control" placeholder="Ej: 460">
                         <small>El sistema busca ±15%</small>
                     </div>
-
                     <div class="form-group">
                         <label for="presupuesto" id="labelPresupuesto">Presupuesto Venta (USD)</label>
                         <input type="number" id="presupuesto" class="form-control" placeholder="750,000">
@@ -187,120 +357,15 @@
                 </div>
 
                 <div class="boton-match-container">
-                    <button id="btnHacerMatch" class="btn btn-match">
-                        Buscar Propiedades
-                    </button>
+                    <button id="btnHacerMatch" class="btn btn-match">Buscar Propiedades</button>
                 </div>
             </div>
-        </div>
+            </div>
         </div>
     </div>
 
-    <!-- Tu aliado estratégico -->
-    <section class="valor-section" id="nosotros">
-        <div class="container">
-            <h2>Tu aliado estratégico en cada paso</h2>
-            <div class="valor-grid">
-                <div class="valor-card">
-                    <div class="valor-icono">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="8"/>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                        </svg>
-                    </div>
-                    <h3>Búsqueda Precisa</h3>
-                    <p>Filtros a la medida de tu interés</p>
-                </div>
-                <div class="valor-card">
-                    <div class="valor-icono">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                            <polyline points="17 6 23 6 23 12"/>
-                        </svg>
-                    </div>
-                    <h3>Mejor Oferta</h3>
-                    <p>Evalúa las alternativas que hicieron match con tu requerimiento</p>
-                </div>
-                <div class="valor-card">
-                    <div class="valor-icono">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        </svg>
-                    </div>
-                    <h3>Publica con Confianza</h3>
-                    <p>Registra correctamente los datos de tu(s) inmueble(s)</p>
-                </div>
-                <div class="valor-card">
-                    <div class="valor-icono">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                            <polyline points="22 4 12 14.01 9 11.01"/>
-                        </svg>
-                    </div>
-                    <h3>Experiencia Segura</h3>
-                    <p>Visita el inmueble y toma la decisión más conveniente de manera segura</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Services Section -->
-    <section class="services-section">
-        <div class="container">
-            <h2 class="section-title">Servicios Adicionales</h2>
-            <div class="services-grid" id="servicesGrid">
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="container">
-            <h2>¿Quieres incorporarte al equipo?</h2>
-            <p>Contáctanos y te ayudaremos a comercializar tu propiedad</p>
-            <form class="contacto-form" id="contactoForm">
-                <input type="text" name="nombre" placeholder="Tu nombre" required>
-                <input type="email" name="email" placeholder="Tu email" required>
-                <textarea name="mensaje" placeholder="Tu mensaje" required></textarea>
-                <button type="submit" class="btn btn-primary">Enviar Mensaje</button>
-            </form>
-            <div class="contacto-mensaje" id="contactoMensaje"></div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <h3>Qadrante</h3>
-                    <p id="footerMision"></p>
-                </div>
-                <div class="footer-col">
-                    <h3>Enlaces</h3>
-                    <ul>
-                        <li><a href="/">Inicio</a></li>
-                        <li><a href="/busqueda">Buscar</a></li>
-                        <li><a href="/sobre-nosotros">Nosotros</a></li>
-                        <li><a href="/login">Iniciar Sesión</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h3>Contacto</h3>
-                    <p id="footerDireccion"></p>
-                    <p id="footerTelefono"></p>
-                    <p id="footerEmail"></p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 Qadrante. Todos los derechos reservados.</p>
-            </div>
-        </div>
-    </footer>
-
     <!-- Scripts -->
-    <script src="js/config/api.js?v=21"></script>
-    <script src="js/components/carousel.js?v=21"></script>
-    <script src="js/pages/home.js?v=21"></script>
+    <script src="js/config/api.js?v=22"></script>
+    <script src="js/pages/home.js?v=22"></script>
 </body>
 </html>

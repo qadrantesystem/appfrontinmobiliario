@@ -79,13 +79,12 @@ class HomePage {
     const grid = document.getElementById('servicesGrid');
     if (!grid || !this.textos) return;
 
-    const html = this.textos.servicios.map(servicio => `
+    const iconos = ['fa-building', 'fa-bullhorn', 'fa-chart-line', 'fa-magnifying-glass-chart', 'fa-handshake', 'fa-file-signature'];
+    const html = this.textos.servicios.map((servicio, i) => `
       <div class="service-card">
-        <img src="${servicio.imagen}" alt="${servicio.titulo}" class="service-card-img" loading="lazy">
-        <div class="service-card-body">
-          <h3>${servicio.titulo}</h3>
-          <p>${servicio.descripcion || ''}</p>
-        </div>
+        <i class="fa-solid ${iconos[i % iconos.length]}"></i>
+        <h3>${servicio.titulo}</h3>
+        <p>${servicio.descripcion || ''}</p>
       </div>
     `).join('');
 
@@ -127,6 +126,7 @@ class HomePage {
 
       this.renderHeroTipos();
       this.renderHeroDistritos();
+      this.setupHeroTabs();
       this.setupHeroBusqueda();
     } catch {
       // API no disponible, la barra de busqueda queda con placeholders
@@ -142,6 +142,35 @@ class HomePage {
     ).join('');
 
     select.innerHTML = `<option value="">Tipo de inmueble...</option>` + html;
+  }
+
+  /**
+   * Sincroniza las tabs de tipo (Oficinas/Locales/Terrenos/Edificios) con #heroTipoInmueble
+   * y las tarjetas "Explora por tipo" / enlaces del footer.
+   */
+  setupHeroTabs() {
+    const tabs = Array.from(document.querySelectorAll('#heroTipoTabs .hero-tab'));
+    const select = document.getElementById('heroTipoInmueble');
+
+    const activate = (tipo) => {
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tipo === String(tipo)));
+      if (select) select.value = String(tipo);
+    };
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => activate(tab.dataset.tipo));
+    });
+
+    document.querySelectorAll('.type-card[data-tipo], .footer-col [data-tipo]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        activate(el.dataset.tipo);
+        document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    const active = tabs.find(t => t.classList.contains('active')) || tabs[0];
+    if (active) activate(active.dataset.tipo);
   }
 
   renderHeroDistritos() {
@@ -229,24 +258,16 @@ class HomePage {
     if (!btnBuscar) return;
 
     btnBuscar.addEventListener('click', () => {
-      const tipo = document.getElementById('heroTipoInmueble')?.value;
+      const tabs = document.querySelectorAll('#heroTipoTabs .hero-tab');
+      const activeTab = Array.from(tabs).find(t => t.classList.contains('active'));
+      const tipo = document.getElementById('heroTipoInmueble')?.value || activeTab?.dataset.tipo;
       const transaccion = document.getElementById('heroTransaccion')?.value || 'venta';
-
-      if (!tipo && this.distritosSeleccionadosHero.length === 0) {
-        Swal.fire({
-          title: 'Campos incompletos',
-          text: 'Selecciona un tipo de inmueble y al menos un distrito para iniciar la búsqueda.',
-          icon: 'warning',
-          confirmButtonText: 'Entendido',
-          confirmButtonColor: HomePage.SWAL_COLOR
-        });
-        return;
-      }
+      const metraje = parseInt(document.getElementById('heroMetraje')?.value || '');
 
       if (!tipo) {
         Swal.fire({
-          title: 'Tipo de inmueble requerido',
-          text: 'Selecciona el tipo de inmueble que estás buscando.',
+          title: 'Selecciona un tipo',
+          text: 'Elige el tipo de inmueble que estás buscando.',
           icon: 'warning',
           confirmButtonText: 'Entendido',
           confirmButtonColor: HomePage.SWAL_COLOR
@@ -254,23 +275,13 @@ class HomePage {
         return;
       }
 
-      if (this.distritosSeleccionadosHero.length === 0) {
-        Swal.fire({
-          title: 'Distrito requerido',
-          text: 'Selecciona al menos un distrito donde deseas buscar.',
-          icon: 'warning',
-          confirmButtonText: 'Entendido',
-          confirmButtonColor: HomePage.SWAL_COLOR
-        });
-        return;
-      }
-
+      // La demanda: tipo + zona (opcional) + operación + metraje
       const filtros = {
         ...HomePage.UBICACION_DEFECTO,
         distritos_ids: this.distritosSeleccionadosHero,
         tipo_inmueble_id: parseInt(tipo),
         transaccion: transaccion,
-        area: null,
+        area: metraje || null,
         presupuesto_compra: null,
         presupuesto_alquiler: null
       };
