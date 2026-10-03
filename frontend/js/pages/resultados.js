@@ -2119,7 +2119,7 @@ class ResultadosPage {
     const titulo = document.getElementById('tituloFiltro');
     const contenido = document.getElementById('contenidoFiltros');
 
-    titulo.textContent = '📋 Filtro Básico';
+    titulo.textContent = '<i class="fa-solid fa-list-check" aria-hidden="true"></i> Filtro Básico';
     contenido.innerHTML = this.generarHTMLFiltroBasico();
     panel.style.display = 'block';
 
@@ -2465,16 +2465,16 @@ class ResultadosPage {
   formatCategoria(categoria) {
     const nombres = {
       'COMPLEMENTARIOS': '📦 Complementarios',
-      'GENERALES_EDIFICIO': '🏢 Generales del Edificio',
+      'GENERALES_EDIFICIO': '<i class="fa-solid fa-building" aria-hidden="true"></i> Generales del Edificio',
       'SOPORTE_EDIFICIO': '🛡️ Soporte del Edificio',
       'AREAS_COMUNES': '🏊 Áreas Comunes del Edificio',
       'ASCENSORES': '🛗 Ascensores',
-      'DE_LA_OFICINA': '📋 De la Oficina',
+      'DE_LA_OFICINA': '<i class="fa-solid fa-list-check" aria-hidden="true"></i> De la Oficina',
       'EQUIPAMIENTO': '⚙️ Equipamiento de Oficina',
       'VISTA_OFICINA': '👁️ Vista de la Oficina',
-      'INFO_AREAS': '📐 Información de Áreas',
-      'VALORIZACION': '💰 Valorización Edificio',
-      'SOPORTE_URBANO': '📍 Soporte Urbano'
+      'INFO_AREAS': '<i class="fa-solid fa-ruler-combined" aria-hidden="true"></i> Información de Áreas',
+      'VALORIZACION': '<i class="fa-solid fa-tag" aria-hidden="true"></i> Valorización Edificio',
+      'SOPORTE_URBANO': '<i class="fa-solid fa-location-dot" aria-hidden="true"></i> Soporte Urbano'
     };
     return nombres[categoria] || categoria;
   }
@@ -2893,11 +2893,11 @@ class ResultadosPage {
   renderPrecio(prop) {
     let html = '';
     if (prop.precio_venta) {
-      html += `<span class="price-tag">💰 Venta: USD ${prop.precio_venta.toLocaleString()}</span>`;
+      html += `<span class="price-tag"><i class="fa-solid fa-tag" aria-hidden="true"></i> Venta: USD ${prop.precio_venta.toLocaleString()}</span>`;
     }
     if (prop.precio_alquiler) {
       if (html) html += ' ';
-      html += `<span class="price-tag">💰 Alquiler: USD ${prop.precio_alquiler.toLocaleString()}/mes</span>`;
+      html += `<span class="price-tag"><i class="fa-solid fa-tag" aria-hidden="true"></i> Alquiler: USD ${prop.precio_alquiler.toLocaleString()}/mes</span>`;
     }
     return html;
   }
@@ -2939,11 +2939,11 @@ class ResultadosPage {
           <h3 class="property-title">${prop.titulo}</h3>
           <div class="property-price">${this.renderPrecio(prop)}</div>
           <div class="property-features">
-            ${prop.area ? `<span class="feature">📐 ${prop.area} m²</span>` : ''}
+            ${prop.area ? `<span class="feature"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i> ${prop.area} m²</span>` : ''}
             ${(prop.tipo_inmueble_id !== 12 && prop.tipo_inmueble_id !== 13) ? `
               ${prop.habitaciones ? `<span class="feature">🛏️ ${prop.habitaciones} hab.</span>` : ''}
               ${prop.banos ? `<span class="feature">🛁 ${prop.banos} baños</span>` : ''}
-              ${prop.estacionamientos ? `<span class="feature">🚗 ${prop.estacionamientos} estac.</span>` : ''}
+              ${prop.estacionamientos ? `<span class="feature"><i class="fa-solid fa-car" aria-hidden="true"></i> ${prop.estacionamientos} estac.</span>` : ''}
             ` : ''}
             ${prop.antiguedad ? `<span class="feature">⏱️ ${prop.antiguedad} años</span>` : ''}
             ${prop.implementacion ? `<span class="feature">🔧 ${prop.implementacion}</span>` : ''}
@@ -2952,7 +2952,7 @@ class ResultadosPage {
           <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
             ${!this.usuarioLogueado ? `
               <div class="contact-locked">
-                🔒 <a href="#" class="login-link" data-property-id="${prop.id}">Inicia sesión para ver contacto</a>
+                <i class="fa-solid fa-lock" aria-hidden="true"></i> <a href="#" class="login-link" data-property-id="${prop.id}">Inicia sesión para ver contacto</a>
               </div>
             ` : `
               <div class="contact-info" style="margin: 0;">
@@ -2964,7 +2964,7 @@ class ResultadosPage {
                     style="background: var(--azul-corporativo, #0f4761); color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; flex-shrink: 0; transition: all 0.2s;"
                     onmouseover="this.style.background='var(--dorado, #ff9700)'"
                     onmouseout="this.style.background='var(--azul-corporativo, #0f4761)'">
-              🔍 Detalle
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Detalle
             </button>
           </div>
         </div>
@@ -2983,11 +2983,11 @@ class ResultadosPage {
     // Renderizar precio total
     let precioHtml = '';
     if (combinacion.precio_venta_total) {
-      precioHtml += `<span class="price-tag">💰 Venta Total: USD ${combinacion.precio_venta_total.toLocaleString()}</span>`;
+      precioHtml += `<span class="price-tag"><i class="fa-solid fa-tag" aria-hidden="true"></i> Venta Total: USD ${combinacion.precio_venta_total.toLocaleString()}</span>`;
     }
     if (combinacion.precio_alquiler_total) {
       if (precioHtml) precioHtml += ' ';
-      precioHtml += `<span class="price-tag">💰 Alquiler Total: USD ${combinacion.precio_alquiler_total.toLocaleString()}/mes</span>`;
+      precioHtml += `<span class="price-tag"><i class="fa-solid fa-tag" aria-hidden="true"></i> Alquiler Total: USD ${combinacion.precio_alquiler_total.toLocaleString()}/mes</span>`;
     }
 
     return `
@@ -3007,7 +3007,7 @@ class ResultadosPage {
 
         <div class="property-info">
           <h3 class="property-title">
-            <span class="combinacion-icon">🏢</span>
+            <span class="combinacion-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
             ${combinacion.glosa || 'Combinación de oficinas'}
           </h3>
 
@@ -3020,8 +3020,8 @@ class ResultadosPage {
           <div class="property-price">${precioHtml}</div>
 
           <div class="property-features">
-            <span class="feature feature-highlight">📐 ${combinacion.area_total} m² TOTAL</span>
-            <span class="feature">🏢 ${combinacion.cantidad_oficinas} oficinas</span>
+            <span class="feature feature-highlight"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i> ${combinacion.area_total} m² TOTAL</span>
+            <span class="feature"><i class="fa-solid fa-building" aria-hidden="true"></i> ${combinacion.cantidad_oficinas} oficinas</span>
             <span class="feature">💱 ${combinacion.moneda || 'PEN'}</span>
           </div>
 
@@ -3046,7 +3046,7 @@ class ResultadosPage {
 
           ${!this.usuarioLogueado ? `
             <div class="contact-locked">
-              🔒 <a href="#" class="login-link">Inicia sesión para más información</a>
+              <i class="fa-solid fa-lock" aria-hidden="true"></i> <a href="#" class="login-link">Inicia sesión para más información</a>
             </div>
           ` : `
             <div class="contact-info">
@@ -3312,7 +3312,7 @@ class ResultadosPage {
           maxZoom: 19
         }).addTo(this.map);
 
-        // 🔒 Protección de ubicación para usuarios invitados
+        // <i class="fa-solid fa-lock" aria-hidden="true"></i> Protección de ubicación para usuarios invitados
         // Aplicar blur y desaturación cuando hacen zoom muy cerca
         this.map.on('zoomend', () => {
           const currentZoom = this.map.getZoom();
@@ -3548,12 +3548,12 @@ class ResultadosPage {
           <!-- Info básica -->
           <div style="padding: 10px 12px; background: #f8f9fa; border-bottom: 1px solid #e2e8f0;">
             <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 0.85rem;">
-              ${prop.area ? `<span style="font-weight: 600; color: #ff9800;">📐 ${prop.area} m²</span>` : ''}
+              ${prop.area ? `<span style="font-weight: 600; color: #ff9800;"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i> ${prop.area} m²</span>` : ''}
               ${antiguedad > 0 ? `<span style="font-weight: 600; color: #6c757d;">⏱️ ${antiguedad} años</span>` : ''}
               ${implementacionTexto !== 'Sin especificar' ? `<span style="font-weight: 600; color: #17a2b8;">🏗️ ${implementacionTexto}</span>` : ''}
               ${prop.habitaciones ? `<span style="font-weight: 600;">🛏️ ${prop.habitaciones} hab.</span>` : ''}
               ${prop.banos ? `<span style="font-weight: 600;">🛁 ${prop.banos} baños</span>` : ''}
-              ${prop.estacionamientos ? `<span style="font-weight: 600;">🚗 ${prop.estacionamientos} estac.</span>` : ''}
+              ${prop.estacionamientos ? `<span style="font-weight: 600;"><i class="fa-solid fa-car" aria-hidden="true"></i> ${prop.estacionamientos} estac.</span>` : ''}
             </div>
           </div>
 
@@ -3611,7 +3611,7 @@ class ResultadosPage {
             <div style="margin-bottom: 6px; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; background: white;">
               <button class="cat-toggle" style="width: 100%; padding: 10px 14px; background: #f8f9fa; border: none; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; color: var(--azul-corporativo, #0f4761); text-align: left;">
                 <span style="font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
-                  📋 ${cat}
+                  <i class="fa-solid fa-list-check" aria-hidden="true"></i> ${cat}
                   <span style="background: var(--azul-corporativo, #0f4761); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">${items.length}</span>
                 </span>
                 <span class="toggle-icon" style="font-size: 1rem;">${isOpen ? '▼' : '▶'}</span>

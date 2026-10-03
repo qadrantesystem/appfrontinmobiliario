@@ -2884,14 +2884,17 @@
 }
 
 @media (max-width: 1024px) {
-  /* Header móvil estandarizado: logo + acciones en fila 1, tabs en fila 2 */
+  /* Header móvil estandarizado: logo + acciones en fila 1, tabs en fila 3 */
   .header-content {
     grid-template-columns: auto 1fr auto !important;
-    grid-template-rows: auto auto !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
   }
 
   .logo { grid-column: 1; grid-row: 1; }
-  .hamburger { grid-column: 3; grid-row: 1; }
+  .logo-img { height: 40px !important; } /* evita que el logo empuje los botones fuera */
+  .hamburger { grid-column: 3; grid-row: 1; justify-self: end; }
   .btn-filter-mobile { grid-column: 3; grid-row: 2; justify-self: end; }
 
   /* Barra de tabs full-width */
@@ -2912,22 +2915,33 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 9px 12px;
+    gap: 8px;
+    min-height: 44px; /* touch target (iOS 44pt) */
+    padding: 10px 12px;
     border: none;
     border-radius: 999px;
     background: transparent;
     color: #ffffff;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, opacity 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
   }
+
+  .view-tab:active { opacity: 0.85; } /* feedback al presionar, sin mover layout */
+  .view-tab:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+  .view-tab .fa-solid { font-size: 0.95rem; }
 
   .view-tab.active {
     background: #ffffff;
     color: var(--azul-corporativo, #0f4761);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Safe-area: header sticky no choca con el notch/status bar */
+  .header-resultados {
+    padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
   }
 
   /* --- Alternancia Lista / Mapa --- */
@@ -2958,3 +2972,10 @@
 @media (min-width: 1025px) {
   .view-tabs { display: none !important; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .view-tab { transition: none !important; }
+}
+
+/* Evita scroll horizontal por el menú off-canvas y el header */
+html, body { overflow-x: hidden; }
