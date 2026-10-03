@@ -198,7 +198,15 @@ class DashboardRouter {
    * Cargar tab Búsquedas (usa módulos existentes)
    */
   async loadBusquedasTab() {
-    // Nuevo módulo de búsqueda (rediseño), reutilizado del público
+    // Vista por defecto: lista de búsquedas guardadas (BusquedasTab).
+    // El nuevo módulo de búsqueda se abre al pulsar "Nueva Búsqueda".
+    if (typeof BusquedasTab !== 'undefined') {
+      const module = new BusquedasTab(this.app);
+      this.currentModule = module;
+      return await module.render();
+    }
+
+    // Fallback: montar directamente el nuevo módulo de búsqueda
     if (window.SearchSystemMain) {
       this.currentModule = {
         render: () => this._searchDesignHtml(),
@@ -208,14 +216,20 @@ class DashboardRouter {
       return this.currentModule.render();
     }
 
-    // Fallback: tab de búsquedas anterior
-    if (typeof BusquedasTab !== 'undefined') {
-      const module = new BusquedasTab(this.app);
-      this.currentModule = module;
-      return await module.render();
-    }
-
     return '<p>Módulo de búsquedas no disponible</p>';
+  }
+
+  /** Inyecta el nuevo módulo de búsqueda en un contenedor y lo inicializa. */
+  async openSearchDesign(mountEl) {
+    const mount = typeof mountEl === 'string' ? document.querySelector(mountEl) : mountEl;
+    if (!mount) return;
+    mount.innerHTML = this._searchDesignHtml();
+    await this._initSearchDesign();
+  }
+
+  /** Destruye el nuevo módulo de búsqueda (al volver a la lista o cambiar de tab). */
+  closeSearchDesign() {
+    this._destroySearchDesign();
   }
 
   /**

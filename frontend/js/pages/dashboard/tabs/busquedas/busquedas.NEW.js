@@ -65,6 +65,16 @@ class BusquedasTab {
           </div>
         </div>
 
+        <!-- Host del nuevo módulo de búsqueda (se muestra al pulsar "Nueva Búsqueda") -->
+        <div id="qsSearchHost" hidden>
+          <div style="margin-bottom: var(--spacing-md);">
+            <button id="qsBackToList" class="btn btn-outline btn-sm">
+              <i class="fa-solid fa-arrow-left"></i> Volver a mis búsquedas
+            </button>
+          </div>
+          <div id="qsSearchMount"></div>
+        </div>
+
         <!-- Filtros de Búsqueda -->
         <div class="filtros-busqueda-container">
           <h3 style="margin: 0 0 var(--spacing-md) 0; color: var(--azul-corporativo); font-size: 1rem;">
@@ -303,25 +313,16 @@ class BusquedasTab {
     console.log('🔍 FormHandler:', this.formHandler);
 
     if (btnNueva) {
-      btnNueva.addEventListener('click', async () => {
-        console.log('🔍 Click en Nueva Búsqueda');
-        console.log('🔍 FormHandler al hacer click:', this.formHandler);
-        console.log('🔍 Tipo de formHandler.open:', typeof this.formHandler.open);
-
-        if (this.formHandler) {
-          console.log('🔍 Llamando a formHandler.open()...');
-          try {
-            await this.formHandler.open();
-            console.log('✅ formHandler.open() completado');
-          } catch (error) {
-            console.error('❌ Error en formHandler.open():', error);
-          }
-        } else {
-          console.error('❌ formHandler es null');
-        }
-      });
+      // "Nueva Búsqueda" abre el NUEVO módulo de búsqueda (rediseño)
+      btnNueva.addEventListener('click', () => this.abrirNuevaBusqueda());
     } else {
       console.error('❌ No se encontró botón [data-nueva-busqueda]');
+    }
+
+    // Volver desde el nuevo módulo de búsqueda a la lista
+    const btnBack = this.container.querySelector('#qsBackToList');
+    if (btnBack) {
+      btnBack.addEventListener('click', () => this.cerrarNuevaBusqueda());
     }
 
     // Botón guardar
@@ -659,6 +660,52 @@ class BusquedasTab {
     this.currentResults = [];
     this.currentFilters = {};
     this.currentPage = 1;
+  }
+
+  /** Oculta/muestra los bloques de la vista "lista de búsquedas guardadas". */
+  _setListaVisible(visible) {
+    if (!this.container) return;
+    ['.busquedas-header', '.filtros-busqueda-container', '#savedSearchesList', '#savedSearchesPagination']
+      .forEach((sel) => {
+        const el = this.container.querySelector(sel);
+        if (el) el.style.display = visible ? '' : 'none';
+      });
+  }
+
+  /** Abre el NUEVO módulo de búsqueda (rediseño) embebido en la tab. */
+  async abrirNuevaBusqueda() {
+    this._setListaVisible(false);
+    const host = this.container.querySelector('#qsSearchHost');
+    if (!host) return;
+    host.hidden = false;
+    const router = this.app?.router || window.dashboardApp?.router;
+    if (router && typeof router.openSearchDesign === 'function') {
+      await router.openSearchDesign(host.querySelector('#qsSearchMount'));
+    } else {
+      console.warn('⚠️ Router no disponible para abrir el módulo de búsqueda');
+    }
+  }
+
+  /** Vuelve a la lista de búsquedas guardadas. */
+  async cerrarNuevaBusqueda() {
+    const router = this.app?.router || window.dashboardApp?.router;
+    if (router && typeof router.closeSearchDesign === 'function') router.closeSearchDesign();
+    const host = this.container.querySelector('#qsSearchHost');
+    if (host) {
+      host.hidden = true;
+      const mount = host.querySelector('#qsSearchMount');
+      if (mount) mount.innerHTML = '';
+    }
+    this._setListaVisible(true);
+    if (this.listaHandler && typeof this.listaHandler.load === 'function') {
+      this.listaHandler.load();
+    }
+  }
+
+  /** Cleanup al salir del tab búsquedas. */
+  destroy() {
+    const router = this.app?.router || window.dashboardApp?.router;
+    if (router && typeof router.closeSearchDesign === 'function') router.closeSearchDesign();
   }
 
   // ========================================

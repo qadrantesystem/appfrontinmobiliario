@@ -466,3 +466,5 @@ body.qs-body {
 @media (max-width: 640px) {
   .tab-content #qsResults { grid-template-columns: 1fr; }
 }
+/* En el dashboard no hay bottom nav: la barra de selección baja */
+.tab-content #qsSelectionBar { bottom: 16px; }
