@@ -218,9 +218,10 @@ class HomePage {
       e.stopPropagation();
       const abierto = dropdown.classList.toggle('open');
       if (abierto) {
-        // Mueve ligeramente el scroll para que se vean los distritos
+        // Mueve ligeramente el scroll para que se vean los distritos y enfoca el buscador
         setTimeout(() => {
           dropdown.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          if (searchInput) searchInput.focus();
         }, 60);
       }
     });
