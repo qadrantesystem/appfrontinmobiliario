@@ -261,7 +261,7 @@ body.home .container {
 .home .btn-primary:hover { background: var(--q-orange-dark); }
 
 /* ---------------- Responsive ---------------- */
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
   .home .hamburger { display: block; margin-left: auto; }
   .home .btn-login { display: none; }
   .home .header__nav { margin-left: 0; }
@@ -279,7 +279,9 @@ body.home .container {
   .home .hamburger.active span:nth-child(1) { transform: translateY(9px) rotate(45deg); }
   .home .hamburger.active span:nth-child(2) { opacity: 0; }
   .home .hamburger.active span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+}
 
+@media (max-width: 1024px) {
   .home .hero__search-row { flex-direction: column; align-items: stretch; }
   .home .hero__audiences { flex-wrap: wrap; gap: 22px; }
   .home .hero-search-bar { flex: 0 0 auto; grid-template-columns: 1fr 1fr; max-width: 100%; }
