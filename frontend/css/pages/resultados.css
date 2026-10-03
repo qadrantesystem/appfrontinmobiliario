@@ -2979,3 +2979,61 @@
 
 /* Evita scroll horizontal por el menú off-canvas y el header */
 html, body { overflow-x: hidden; }
+
+/* ============================================================
+   DESKTOP (>1024px) — Layout de 3 columnas
+   Filtros (360px, sticky) | Resultados (flex, scroll normal) | Mapa (flex, sticky)
+   Los tabs Lista|Mapa NO existen en desktop (solo se muestran <=1024px).
+   ============================================================ */
+@media (min-width: 1025px) {
+  /* overflow-x: clip evita scroll horizontal SIN crear un contenedor de
+     scroll (a diferencia de hidden, que rompe position: sticky) */
+  html, body { overflow-x: clip; }
+
+  /* Grid maestro: filtros fijo + resultados y mapa flexibles.
+     align-items:start evita que el mapa se estire a la altura de la fila,
+     requisito indispensable para que position: sticky funcione. */
+  #mainContainer.main-container {
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;            /* gutter en ritmo de 8px */
+    padding: 0 24px 24px;
+    overflow: visible;
+  }
+
+  /* Columna 1 — Filtros: sticky bajo el header */
+  #mainContainer .filters-section {
+    order: 1;
+    align-self: start;
+    position: sticky;
+    top: 96px;                          /* header (~89px) + respiro 8px */
+    height: calc(100vh - 120px);        /* viewport - header - gutter inferior */
+    max-height: calc(100vh - 120px);
+    min-width: 0;
+  }
+
+  /* Columna 2 — Resultados: altura natural y scroll de página (sin scroll interno) */
+  #mainContainer .listings-section {
+    order: 2;
+    display: block;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    min-width: 0;
+    scroll-margin-top: 96px;            /* evita que el header tape el ancla */
+  }
+
+  /* Columna 3 — Mapa: sticky bajo el header, mismo alto que los filtros */
+  #mainContainer .map-section {
+    order: 3;
+    align-self: start;
+    position: sticky;
+    top: 96px;
+    height: calc(100vh - 120px);
+    max-height: calc(100vh - 120px);
+    min-width: 0;
+  }
+
+  #mainContainer #map { height: 100%; width: 100%; }
+}

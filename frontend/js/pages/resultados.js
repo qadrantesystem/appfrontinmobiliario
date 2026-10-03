@@ -610,6 +610,12 @@ class ResultadosPage {
         prop.imagenes = imgs;
       });
 
+      // 🎯 Fallback demo: si la búsqueda devuelve 0 resultados, mostrar data de ejemplo
+      if (!Array.isArray(this.propiedades) || this.propiedades.length === 0) {
+        this.propiedades = this.getDemoPropiedades();
+        this.metadata = {};
+      }
+
       // Mapear características
       this.caracteristicas = caracteristicasData.map(c => ({
         id: c.caracteristica_id,
@@ -639,8 +645,112 @@ class ResultadosPage {
       this.configFiltros = this.convertirConfigFiltros(configFiltrosData);
     } catch (error) {
       console.error('Error cargando datos:', error);
-      alert('Error al cargar los datos. Por favor recarga la página.');
+      // Fallback demo para que la vista gratuita (invitado) siga siendo navegable
+      this.propiedades = this.getDemoPropiedades();
+      this.metadata = {};
     }
+  }
+
+  /**
+   * Data de ejemplo para la búsqueda gratuita cuando no hay resultados del API.
+   * Solo se usa como fallback (0 resultados o error de red).
+   */
+  getDemoPropiedades() {
+    const img = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`;
+    const oficina1 = [
+      img('photo-1497366216548-37526070297c'),
+      img('photo-1497366811353-6870744d04b2'),
+      img('photo-1497366754035-f200968a6e72'),
+      img('photo-1486406146926-c627a92ad1ab'),
+      img('photo-1497215728101-856f4ea42174')
+    ];
+    const oficina2 = [
+      img('photo-1497366412874-3415097a27e7'),
+      img('photo-1497215728101-856f4ea42174'),
+      img('photo-1497366216548-37526070297c'),
+      img('photo-1497366754035-f200968a6e72')
+    ];
+    const oficina3 = [
+      img('photo-1524758631624-e2822e304c36'),
+      img('photo-1497366811353-6870744d04b2'),
+      img('photo-1486406146926-c627a92ad1ab')
+    ];
+
+    return [
+      {
+        id: 9001,
+        registro_cab_id: 9001,
+        titulo: 'Moderno Edificio Corporativo en San Isidro',
+        tipo_inmueble: 'Oficina',
+        tipo_inmueble_id: 1,
+        transaccion: 'ambos',
+        distrito: 'San Isidro',
+        distrito_id: 1,
+        direccion: 'Av. Javier Prado Oeste 295',
+        area: 460,
+        piso: 12,
+        estacionamientos: 8,
+        parqueos: 8,
+        moneda: 'USD',
+        precio_venta: 750000,
+        precio_alquiler: 8500,
+        descripcion: 'Edificio corporativo de formato medio, a un paso de las avenidas Javier Prado y Rivera Navarrete. Finos acabados, amplias áreas comunes y excelente seguridad las 24 horas. Ideal para oficinas de representación o equipos corporativos.',
+        imagenes: oficina1,
+        imagen_principal: oficina1[0],
+        antiguedad: 12,
+        implementacion: 'Amoblado FULL',
+        lat: -12.0897,
+        lng: -77.0282
+      },
+      {
+        id: 9002,
+        registro_cab_id: 9002,
+        titulo: 'Oficina Ejecutiva con Vista al Mar en Miraflores',
+        tipo_inmueble: 'Oficina',
+        tipo_inmueble_id: 1,
+        transaccion: 'alquiler',
+        distrito: 'Miraflores',
+        distrito_id: 2,
+        direccion: 'Av. Larco 1234, Piso 9',
+        area: 385,
+        piso: 9,
+        estacionamientos: 6,
+        parqueos: 6,
+        moneda: 'USD',
+        precio_alquiler: 7200,
+        descripcion: 'Oficina con vista panorámica al mar, en pleno corazón de Miraflores. Espacios diáfanos, mucha iluminación natural y accesos directos a zonas comerciales y de entretenimiento.',
+        imagenes: oficina2,
+        imagen_principal: oficina2[0],
+        antiguedad: 8,
+        implementacion: 'Implementada',
+        lat: -12.1196,
+        lng: -77.0303
+      },
+      {
+        id: 9003,
+        registro_cab_id: 9003,
+        titulo: 'Oficina Premium en La Molina',
+        tipo_inmueble: 'Oficina',
+        tipo_inmueble_id: 1,
+        transaccion: 'venta',
+        distrito: 'La Molina',
+        distrito_id: 4,
+        direccion: 'Av. La Molina 2450',
+        area: 420,
+        piso: 5,
+        estacionamientos: 7,
+        parqueos: 7,
+        moneda: 'USD',
+        precio_venta: 680000,
+        descripcion: 'Oficina moderna en edificio de oficinas con todas las comodidades: sala de reuniones, recepción, zonas de descanso y estacionamiento propio. Excelente oportunidad de inversión o uso corporativo.',
+        imagenes: oficina3,
+        imagen_principal: oficina3[0],
+        antiguedad: 10,
+        implementacion: 'Amoblado FULL',
+        lat: -12.0724,
+        lng: -76.9408
+      }
+    ];
   }
 
   convertirConfigFiltros(apiData) {
@@ -3470,14 +3580,15 @@ class ResultadosPage {
   }
 
   /**
-   * Mostrar detalle de propiedad con características (modal full-screen)
+   * Modal de DETALLE DE PROPIEDAD (vista gratuita / invitado).
+   * Carrusel de fotos + información ordenada de corrida (solo detalle básico).
    */
   async showPropertyDetail(propId) {
     try {
       // Buscar propiedad en resultados locales
       const propLocal = this.propiedades.find(p => (p.registro_cab_id || p.id) == propId);
 
-      // Fetch detalle completo del API (incluye características)
+      // Fetch detalle completo del API (si está disponible)
       let prop = propLocal;
       try {
         const token = localStorage.getItem('token');
@@ -3496,185 +3607,222 @@ class ResultadosPage {
         return;
       }
 
-      const isMobile = window.innerWidth <= 768;
+      const imagenes = this.getModalImages(prop);
 
-      // Mapear implementación
-      const implementacionMap = { '1': 'Implementado', '2': 'Semi-implementado', '3': 'Sin implementar' };
-      const implementacionTexto = implementacionMap[prop.implementacion] || prop.implementacion || 'Sin especificar';
-      const antiguedad = prop.antiguedad || 0;
+      // Overlay + tarjeta (se anexa a body)
+      const overlay = document.createElement('div');
+      overlay.className = 'pdm-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-label', `Detalle de ${prop.titulo || 'propiedad'}`);
 
-      // Imágenes para carrusel en modal
-      let modalImagenes = Array.isArray(prop.imagenes) ? prop.imagenes : [];
-      if (modalImagenes.length === 0 && prop.imagen_principal) modalImagenes = [prop.imagen_principal];
+      const card = document.createElement('div');
+      card.className = 'pdm-card';
+      card.innerHTML = this.buildPropertyDetailHTML(prop, imagenes);
 
-      const resumenNarrativo = `${prop.tipo_inmueble || 'Propiedad'} ubicada en ${prop.distrito || 'Lima'}, ${prop.direccion || ''}. ${prop.area ? prop.area + ' m²' : ''}${antiguedad > 0 ? ', ' + antiguedad + ' años' : ''}${implementacionTexto !== 'Sin especificar' ? ', ' + implementacionTexto.toLowerCase() : ''}.`;
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+      document.body.classList.add('pdm-open');
 
-      // Crear modal
-      const modal = document.createElement('div');
-      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 0;';
-
-      const modalContent = document.createElement('div');
-      modalContent.style.cssText = 'background: white; width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column;';
-
-      modalContent.innerHTML = `
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, var(--azul-corporativo, #0f4761) 0%, #1a6b8a 100%); color: white; padding: 12px; flex-shrink: 0;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-            <h2 style="margin: 0; color: white; font-size: 1.2rem; font-weight: 700; flex: 1; line-height: 1.2;">${prop.titulo || 'Propiedad'}</h2>
-            <button class="btn-close-detail" style="background: rgba(255,255,255,0.2); border: none; font-size: 20px; cursor: pointer; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 8px;">&times;</button>
-          </div>
-          <p style="margin: 0; color: rgba(255,255,255,0.95); font-size: 0.85rem; line-height: 1.4;">${resumenNarrativo}</p>
-        </div>
-
-        <!-- Contenido scrolleable -->
-        <div style="flex: 1; overflow-y: auto; overflow-x: hidden;">
-
-          ${modalImagenes.length > 0 ? `
-          <!-- Galería de imágenes -->
-          <div style="position: relative; width: 100%; height: ${isMobile ? '200px' : '300px'}; background: #111;">
-            <div class="modal-carousel" style="width: 100%; height: 100%; position: relative;">
-              ${modalImagenes.map((img, i) => `
-                <img src="${img}" alt="Imagen ${i+1}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; opacity: ${i === 0 ? '1' : '0'}; transition: opacity 0.3s;" class="modal-carousel-img ${i === 0 ? 'active' : ''}" data-index="${i}">
-              `).join('')}
-            </div>
-            ${modalImagenes.length > 1 ? `
-              <button class="modal-carousel-prev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.4rem; cursor: pointer; z-index: 5;">&#8249;</button>
-              <button class="modal-carousel-next" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.4rem; cursor: pointer; z-index: 5;">&#8250;</button>
-              <div style="position: absolute; bottom: 8px; right: 10px; background: rgba(0,0,0,0.6); color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;"><span class="modal-counter-current">1</span>/${modalImagenes.length}</div>
-            ` : ''}
-          </div>
-          ` : ''}
-
-          <!-- Info básica -->
-          <div style="padding: 10px 12px; background: #f8f9fa; border-bottom: 1px solid #e2e8f0;">
-            <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 0.85rem;">
-              ${prop.area ? `<span style="font-weight: 600; color: #ff9800;"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i> ${prop.area} m²</span>` : ''}
-              ${antiguedad > 0 ? `<span style="font-weight: 600; color: #6c757d;">⏱️ ${antiguedad} años</span>` : ''}
-              ${implementacionTexto !== 'Sin especificar' ? `<span style="font-weight: 600; color: #17a2b8;">🏗️ ${implementacionTexto}</span>` : ''}
-              ${prop.habitaciones ? `<span style="font-weight: 600;">🛏️ ${prop.habitaciones} hab.</span>` : ''}
-              ${prop.banos ? `<span style="font-weight: 600;">🛁 ${prop.banos} baños</span>` : ''}
-              ${prop.estacionamientos ? `<span style="font-weight: 600;"><i class="fa-solid fa-car" aria-hidden="true"></i> ${prop.estacionamientos} estac.</span>` : ''}
-            </div>
-          </div>
-
-          <!-- Precios -->
-          <div style="padding: 10px 12px; display: flex; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid #e2e8f0;">
-            ${prop.precio_venta ? `<div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 12px; border-radius: 6px; flex: 1; min-width: 140px;"><div style="font-size: 0.7rem; color: #6b7280; font-weight: 600;">VENTA</div><div style="font-size: 1.1rem; font-weight: 700; color: #166534;">USD ${Number(prop.precio_venta).toLocaleString()}</div></div>` : ''}
-            ${prop.precio_alquiler ? `<div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px 12px; border-radius: 6px; flex: 1; min-width: 140px;"><div style="font-size: 0.7rem; color: #6b7280; font-weight: 600;">ALQUILER</div><div style="font-size: 1.1rem; font-weight: 700; color: #1e40af;">USD ${Number(prop.precio_alquiler).toLocaleString()}/mes</div></div>` : ''}
-          </div>
-
-          <!-- Descripción -->
-          ${prop.descripcion ? `
-          <div style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
-            <h3 style="margin: 0 0 8px 0; color: var(--azul-corporativo, #0f4761); font-size: 0.9rem; font-weight: 700;">📄 Descripción</h3>
-            <p style="margin: 0; line-height: 1.5; color: #4a5568; font-size: 0.85rem;">${prop.descripcion}</p>
-          </div>
-          ` : ''}
-
-          <!-- Características -->
-          <div id="detail-caracteristicas" style="padding: 12px; background: #f8f9fa;"></div>
-        </div>
-
-        <!-- Footer -->
-        <div style="background: white; padding: 8px 12px; flex-shrink: 0; display: flex; justify-content: center; border-top: 1px solid rgba(0,0,0,0.08);">
-          <small style="color: #9ca3af; font-size: 0.7rem;">Presiona <kbd style="background: #f3f4f6; border: 1px solid #ddd; padding: 2px 5px; border-radius: 3px; font-family: monospace;">ESC</kbd> para cerrar</small>
-        </div>
-      `;
-
-      modal.appendChild(modalContent);
-      document.body.appendChild(modal);
-
-      // Renderizar características agrupadas
-      const caracContainer = modalContent.querySelector('#detail-caracteristicas');
-      if (prop.caracteristicas && prop.caracteristicas.length > 0) {
-        const grouped = {};
-        prop.caracteristicas.forEach(car => {
-          const cat = car.categoria || 'Otras';
-          if (!grouped[cat]) grouped[cat] = [];
-          grouped[cat].push(car);
-        });
-
-        const ordenCategorias = [
-          'Generales del Edificio', 'Soporte del Edificio', 'De la Oficina',
-          'Equipamiento de Oficina', 'Condición Comercial', 'Vista de la Oficina',
-          'Información de Áreas', 'Valorización Edificio', 'Soporte Urbano'
-        ];
-        const categoriasOrdenadas = ordenCategorias.filter(c => grouped[c]);
-        const categoriasRestantes = Object.keys(grouped).filter(c => !ordenCategorias.includes(c));
-        const todasCategorias = [...categoriasOrdenadas, ...categoriasRestantes];
-
-        let html = '<h3 style="margin: 0 0 8px 0; color: var(--azul-corporativo, #0f4761); font-size: 0.9rem; font-weight: 700;">✅ Características</h3>';
-        todasCategorias.forEach((cat, index) => {
-          const items = grouped[cat];
-          const isOpen = index === 0;
-          html += `
-            <div style="margin-bottom: 6px; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; background: white;">
-              <button class="cat-toggle" style="width: 100%; padding: 10px 14px; background: #f8f9fa; border: none; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; color: var(--azul-corporativo, #0f4761); text-align: left;">
-                <span style="font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
-                  <i class="fa-solid fa-list-check" aria-hidden="true"></i> ${cat}
-                  <span style="background: var(--azul-corporativo, #0f4761); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">${items.length}</span>
-                </span>
-                <span class="toggle-icon" style="font-size: 1rem;">${isOpen ? '▼' : '▶'}</span>
-              </button>
-              <div class="cat-content" style="display: ${isOpen ? 'block' : 'none'}; padding: 10px 14px; border-top: 1px solid #e2e8f0;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px;">
-                  ${items.map(c => `
-                    <div style="display: flex; align-items: center; gap: 5px; padding: 5px 8px; background: #f0f9ff; border-radius: 5px; font-size: 0.8rem; border: 1px solid #bae6fd;">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                      <span style="color: #0369a1; font-weight: 500;">${c.nombre || c}</span>
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            </div>`;
-        });
-        caracContainer.innerHTML = html;
-
-        // Toggle acordeones
-        modalContent.querySelectorAll('.cat-toggle').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const content = btn.nextElementSibling;
-            const icon = btn.querySelector('.toggle-icon');
-            const isOpen = content.style.display === 'block';
-            content.style.display = isOpen ? 'none' : 'block';
-            icon.textContent = isOpen ? '▶' : '▼';
-          });
-        });
-      } else {
-        caracContainer.innerHTML = '<p style="color: #9ca3af; font-style: italic; text-align: center; padding: 20px;">No hay características registradas</p>';
-      }
-
-      // Carrusel del modal
-      if (modalImagenes.length > 1) {
-        let modalIdx = 0;
-        const imgs = modalContent.querySelectorAll('.modal-carousel-img');
-        const counterEl = modalContent.querySelector('.modal-counter-current');
-        const updateModalCarousel = (newIdx) => {
-          imgs.forEach((img, i) => { img.style.opacity = i === newIdx ? '1' : '0'; img.classList.toggle('active', i === newIdx); });
-          modalIdx = newIdx;
-          if (counterEl) counterEl.textContent = newIdx + 1;
-        };
-        modalContent.querySelector('.modal-carousel-prev')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          updateModalCarousel((modalIdx - 1 + modalImagenes.length) % modalImagenes.length);
-        });
-        modalContent.querySelector('.modal-carousel-next')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          updateModalCarousel((modalIdx + 1) % modalImagenes.length);
-        });
-      }
-
-      // Cerrar modal
-      const closeModal = () => { modal.remove(); document.removeEventListener('keydown', escHandler); };
-      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-      modalContent.querySelector('.btn-close-detail')?.addEventListener('click', closeModal);
-      const escHandler = (e) => { if (e.key === 'Escape') closeModal(); };
-      document.addEventListener('keydown', escHandler);
-
+      this.initPropertyDetailModal(overlay, card, prop, imagenes);
     } catch (error) {
       console.error('Error mostrando detalle:', error);
       this.showToast('Error al cargar detalles', 'error');
     }
+  }
+
+  /**
+   * Imágenes disponibles de una propiedad para el carrusel del modal.
+   */
+  getModalImages(prop) {
+    let imgs = Array.isArray(prop.imagenes) ? prop.imagenes.filter(Boolean) : [];
+    if (imgs.length === 0 && prop.imagen_principal) imgs = [prop.imagen_principal];
+    return imgs;
+  }
+
+  escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Formatea precio: "USD 180,000".
+   */
+  formatPrecio(valor, moneda) {
+    if (valor == null || valor === '') return '';
+    const m = (moneda || 'USD').toUpperCase();
+    const n = Number(valor);
+    return `${m} ${Number.isFinite(n) ? n.toLocaleString('en-US') : valor}`;
+  }
+
+  getTransaccionTexto(transaccion) {
+    const map = { venta: 'Venta', alquiler: 'Alquiler', ambos: 'Venta y Alquiler' };
+    return map[String(transaccion || '').toLowerCase()] || (transaccion || '');
+  }
+
+  /**
+   * Construye el HTML interno del modal de detalle (orden lineal).
+   */
+  buildPropertyDetailHTML(prop, imagenes) {
+    const esc = (v) => this.escapeHtml(v);
+    const moneda = prop.moneda || 'USD';
+
+    // --- 1. Carrusel de fotos ---
+    let carousel;
+    if (imagenes.length > 0) {
+      const slides = imagenes.map((img, i) => `
+        <img class="pdm-slide ${i === 0 ? 'active' : ''}" src="${esc(img)}"
+             alt="${esc(prop.titulo || 'Propiedad')} - imagen ${i + 1}"
+             data-index="${i}" loading="lazy">`).join('');
+
+      const nav = imagenes.length > 1 ? `
+        <button class="pdm-nav pdm-prev" type="button" aria-label="Foto anterior"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+        <button class="pdm-nav pdm-next" type="button" aria-label="Foto siguiente"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+        <div class="pdm-counter"><span class="pdm-counter-current">1</span>/${imagenes.length}</div>
+        <div class="pdm-dots">
+          ${imagenes.map((_, i) => `<button class="pdm-dot ${i === 0 ? 'active' : ''}" type="button" data-index="${i}" aria-label="Ir a foto ${i + 1}"></button>`).join('')}
+        </div>` : '';
+
+      carousel = `
+        <div class="pdm-carousel" data-count="${imagenes.length}">
+          <div class="pdm-track">${slides}</div>
+          ${nav}
+        </div>`;
+    } else {
+      carousel = `
+        <div class="pdm-carousel pdm-carousel--empty">
+          <div class="pdm-empty">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            <span>Sin fotos disponibles</span>
+          </div>
+        </div>`;
+    }
+
+    // --- 3. Precios ---
+    const precios = [];
+    if (prop.precio_venta) {
+      precios.push(`
+        <div class="pdm-price pdm-price--venta">
+          <span class="pdm-price-label">Venta</span>
+          <span class="pdm-price-value">${esc(this.formatPrecio(prop.precio_venta, moneda))}</span>
+        </div>`);
+    }
+    if (prop.precio_alquiler) {
+      precios.push(`
+        <div class="pdm-price pdm-price--alquiler">
+          <span class="pdm-price-label">Alquiler</span>
+          <span class="pdm-price-value">${esc(this.formatPrecio(prop.precio_alquiler, moneda))}<small>/mes</small></span>
+        </div>`);
+    }
+
+    // --- 4. Datos clave ---
+    const filas = [];
+    const addFila = (icon, label, value) => {
+      if (value == null || value === '') return;
+      filas.push(`
+        <li class="pdm-row">
+          <span class="pdm-row-icon"><i class="${icon}" aria-hidden="true"></i></span>
+          <span class="pdm-row-label">${esc(label)}</span>
+          <span class="pdm-row-value">${esc(value)}</span>
+        </li>`);
+    };
+    addFila('fa-solid fa-ruler-combined', 'Área', prop.area ? `${prop.area} m²` : '');
+    addFila('fa-solid fa-car', 'Estacionamientos', prop.estacionamientos != null ? prop.estacionamientos : prop.parqueos);
+    addFila('fa-solid fa-layer-group', 'Piso', prop.piso);
+    addFila('fa-solid fa-location-dot', 'Distrito', prop.distrito);
+    addFila('fa-solid fa-map-pin', 'Dirección', prop.direccion);
+
+    // --- 2. Título + subtítulo ---
+    const subtitulo = [prop.tipo_inmueble, this.getTransaccionTexto(prop.transaccion)]
+      .filter(Boolean).join(' · ');
+
+    return `
+      <button class="pdm-close" type="button" aria-label="Cerrar detalle"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      ${carousel}
+      <div class="pdm-body">
+        <div class="pdm-heading">
+          <h2 class="pdm-title">${esc(prop.titulo || 'Propiedad')}</h2>
+          ${subtitulo ? `<p class="pdm-subtitle">${esc(subtitulo)}</p>` : ''}
+        </div>
+        ${precios.length ? `<div class="pdm-prices">${precios.join('')}</div>` : ''}
+        ${filas.length ? `<ul class="pdm-keydata">${filas.join('')}</ul>` : ''}
+        ${prop.descripcion ? `
+          <div class="pdm-desc">
+            <h3><i class="fa-solid fa-align-left" aria-hidden="true"></i> Descripción</h3>
+            <p>${esc(prop.descripcion)}</p>
+          </div>` : ''}
+      </div>
+      <div class="pdm-footer">
+        ${!this.usuarioLogueado ? `
+          <button class="pdm-btn pdm-btn--cta pdm-login-btn" type="button">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i> Inicia sesión para ver el contacto
+          </button>` : ''}
+        <button class="pdm-btn pdm-btn--ghost pdm-close-btn" type="button">Cerrar</button>
+      </div>
+    `;
+  }
+
+  /**
+   * Conecta cierre (ESC/backdrop/botones), carrusel + swipe y CTA de login.
+   */
+  initPropertyDetailModal(overlay, card, prop, imagenes) {
+    const closeModal = () => {
+      overlay.remove();
+      document.body.classList.remove('pdm-open');
+      document.removeEventListener('keydown', onKeydown);
+    };
+    const onKeydown = (e) => { if (e.key === 'Escape') closeModal(); };
+
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    card.querySelector('.pdm-close')?.addEventListener('click', closeModal);
+    card.querySelector('.pdm-close-btn')?.addEventListener('click', closeModal);
+    document.addEventListener('keydown', onKeydown);
+
+    // CTA invitado -> abre el login existente
+    card.querySelector('.pdm-login-btn')?.addEventListener('click', () => {
+      closeModal();
+      const loginModal = document.getElementById('loginModal');
+      if (loginModal) loginModal.style.display = 'flex';
+    });
+
+    // Carrusel: flechas, puntos y swipe táctil
+    if (imagenes.length > 1) {
+      const slides = card.querySelectorAll('.pdm-slide');
+      const dots = card.querySelectorAll('.pdm-dot');
+      const counterEl = card.querySelector('.pdm-counter-current');
+      const track = card.querySelector('.pdm-track');
+      let idx = 0;
+
+      const render = (newIdx) => {
+        idx = (newIdx + imagenes.length) % imagenes.length;
+        slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        if (counterEl) counterEl.textContent = idx + 1;
+      };
+
+      card.querySelector('.pdm-prev')?.addEventListener('click', (e) => { e.stopPropagation(); render(idx - 1); });
+      card.querySelector('.pdm-next')?.addEventListener('click', (e) => { e.stopPropagation(); render(idx + 1); });
+      dots.forEach(dot => dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        render(parseInt(dot.dataset.index, 10));
+      }));
+
+      let startX = null;
+      track?.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+      track?.addEventListener('touchend', (e) => {
+        if (startX === null) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 40) render(dx < 0 ? idx + 1 : idx - 1);
+        startX = null;
+      }, { passive: true });
+    }
+
+    // Foco accesible al botón cerrar
+    setTimeout(() => card.querySelector('.pdm-close')?.focus(), 50);
   }
 
   showToast(mensaje, tipo = 'info') {
