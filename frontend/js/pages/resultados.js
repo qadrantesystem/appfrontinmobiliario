@@ -428,6 +428,9 @@ class ResultadosPage {
     // 6. Configurar drawer móvil
     this.setupMobileFilters();
 
+    // 6.1 Tabs de vista móvil (Lista | Mapa)
+    this.setupViewTabs();
+
     // 7. En móvil, forzar mostrar mapa y resultados
     if (window.innerWidth <= 1024) {
       const imagenRef = document.getElementById('imagenReferencial');
@@ -3248,6 +3251,38 @@ class ResultadosPage {
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  }
+
+  /**
+   * Tabs de vista (solo móvil): alterna Lista | Mapa.
+   */
+  setupViewTabs() {
+    const tabs = document.getElementById('viewTabs');
+    const main = document.getElementById('mainContainer');
+    if (!tabs || !main) return;
+
+    const setView = (view) => {
+      main.classList.toggle('view-list', view === 'list');
+      main.classList.toggle('view-map', view === 'map');
+      tabs.querySelectorAll('.view-tab').forEach((b) => {
+        const on = b.dataset.view === view;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      if (view === 'map') {
+        setTimeout(() => {
+          if (!this.map) this.renderMapa();
+          if (this.map) this.map.invalidateSize();
+        }, 80);
+      }
+    };
+
+    tabs.querySelectorAll('.view-tab').forEach((btn) => {
+      btn.addEventListener('click', () => setView(btn.dataset.view));
+    });
+
+    // Vista inicial: lista en móvil (en desktop se ven ambas columnas)
+    if (window.innerWidth <= 1024) setView('list');
   }
 
   renderMapa() {

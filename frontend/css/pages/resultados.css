@@ -2875,3 +2875,86 @@
     font-size: 0.75rem;
   }
 }
+
+/* ============================================================
+   TABS DE VISTA (Lista | Mapa) — solo móvil
+   ============================================================ */
+.view-tabs {
+  display: none; /* oculto en desktop */
+}
+
+@media (max-width: 1024px) {
+  /* Header móvil estandarizado: logo + acciones en fila 1, tabs en fila 2 */
+  .header-content {
+    grid-template-columns: auto 1fr auto !important;
+    grid-template-rows: auto auto !important;
+  }
+
+  .logo { grid-column: 1; grid-row: 1; }
+  .hamburger { grid-column: 3; grid-row: 1; }
+  .btn-filter-mobile { grid-column: 3; grid-row: 2; justify-self: end; }
+
+  /* Barra de tabs full-width */
+  .view-tabs {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+  }
+
+  .view-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 12px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .view-tab.active {
+    background: #ffffff;
+    color: var(--azul-corporativo, #0f4761);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+
+  /* --- Alternancia Lista / Mapa --- */
+  #mainContainer.view-list .map-section { display: none !important; }
+  #mainContainer.view-map .listings-section { display: none !important; }
+
+  #mainContainer.view-list .listings-section {
+    order: 1;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+
+  #mainContainer.view-map .map-section {
+    display: block !important;
+    order: 1;
+    position: relative !important;
+    height: calc(100vh - 160px) !important;
+    min-height: 420px !important;
+    margin-bottom: 0 !important;
+  }
+  #mainContainer.view-map #map {
+    height: 100% !important;
+    border-radius: 0 !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .view-tabs { display: none !important; }
+}

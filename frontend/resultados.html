@@ -38,6 +38,16 @@
                     <a href="/?openModal=true" class="btn btn-outline">← Volver a Filtros</a>
                     <span id="usuarioInfo" class="usuario-info">Usuario: Invitado</span>
                 </div>
+
+                <!-- Tabs de vista (solo móvil): Lista | Mapa -->
+                <div class="view-tabs" id="viewTabs" role="tablist" aria-label="Vista de resultados">
+                    <button type="button" class="view-tab active" data-view="list" role="tab" aria-selected="true">
+                        <i class="fa-solid fa-list"></i> Lista
+                    </button>
+                    <button type="button" class="view-tab" data-view="map" role="tab" aria-selected="false">
+                        <i class="fa-solid fa-map-location-dot"></i> Mapa
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -101,7 +111,7 @@
     </div>
 
     <!-- Main Content: Filtros + Cards + Mapa -->
-    <div id="mainContainer" class="main-container">
+    <div id="mainContainer" class="main-container view-list">
         <!-- Columna Izquierda: Filtros (Acordeón) -->
         <aside class="filters-section" id="filtersSection">
             <div class="filters-inner">
