@@ -41,7 +41,6 @@
                     <li><a href="#" id="btnBuscarNav">Buscar</a></li>
                     <li><a href="#nosotros">Nosotros</a></li>
                     <li><a href="#servicios">Servicios</a></li>
-                    <li><a href="#" id="btnPublicarInmueble">Publicar Inmueble</a></li>
                     <li class="nav-login-item"><a href="/login" class="nav-login">Iniciar Sesión</a></li>
                 </ul>
             </nav>
@@ -57,9 +56,8 @@
 
         <div class="container hero__inner">
             <div class="hero__content">
-                <span class="hero__badge">ESPACIOS QUE IMPULSAN<br>GRANDES NEGOCIOS</span>
-                <h1 class="hero__title">Encuentra el<br><span class="hl">inmueble ideal</span><br>para tu empresa</h1>
-                <p class="hero__desc">Plataforma especializada en inmuebles corporativos. Oficinas, locales, terrenos y edificios en las mejores zonas del país.</p>
+                <h1 class="hero__title">Plataforma especializada en <span class="hl">Dinamizar</span> la Comercialización y Búsqueda de inmuebles <span class="hl">PRIME</span> del mercado.</h1>
+                <p class="hero__desc">Encuentre su <strong>LOCACIÓN IDÓNEA</strong> de manera rápida, segura y objetiva.</p>
 
                 <div class="hero__tabs" id="heroTipoTabs">
                     <button type="button" class="hero-tab active" data-tipo="1"><i class="fa-regular fa-building"></i> Oficinas</button>
@@ -68,35 +66,31 @@
                     <button type="button" class="hero-tab" data-tipo="12"><i class="fa-regular fa-building-columns"></i> Edificios</button>
                 </div>
 
-                <div class="hero__search-row">
-                    <div class="hero-search-bar">
-                        <div class="hero-field hero-field--zona">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <div class="hero-search-distrito">
-                                <button type="button" class="distrito-trigger" id="heroDistritoTrigger">Zona, distrito o edificio…</button>
-                                <div class="distrito-dropdown" id="heroDistritoDropdown">
-                                    <input type="text" class="distrito-search-input" id="heroDistritoSearch" placeholder="Buscar distrito...">
-                                    <div class="distrito-options" id="heroDistritoOptions"></div>
-                                </div>
+                <div class="hero-search-bar">
+                    <div class="hero-field hero-field--zona">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <div class="hero-search-distrito">
+                            <button type="button" class="distrito-trigger" id="heroDistritoTrigger">Distrito de Lima…</button>
+                            <div class="distrito-dropdown" id="heroDistritoDropdown">
+                                <input type="text" class="distrito-search-input" id="heroDistritoSearch" placeholder="Buscar distrito...">
+                                <div class="distrito-options" id="heroDistritoOptions"></div>
                             </div>
                         </div>
-                        <select id="heroTransaccion" class="hero-select" aria-label="Operación">
-                            <option value="venta">Venta</option>
-                            <option value="alquiler">Alquiler</option>
-                        </select>
-                    <input type="number" id="heroMetraje" class="hero-select hero-input" placeholder="Metraje (m²)" min="0" step="10" aria-label="Metraje">
-                        <button class="btn btn-primary btn-buscar-hero" id="btnBuscarHeroInline"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
                     </div>
-
-                    <aside class="hero__audiences">
-                        <div class="audience"><i class="fa-regular fa-building"></i><span>Empresas</span></div>
-                        <div class="audience"><i class="fa-solid fa-user-tie"></i><span>Inversionistas</span></div>
-                        <div class="audience"><i class="fa-solid fa-briefcase"></i><span>Fondos</span></div>
-                        <div class="audience"><i class="fa-solid fa-handshake"></i><span>Corredores</span></div>
-                    </aside>
+                    <select id="heroTransaccion" class="hero-select" aria-label="Venta o Alquiler">
+                        <option value="venta">Venta</option>
+                        <option value="alquiler">Alquiler</option>
+                    </select>
+                    <input type="number" id="heroMetraje" class="hero-select hero-input" placeholder="Metraje (m²)" min="0" step="10" aria-label="Metraje">
+                    <input type="number" id="heroPrecio" class="hero-select hero-input" placeholder="Precio estimado (US$)" min="0" step="1000" aria-label="Precio estimado">
+                    <button class="btn btn-primary btn-buscar-hero" id="btnBuscarHeroInline"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
                 </div>
 
-                <a href="#" id="btnBusquedaAvanzada" class="hero__advanced"><i class="fa-solid fa-sliders"></i> Búsqueda avanzada</a>
+                <div class="hero__actions">
+                    <a href="#" id="btnBusquedaAvanzada" class="hero__advanced"><i class="fa-solid fa-sliders"></i> Búsqueda avanzada</a>
+                    <button type="button" class="btn-hero-publicar" id="btnPublicarInmueble"><i class="fa-solid fa-bullhorn"></i> PUBLICAR</button>
+                </div>
+                <p class="hero__pub-note">Promocione su inmueble sin costo de Publicación ni tiempo limitado</p>
 
                 <!-- Select real que usa home.js (sincronizado por las tabs) -->
                 <select id="heroTipoInmueble" hidden aria-hidden="true"></select>
@@ -108,24 +102,24 @@
     <section class="value-section" id="nosotros">
         <div class="container value-grid">
             <div class="value-item">
-                <i class="fa-solid fa-magnifying-glass"></i>
+                <i class="fa-solid fa-magnifying-glass-chart"></i>
                 <h3>Búsqueda Precisa</h3>
-                <p>Encuentra inmuebles que realmente se ajusten a tu necesidad.</p>
+                <p>Uso de Filtros Avanzados que perfila tu Búsqueda</p>
             </div>
             <div class="value-item">
                 <i class="fa-solid fa-chart-line"></i>
                 <h3>Mejor Oferta</h3>
-                <p>Compara alternativas para tomar la mejor decisión.</p>
+                <p>Simuladores y Comparativos para elección correcta</p>
             </div>
             <div class="value-item">
                 <i class="fa-solid fa-shield-halved"></i>
-                <h3>Publica con Confianza</h3>
-                <p>Tus inmuebles llegan a clientes serios y calificados.</p>
+                <h3>Confianza y Seguridad</h3>
+                <p>Navega y Publica con total confianza y tranquilidad</p>
             </div>
             <div class="value-item">
-                <i class="fa-regular fa-handshake"></i>
-                <h3>Experiencia Segura</h3>
-                <p>Te acompañamos en todo el proceso inmobiliario.</p>
+                <i class="fa-solid fa-handshake"></i>
+                <h3>Win to Win</h3>
+                <p>Relaciones de largo plazo basadas en ética y resultados</p>
             </div>
         </div>
     </section>
@@ -139,7 +133,6 @@
                     <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800&q=80" alt="Oficinas" loading="lazy">
                     <div class="type-card__body">
                         <h3>Oficinas</h3>
-                        <p>Espacios corporativos en ubicaciones estratégicas</p>
                     </div>
                     <span class="type-card__arrow"><i class="fa-solid fa-arrow-right"></i></span>
                 </a>
@@ -147,7 +140,6 @@
                     <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80" alt="Locales" loading="lazy">
                     <div class="type-card__body">
                         <h3>Locales</h3>
-                        <p>Ubicaciones comerciales para hacer crecer tu negocio</p>
                     </div>
                     <span class="type-card__arrow"><i class="fa-solid fa-arrow-right"></i></span>
                 </a>
@@ -155,7 +147,6 @@
                     <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80" alt="Terrenos" loading="lazy">
                     <div class="type-card__body">
                         <h3>Terrenos</h3>
-                        <p>Oportunidades de inversión de alto potencial</p>
                     </div>
                     <span class="type-card__arrow"><i class="fa-solid fa-arrow-right"></i></span>
                 </a>
@@ -163,32 +154,10 @@
                     <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80" alt="Edificios" loading="lazy">
                     <div class="type-card__body">
                         <h3>Edificios</h3>
-                        <p>Activos empresariales en venta o alquiler</p>
                     </div>
                     <span class="type-card__arrow"><i class="fa-solid fa-arrow-right"></i></span>
                 </a>
             </div>
-        </div>
-    </section>
-
-    <!-- ============ OPORTUNIDADES ============ -->
-    <section class="opportunities">
-        <div class="container opportunities__grid">
-            <div class="opportunities__text">
-                <span class="eyebrow">PARA INVERSIONISTAS<br>Y DESARROLLADORES</span>
-                <h2>Oportunidades<br><span class="hl">de alto potencial</span></h2>
-                <p>Conecta con terrenos, edificios y activos estratégicos para proyectos corporativos, comerciales y de uso mixto.</p>
-                <a href="#" class="btn btn-primary" id="btnConocerOportunidades">Conocer oportunidades <i class="fa-solid fa-arrow-right"></i></a>
-            </div>
-            <div class="opportunities__image">
-                <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1000&q=80" alt="Desarrollo inmobiliario" loading="lazy">
-            </div>
-            <ul class="opportunities__list">
-                <li><i class="fa-regular fa-building"></i> Terrenos estratégicos para desarrollo</li>
-                <li><i class="fa-regular fa-building"></i> Edificios con potencial de reposicionamiento</li>
-                <li><i class="fa-solid fa-chart-line"></i> Mercado corporativo en crecimiento</li>
-                <li><i class="fa-solid fa-handshake"></i> Acompañamiento en todo el proceso</li>
-            </ul>
         </div>
     </section>
 
@@ -200,12 +169,12 @@
         </div>
     </section>
 
-    <!-- ============ CTA / CONTACTO ============ -->
-    <section class="cta">
+    <!-- ============ CONTACTO / APOYO ============ -->
+    <section class="cta" id="contacto">
         <div class="container cta__grid">
             <div class="cta__text">
-                <h2>¿Quieres incorporar tu inmueble al equipo?</h2>
-                <p>Contáctanos y te ayudaremos a comercializar tu propiedad con clientes corporativos.</p>
+                <h2>¿Necesitas apoyo?</h2>
+                <p>Si necesita apoyo en el proceso de ingreso de data, permítanos sus datos para contactarlo.</p>
             </div>
             <form class="contacto-form cta__form" id="contactoForm">
                 <div class="cta__row">
@@ -216,6 +185,18 @@
                 <button type="submit" class="btn btn-primary"><i class="fa-regular fa-paper-plane"></i> Enviar Mensaje</button>
                 <div class="contacto-mensaje" id="contactoMensaje"></div>
             </form>
+        </div>
+    </section>
+
+    <!-- ============ AGENTES INMOBILIARIOS ============ -->
+    <section class="agents" id="agentes">
+        <div class="container agents__inner">
+            <div class="agents__text">
+                <span class="eyebrow">COLABORADORES ESTRATÉGICOS</span>
+                <h2>¿Eres Agente Inmobiliario?</h2>
+                <p>Si eres Agente Inmobiliario y deseas ser parte de nuestros colaboradores estratégicos, contáctanos.</p>
+            </div>
+            <a href="/registro" class="btn btn-primary agents__btn">Quiero ser parte <i class="fa-solid fa-arrow-right"></i></a>
         </div>
     </section>
 
@@ -241,7 +222,7 @@
                         <li><a href="/busqueda">Buscar</a></li>
                         <li><a href="#nosotros">Nosotros</a></li>
                         <li><a href="#servicios">Servicios</a></li>
-                        <li><a href="#" id="footerPublicar">Publicar Inmueble</a></li>
+                        <li><a href="#contacto">Contacto</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">

@@ -270,6 +270,7 @@ class HomePage {
       const tipo = document.getElementById('heroTipoInmueble')?.value || activeTab?.dataset.tipo;
       const transaccion = document.getElementById('heroTransaccion')?.value || 'venta';
       const metraje = parseInt(document.getElementById('heroMetraje')?.value || '');
+      const precio = parseInt(document.getElementById('heroPrecio')?.value || '');
 
       if (!tipo) {
         Swal.fire({
@@ -289,8 +290,8 @@ class HomePage {
         tipo_inmueble_id: parseInt(tipo),
         transaccion: transaccion,
         area: metraje || null,
-        presupuesto_compra: null,
-        presupuesto_alquiler: null
+        presupuesto_compra: transaccion === 'venta' && precio ? precio : null,
+        presupuesto_alquiler: transaccion === 'alquiler' && precio ? precio : null
       };
 
       localStorage.setItem('filtros_simplificados', JSON.stringify(filtros));

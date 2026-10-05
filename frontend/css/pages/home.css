@@ -102,9 +102,9 @@ body.home .container {
 .home .hero-tab.active { background: #fff; color: var(--q-primary); }
 
 .home .hero-search-bar {
-  display: grid; grid-template-columns: 1.6fr 1fr 1fr auto; gap: 6px;
+  display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr auto; gap: 6px;
   background: #fff; border-radius: 12px; padding: 6px; box-shadow: var(--shadow-md);
-  flex: 1 1 640px; max-width: 860px;
+  flex: 1 1 720px; max-width: 980px;
 }
 .home .hero-field { display: flex; align-items: center; gap: 8px; padding: 0 10px; border-right: 1px solid var(--q-border); }
 .home .hero-field > i { color: var(--q-text-secondary); }
@@ -325,4 +325,32 @@ body.home .container {
   .home .cta__form .btn-primary { align-self: stretch; }
   .home .footer-grid { grid-template-columns: 1fr; }
   .home .footer-bottom { flex-direction: column; text-align: center; }
+}
+
+/* ---------------- Hero: acciones (Búsqueda avanzada + PUBLICAR) ---------------- */
+.home .hero__actions {
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 14px;
+}
+.home .hero__actions .hero__advanced { margin-top: 0; }
+.home .btn-hero-publicar {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.55);
+  border-radius: 10px; padding: 11px 24px; font-weight: 700; letter-spacing: .05em;
+  font-size: 14px; cursor: pointer; transition: var(--transition);
+}
+.home .btn-hero-publicar:hover { background: #fff; color: var(--q-primary); border-color: #fff; }
+.home .hero__pub-note { color: #dbe8ed; font-size: 13px; margin: 12px 0 0; }
+.home .hero__desc strong { color: #fff; letter-spacing: .02em; }
+
+/* ---------------- Agentes Inmobiliarios ---------------- */
+.home .agents { background: var(--q-white); border-top: 1px solid var(--q-border); padding-block: 46px; }
+.home .agents__inner { display: flex; align-items: center; justify-content: space-between; gap: 28px; flex-wrap: wrap; }
+.home .agents__text { max-width: 760px; }
+.home .agents__text .eyebrow { color: var(--q-primary); font-size: 12px; font-weight: 800; letter-spacing: .12em; }
+.home .agents__text h2 { color: var(--q-text); font-size: 26px; font-weight: 800; margin: 8px 0 8px; }
+.home .agents__text p { color: var(--q-text-secondary); font-size: 15px; margin: 0; }
+.home .agents__btn { flex: 0 0 auto; }
+@media (max-width: 640px) {
+  .home .agents__inner { flex-direction: column; align-items: flex-start; }
+  .home .agents__btn { align-self: stretch; justify-content: center; }
 }
